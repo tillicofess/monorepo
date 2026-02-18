@@ -1,1 +1,1 @@
-pnpm lint:biome && pnpm lint:cspell
+pnpm precommit
