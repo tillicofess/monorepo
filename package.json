@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type" : "module",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint:biome": "biome lint .",
     "lint:cspell": "cspell '**/*.{ts,tsx,js,jsx,json,md}' --config cspell.json",
     "format": "biome format --write .",
-    "commit": "git-cz"
+    "commit": "git-cz",
+    "prepare": "husky"
   },
   "config": {
     "commitizen": {
@@ -34,6 +35,7 @@
     "commitizen": "^4.3.1",
     "cspell": "^9.6.4",
     "cz-git": "^1.12.0",
+    "husky": "^9.1.7",
     "typescript": "^5.9.3"
   }
 }
