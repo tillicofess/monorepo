@@ -5,9 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "dev:ssr-mdx": "pnpm --filter @monorepo/ssr-mdx dev",
+    "build:ssr-mdx": "pnpm --filter @monorepo/ssr-mdx build",
+    "start:ssr-mdx": "pnpm --filter @monorepo/ssr-mdx start",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint:biome": "biome lint .",
     "lint:cspell": "cspell '**/*.{ts,tsx,js,jsx,json,md}' --config cspell.json",
+    "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "commit": "git-cz",
     "prepare": "husky",

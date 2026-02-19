@@ -1,0 +1,62 @@
+---
+title: "Interactive Code with Sandpack"
+date: "2026-02-09"
+author: "Trae Assistant"
+---
+
+# Interactive Code Snippets
+
+This post demonstrates how to use the embedded **Sandpack** editor to run live code.
+
+## Basic Example
+
+Here is a simple React counter component:
+
+<Sandpack 
+  template="react"
+  files={{
+    "/App.js": `import { useState } from "react";
+
+export default function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div style={{ fontFamily: "system-ui", padding: "20px" }}>
+      <h1>Hello Sandpack</h1>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}`
+  }}
+/>
+
+## Custom Styling
+
+You can also customize the editor files and logic.
+
+<Sandpack 
+  template="react"
+  options={{
+    showLineNumbers: true, 
+    showInlineErrors: true,
+    editorHeight: 300
+  }}
+  files={{
+    "/App.js": `export default function App() {
+  return (
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh',
+      background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
+      color: 'white',
+      fontFamily: 'sans-serif'
+    }}>
+      <h1>Styled with Sandpack! 🎨</h1>
+    </div>
+  );
+}`
+  }}
+/>

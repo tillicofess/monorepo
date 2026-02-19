@@ -14,10 +14,17 @@
     "dist",
     "build",
     "coverage",
+    ".git",
+    ".next",
+    ".turbo",
     "**/*.min.*",
+    "**/*.lock",
     "**/vendor/**",
     "**/public/**",
     "**/static/**",
-    "**/out/**"
+    "**/out/**",
+    "CHANGELOG.md",
+    "LICENSE",
+    "pnpm-lock.yaml"
   ]
 }

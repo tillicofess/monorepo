@@ -1,0 +1,131 @@
+---
+title: "Next.js MDX 目录(TOC)实现原理深度解析"
+date: "2026-02-09"
+author: "Trae Assistant"
+---
+
+# Next.js MDX 目录(TOC)实现原理深度解析
+
+在技术博客中，一个功能完善的目录（Table of Contents, TOC）能极大提升阅读体验。本文将深入解析本博客系统中 TOC 的实现方案，涵盖从 Markdown 解析到前端交互的全过程。
+
+## 1. 整体架构
+
+我们的 TOC 实现分为两个主要阶段：
+1.  **服务端（解析阶段）**：提取 Markdown 内容中的标题信息（层级、文本、Slug）。
+2.  **客户端（交互阶段）**：渲染目录结构，并实现滚动监听（Spy）和点击跳转。
+
+## 2. 服务端：标题提取
+
+在 Next.js App Router 中，我们尽量在服务端完成繁重的工作。
+
+### 2.1 提取逻辑 (`lib/mdx.ts`)
+
+我们不需要在客户端去解析 DOM 来获取标题，而是直接分析 MDX 源文件。
+
+```typescript
+// lib/mdx.ts
+import GithubSlugger from 'github-slugger';
+
+export async function getHeadings(source: string) {
+  // 使用正则匹配 Markdown 标题语法 (e.g. ## Title)
+  const headingRegex = /^(#{1,6})\s+(.*)$/gm;
+  const slugger = new GithubSlugger();
+  const headings = [];
+  let match;
+
+  while ((match = headingRegex.exec(source)) !== null) {
+    const level = match[1].length; // # 的数量即为层级
+    const text = match[2].trim();
+    // 生成 URL 友好的 slug (e.g. "My Title" -> "my-title")
+    const slug = slugger.slug(text);
+    headings.push({ level, text, slug });
+  }
+
+  return headings;
+}
+```
+
+### 2.2 给标题添加 ID
+
+为了能跳转，MDX 渲染出的 HTML 标题标签必须包含 `id` 属性。我们使用了两个 Rehype 插件：
+
+*   **`rehype-slug`**: 自动根据标题文本生成 `id` 属性。
+*   **`rehype-autolink-headings`**: 给标题添加锚点链接（`<a>`），方便用户复制分享。
+
+```typescript
+// app/blog/[slug]/page.tsx
+<MDXRemote 
+  source={post.content} 
+  options={{
+    mdxOptions: {
+      rehypePlugins: [
+        rehypeSlug, // 关键：生成 id="heading-text"
+        [rehypeAutolinkHeadings, { behavior: 'wrap' }]
+      ],
+    },
+  }}
+/>
+```
+
+## 3. 客户端：交互组件
+
+`TableOfContents` 组件接收服务端提取的 `headings` 数据，并在浏览器端负责交互。
+
+### 3.1 滚动监听 (Scroll Spy)
+
+这是 TOC 最复杂的部分：如何知道当前用户正在阅读哪个章节？我们使用了 `IntersectionObserver` API。
+
+```typescript
+// components/mdx/TableOfContents.tsx
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // 当某个标题进入视口时，更新激活状态
+          setActiveId(entry.target.id);
+        }
+      });
+    },
+    // rootMargin 是关键：设置判定区域
+    // '0% 0% -80% 0%' 表示只有视口顶部 20% 的区域被视为"当前阅读区"
+    { rootMargin: '0% 0% -80% 0%' }
+  );
+
+  // 监听所有标题元素
+  headings.forEach((heading) => {
+    const element = document.getElementById(heading.slug);
+    if (element) observer.observe(element);
+  });
+  
+  // ...清理逻辑
+}, [headings]);
+```
+
+### 3.2 平滑滚动
+
+点击目录项时，我们拦截默认行为，使用 `scrollIntoView` 实现平滑滚动。
+
+```typescript
+<a
+  href={`#${heading.slug}`}
+  onClick={(e) => {
+    e.preventDefault();
+    document.querySelector(`#${heading.slug}`)?.scrollIntoView({
+      behavior: 'smooth',
+    });
+    setActiveId(heading.slug); // 立即高亮，无需等待滚动结束
+  }}
+>
+  {heading.text}
+</a>
+```
+
+## 4. 总结
+
+这个方案的优点在于：
+*   **高性能**：标题提取在服务端完成，不阻塞客户端渲染。
+*   **SEO 友好**：生成的 HTML 包含语义化的 ID 和锚点。
+*   **体验丝滑**：`IntersectionObserver` 比传统的 `scroll` 事件监听性能更好，且 `rootMargin` 配置让高亮判定更符合直觉。
+
+现在，你可以在右侧看到本文的目录，试着滚动一下，观察高亮的变化！

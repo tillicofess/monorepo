@@ -1,0 +1,60 @@
+---
+title: "前端工程化学习路径：Vite, Webpack, Next.js"
+date: "2026-02-09"
+author: "Trae Assistant"
+---
+
+# 前端工程化学习路径
+
+在现代前端开发中，工程化工具是必不可少的。从构建工具到全栈框架，理解它们的演变和适用场景对于前端工程师至关重要。本文将带你梳理 Vite、Webpack 和 Next.js 的学习路径。
+
+## 1. Webpack：基石与经典
+
+虽然现在有很多新兴工具，但 Webpack 依然是前端工程化的基石。
+
+### 核心概念
+- **Entry & Output**: 定义打包的入口和出口。
+- **Loaders**: 让 Webpack 能够处理非 JavaScript 文件（如 CSS, Images, TypeScript）。
+- **Plugins**: 执行范围更广的任务，如打包优化、资源管理和环境变量注入。
+
+### 学习重点
+- 理解 Module Federation（模块联邦）及其在微前端中的应用。
+- 掌握性能优化策略：Code Splitting（代码分割）、Tree Shaking。
+- 编写自定义 Loader 和 Plugin。
+
+## 2. Vite：极速开发体验
+
+Vite 代表了新一代的构建工具，利用浏览器原生 ES Modules 提供了闪电般的开发服务器启动速度。
+
+### 核心优势
+- **No-bundle 开发服务**: 利用 ES Modules，按需编译，启动速度极快。
+- **Esbuild 预构建**: 使用 Go 编写的 Esbuild 进行依赖预构建，比 JS 编写的打包器快 10-100 倍。
+- **开箱即用**: 对 TypeScript、JSX、CSS 等提供了良好的默认支持。
+
+### 学习重点
+- 理解 Vite 的 HMR（热模块替换）原理。
+- 学习 Rollup 配置（Vite 生产环境打包基于 Rollup）。
+- 掌握 Vite 插件开发。
+
+## 3. Next.js：全栈与服务端渲染
+
+Next.js 是基于 React 的元框架，它将工程化实践提升到了框架层面，解决了 SSR（服务端渲染）、路由和 API 等问题。
+
+### 核心特性
+- **App Router**: 基于 React Server Components (RSC) 的全新路由架构。
+- **SSR & SSG**: 灵活的渲染策略，提升 SEO 和首屏性能。
+- **Server Actions**: 直接在组件中调用服务端函数，简化数据变更逻辑。
+
+### 学习重点
+- 深入理解 Server Components vs Client Components。
+- 掌握 Next.js 的缓存机制和数据获取策略。
+- 学习中间件（Middleware）和 API Routes 的使用。
+
+## 总结建议
+
+建议的学习顺序：
+1.  **基础阶段**: 先掌握 Webpack 的基本配置，理解打包原理。
+2.  **进阶阶段**: 转向 Vite，体验现代开发流程，并学习其背后的 Rollup 生态。
+3.  **高级阶段**: 深入 Next.js，将工程化思维应用到全栈开发中，解决实际的性能和架构问题。
+
+前端工程化不仅仅是会用工具，更是要理解工具解决了什么问题，以及如何根据项目需求选择最合适的工具栈。

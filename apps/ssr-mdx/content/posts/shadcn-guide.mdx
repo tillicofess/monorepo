@@ -1,0 +1,41 @@
+---
+title: "Installing Shadcn UI"
+date: "2026-02-09"
+author: "Trae Assistant"
+---
+
+# Getting Started with Shadcn UI
+
+Shadcn UI is a collection of re-usable components that you can copy and paste into your apps.
+
+## Installation
+
+Run the `init` command to create a `components.json` file:
+
+<PackageManagerTabs command="dlx" args="shadcn@latest init" />
+
+## Adding Components
+
+You can add components to your project using the `add` command.
+
+### Add Button
+
+<PackageManagerTabs command="dlx" args="shadcn@latest add button" />
+
+### Add Card
+
+<PackageManagerTabs command="dlx" args="shadcn@latest add card" />
+
+## Usage
+
+```tsx
+import { Button } from "@/components/ui/button"
+
+export default function Home() {
+  return (
+    <div>
+      <Button>Click me</Button>
+    </div>
+  )
+}
+```

@@ -1,0 +1,64 @@
+---
+title: "MDX 增强实战：Shadcn UI 集成与代码块优化"
+date: "2026-02-09"
+author: "Trae Assistant"
+---
+
+# MDX 增强实战
+
+本文记录了如何在本博客系统中集成 **Shadcn UI**，并实现了一个高度定制化的 **包管理器命令切换组件** 以及 **增强型代码块**。
+
+## 1. 目标效果
+
+我们的目标是复刻类似 Shadcn 文档中那种优雅的命令展示方式：
+- **多包管理器支持**：同一个命令自动生成 `npm`, `pnpm`, `yarn`, `bun` 四种变体。
+- **一键复制**：所有代码块和命令块都需支持一键复制。
+- **美观的 UI**：使用深色主题，统一的圆角和边框设计。
+
+## 2. 核心组件实现
+
+### 2.1 包管理器切换组件 (`PackageManagerTabs`)
+
+这个组件接收一个基础命令（如 `install`），然后根据选中的 Tab 动态生成对应的命令字符串。
+
+<PackageManagerTabs command="dlx" args="shadcn@latest add tabs" />
+
+**实现思路：**
+1.  **Props 设计**：接收 `command` (如 `install`, `create`, `dlx`) 和 `args` (参数)。
+2.  **命令转换逻辑**：编写 `getCommand` 函数，处理不同包管理器的语法差异（例如 `npx` vs `pnpm dlx`）。
+3.  **UI 布局**：使用 Shadcn 的 `Tabs` 组件作为基础，自定义 `TabsList` 和 `TabsContent` 的样式以匹配深色主题设计。
+
+### 2.2 增强型代码块 (`Pre` + `rehype-pretty-code`)
+
+为了让所有 Markdown 中的代码块都能获得语法高亮和复制功能，我们采用了以下方案：
+
+1.  **语法高亮**：使用 `rehype-pretty-code` 插件（基于 Shiki），在服务端构建时生成高亮 HTML。
+2.  **自定义渲染**：在 `MDXRemote` 中将 `pre` 标签映射到我们自定义的 `Pre` 组件。
+3.  **复制功能**：`Pre` 组件从 `children` 中提取原始文本，并渲染一个悬浮的 `CopyButton`。
+
+```tsx
+// components/mdx/Pre.tsx
+export default function Pre({ children, ...props }: any) {
+  // 自动提取原始文本用于复制
+  const rawText = extractText(children);
+
+  return (
+    <div className="relative group ...">
+      <CopyButton value={rawText} />
+      <pre {...props}>{children}</pre>
+    </div>
+  );
+}
+```
+
+## 3. 样式定制
+
+为了达到“图二”中的深色黑客风格，我们大量使用了 Tailwind CSS 的 `zinc` 色系：
+
+- **背景**：`bg-zinc-950` 用于代码块背景。
+- **边框**：`border-zinc-800` 用于微妙的分割线。
+- **交互**：复制按钮在 `group-hover` 时才显示，保持界面整洁。
+
+## 4. 总结
+
+通过结合 **Next.js MDX**, **Shadcn UI** 和 **Rehype 插件生态**，我们不仅实现了功能强大的文档系统，还提供了极佳的阅读和交互体验。现在，你可以直接在 MDX 中使用 `<PackageManagerTabs />` 来展示安装命令，而普通的 Markdown 代码块也会自动获得“超能力”。
