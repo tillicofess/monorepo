@@ -1,5 +1,5 @@
 {
-  "name": "csrBackend",
+  "name": "@monorepo/csr-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,5 +9,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.29.3"
+  "packageManager": "pnpm@10.29.3",
+  "dependencies": {
+    "@monorepo/utils": "workspace:*"
+  }
 }

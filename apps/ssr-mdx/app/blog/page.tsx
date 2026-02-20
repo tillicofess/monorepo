@@ -69,7 +69,7 @@ export default function BlogPage() {
                   {year}
                 </h2>
                 <div className="grid gap-4">
-                  {groupedPosts[year].map((post) => (
+                  {groupedPosts[year]?.map((post) => (
                     <article
                       key={post.slug}
                       className="group relative rounded-xl border p-6 transition-colors hover:bg-muted/50"

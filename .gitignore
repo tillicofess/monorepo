@@ -1,9 +1,8 @@
 node_modules/
 
-# language
-biome.json
-
-.npmrc
-
 pnpm-lock.yaml
 docs
+
+# packages
+packages/*/dist/
+packages/*/node_modules/

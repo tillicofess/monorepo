@@ -27,7 +27,6 @@ export default {
       customScope: '输入自定义 scope:',
       subject: '简短描述:',
       body: "详细描述 (可选). 使用 '|' 换行:",
-      breaking: '是否有破坏性变更? (y/N)',
       confirmCommit: '确定提交?',
     },
     types: [
@@ -43,11 +42,12 @@ export default {
       { value: 'revert', name: 'revert:  回滚提交', emoji: '⏪' },
     ],
     scopes: [
-      { name: 'app' },
+      { name: 'root' },
+      { name: 'ssr-mdx' },
       { name: 'bff-backend' },
       { name: 'csr-backend' },
-      { name: 'ssr-mdx' },
-      { name: 'packages' },
+      { name: 'ui' },
+      { name: 'utils' },
       { name: 'config' },
       { name: 'deps' },
       { name: 'docs' },
