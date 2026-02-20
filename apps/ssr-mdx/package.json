@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "cp -r .next/static .next/standalone/apps/ssr-mdx/.next/ && mkdir -p .next/standalone/apps/ssr-mdx/public && cp -r public/* .next/standalone/apps/ssr-mdx/public/",
     "start": "next start",
     "analyze": "ANALYZE=true next build --webpack",
     "analyze:turbo": "next experimental-analyze"
