@@ -3,9 +3,7 @@ import type { User } from '@/features/portfolio/types/user';
 export const USER = {
   displayName: 'Till i Confess',
   gender: 'male',
-  flipSentences: [
-    '',
-  ],
+  flipSentences: [''],
   email: 'ZGFpQGNoYW5oZGFpLmNvbQ==', // base64 encoded
   website: 'https://ticscreek.top',
   jobTitle: 'Design Engineer',

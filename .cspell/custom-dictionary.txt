@@ -2,6 +2,7 @@ bunx
 cmdk
 codesandbox
 duyi
+fumadocs
 gsap
 lintstagedrc
 myrealm
