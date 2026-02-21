@@ -2,65 +2,69 @@ import fs from 'node:fs';
 import path from 'node:path';
 import GithubSlugger from 'github-slugger';
 import matter from 'gray-matter';
+import { cache } from 'react';
+import type { Post, PostMetaData } from '@/features/blog/types/post';
 
-const postsDirectory = path.join(process.cwd(), 'content/posts');
+function parseFrontmatter(fileContent: string) {
+  const file = matter(fileContent);
 
-export interface PostData {
-  title: string;
-  slug: string;
-  date: string;
-  author: string;
-  content?: string;
-  [key: string]: string | undefined;
-}
-
-export function getPostSlugs() {
-  return fs.readdirSync(postsDirectory);
-}
-
-export function getPostBySlug(slug: string, fields: string[] = []): PostData {
-  const realSlug = slug.replace(/\.mdx$/, '');
-  const fullPath = path.join(postsDirectory, `${realSlug}.mdx`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const { data, content } = matter(fileContents);
-
-  const items: PostData = {
-    title: '',
-    slug: realSlug,
-    date: '',
-    author: '',
+  return {
+    metadata: file.data as PostMetaData,
+    content: file.content,
   };
+}
 
-  fields.forEach((field) => {
-    if (field === 'slug') {
-      items[field] = realSlug;
-    } else if (field === 'content') {
-      items[field] = content;
-    } else if (typeof data[field] === 'string') {
-      items[field as keyof PostData] = data[field];
-    }
+function getMDXFiles(dir: string) {
+  return fs.readdirSync(dir).filter((file) => path.extname(file) === '.mdx');
+}
+
+function readMDXFile(filePath: string) {
+  const rawContent = fs.readFileSync(filePath, 'utf-8');
+  return parseFrontmatter(rawContent);
+}
+
+function getMDXData(dir: string) {
+  const mdxFiles = getMDXFiles(dir);
+
+  return mdxFiles.map<Post>((file) => {
+    const { metadata, content } = readMDXFile(path.join(dir, file));
+
+    const slug = path.basename(file, path.extname(file));
+
+    return {
+      metadata,
+      slug,
+      content,
+    };
   });
-
-  return items;
 }
 
-export function getAllPosts(fields: string[] = []): PostData[] {
-  const slugs = getPostSlugs();
-  const posts = slugs
-    .map((slug) => getPostBySlug(slug, fields))
-    .sort((post1, post2) => (post1.date > post2.date ? -1 : 1));
-  return posts;
+export const getAllPosts = cache(() => {
+  return getMDXData(path.join(process.cwd(), 'features/blog/content')).sort((a, b) => {
+    return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
+  });
+});
+
+export function getPostBySlug(slug: string) {
+  return getAllPosts().find((post) => post.slug === slug);
 }
 
-export async function getHeadings(source: string) {
+export function getPostsByCategory(category: string) {
+  return getAllPosts().filter((post) => post.metadata?.category === category);
+}
+
+export type Heading = {
+  level: number;
+  text: string;
+  slug: string;
+};
+
+export function getHeadings(source: string): Heading[] {
   const slugger = new GithubSlugger();
-  const headings: Array<{ level: number; text: string; slug: string }> = [];
+  const headings: Heading[] = [];
 
-  // Remove code blocks (fenced and indented) to avoid matching comments as headings
   const sourceWithoutCodeBlocks = source
-    // Remove fenced code blocks (```...``` or ~~~...~~~)
     .replace(/^(```|~~~)[\s\S]*?\1$/gm, '')
-    // Remove indented code blocks (4+ spaces or tab at start)
     .replace(/^(\t|[ ]{4,}).*$/gm, '');
 
   const headingRegex = /^(#{1,6})\s+(.*)$/gm;

@@ -24,6 +24,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-edge: var(--edge);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -64,6 +65,7 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
+  --edge: color-mix(in oklab, var(--border) 64%, var(--background));
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -119,6 +121,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -179,4 +182,12 @@
   .prose table tbody tr:hover {
     @apply bg-muted/30;
   }
+}
+
+@utility screen-line-before {
+  @apply relative before:absolute before:top-0 before:-left-[100vw] before:-z-1 before:h-px before:w-[200vw] before:bg-edge;
+}
+
+@utility screen-line-after {
+  @apply relative after:absolute after:bottom-0 after:-left-[100vw] after:-z-1 after:h-px after:w-[200vw] after:bg-edge;
 }

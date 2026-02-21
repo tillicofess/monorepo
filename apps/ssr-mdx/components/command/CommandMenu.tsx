@@ -14,13 +14,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from '@/components/ui/command';
-
-interface Post {
-  title: string;
-  slug: string;
-  date: string;
-  author?: string;
-}
+import type { Post } from '@/features/blog/types/post';
 
 interface CommandMenuProps {
   posts: Post[];
@@ -79,13 +73,13 @@ export function CommandMenu({ posts }: CommandMenuProps) {
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Articles">
-            {posts.slice(0, 6).map((post) => (
+            {posts.map((post) => (
               <CommandItem
                 key={post.slug}
                 onSelect={() => runCommand(() => router.push(`/blog/${post.slug}`))}
               >
                 <FileText className="mr-2 h-4 w-4" />
-                {post.title}
+                {post.metadata.title}
               </CommandItem>
             ))}
           </CommandGroup>

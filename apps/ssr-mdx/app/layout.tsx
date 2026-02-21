@@ -5,6 +5,7 @@ import AuthProvider from '@/components/auth/AuthProvider';
 import CrispChat from '@/components/CrispChat';
 import { ThemeProvider } from '@/components/theme-provider';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const geist = localFont({
   src: [
@@ -27,11 +28,7 @@ export const metadata: Metadata = {
   description: 'Building things with code and writing about the journey',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geist.variable} ${geistMono.variable} antialiased`}>
@@ -42,7 +39,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
+            <TooltipProvider>{children}</TooltipProvider>
             <ScrollToTop />
             <CrispChat />
           </AuthProvider>

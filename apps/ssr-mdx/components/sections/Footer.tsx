@@ -1,49 +1,39 @@
-'use client';
-
-import { ArrowUp, Github, Rss, Twitter } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-
-const socialLinks = [
-  { name: 'GitHub', href: 'https://github.com', icon: Github },
-  { name: 'Twitter', href: 'https://twitter.com', icon: Twitter },
-  { name: 'RSS', href: '/rss', icon: Rss },
-];
+import { Icons } from '@/components/icons';
+import { cn } from '@/lib/utils';
 
 export function Footer() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <footer className="border-t py-8">
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <div className="flex flex-col items-center gap-2 sm:items-start">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Built with Next.js & shadcn/ui
-          </p>
+    <footer className="max-w-screen overflow-x-hidden px-2">
+      <div className="screen-line-before mx-auto border-x border-edge pt-4 md:max-w-3xl">
+        <p className="font-mono text-xs text-zinc-400 dark:text-zinc-600 text-center">
+          © {new Date().getFullYear()}
+        </p>
+
+        <div className="screen-line-before screen-line-after flex w-full before:z-1 after:z-1 justify-center align-center">
+          <div className="mx-auto flex items-center justify-center gap-3 bg-background px-4">
+            <Separator />
+
+            <a
+              className="flex items-center text-muted-foreground transition-[color] hover:text-foreground"
+              href="https://github.com/tillicofess"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icons.github className="size-4" />
+              <span className="sr-only">GitHub</span>
+            </a>
+
+            <Separator />
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          {socialLinks.map((link) => (
-            <Button key={link.name} variant="ghost" size="icon" className="h-8 w-8" asChild>
-              <Link
-                href={link.href}
-                target={link.href.startsWith('http') ? '_blank' : undefined}
-                rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                aria-label={link.name}
-              >
-                <link.icon className="h-4 w-4" />
-              </Link>
-            </Button>
-          ))}
-          <Separator orientation="vertical" className="h-4" />
-          <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={scrollToTop}>
-            Back to top
-            <ArrowUp className="h-3 w-3" />
-          </Button>
-        </div>
+      </div>
+      <div className="pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="flex h-2" />
       </div>
     </footer>
   );
+}
+
+function Separator({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div className={cn('flex h-11 w-px bg-edge', className)} {...props} />;
 }
