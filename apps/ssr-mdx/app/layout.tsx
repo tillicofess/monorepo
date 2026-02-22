@@ -24,8 +24,11 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Developer Blog',
-  description: 'Building things with code and writing about the journey',
+  title: 'Till i Confess | Design Engineer',
+  description: 'A design engineer building things with code',
+  icons: {
+    icon: '/logo.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

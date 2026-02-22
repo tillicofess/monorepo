@@ -4,12 +4,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Prose } from '@/components/ui/typography';
+import { CommentSection } from '@/features/blog/components/comment/comment-section';
 import { InlineTOC } from '@/features/blog/components/inline-toc';
 import { MDX } from '@/features/blog/components/mdx';
 import { Separator } from '@/features/portfolio/components/separator';
-import { getPostBySlug } from '@/lib/mdx';
-import CommentSection from '@/features/blog/components/CommentSection';
-import { getAllPosts } from '@/lib/mdx';
+import { getAllPosts, getPostBySlug } from '@/lib/mdx';
 
 export function generateStaticParams() {
   const posts = getAllPosts();

@@ -1,0 +1,200 @@
+---
+title: Next.js 环境变量使用指南
+date: 2026-02-22
+description: 深入了解 Next.js 中的环境变量加载机制、客户端与服务端变量的区别，以及生产环境部署配置。
+category: Next.js
+image: /images/blog/environment-variables.svg
+---
+
+Next.js 内置了强大的环境变量支持，本文将详细介绍其工作原理及最佳实践。
+
+## 加载环境变量
+
+Next.js 支持从 `.env*` 文件加载环境变量到 `process.env`：
+
+```bash
+DB_HOST=localhost
+DB_USER=myuser
+DB_PASS=mypassword
+```
+
+在代码中直接使用：
+
+```typescript
+// app/api/route.ts
+export async function GET() {
+  const db = await myDB.connect({
+    host: process.env.DB_HOST,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+  })
+}
+```
+
+### 多行变量
+
+支持多行字符串：
+
+```bash
+PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
+...
+-----END RSA PRIVATE KEY-----"
+```
+
+或使用 `\n`：
+
+```bash
+PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
+```
+
+### 变量引用
+
+支持引用其他变量：
+
+```bash
+TWITTER_USER=nextjs
+TWITTER_URL=https://x.com/$TWITTER_USER
+```
+
+`process.env.TWITTER_URL` 将自动展开为 `https://x.com/nextjs`。
+
+如需使用 `$` 符号，使用 `\$` 转义。
+
+## 客户端与服务端变量
+
+### 服务端变量
+
+不带前缀的变量仅在 Node.js 环境中可用：
+
+```bash
+MYSQL_HOST=localhost
+MYSQL_PASSWORD=secret
+```
+
+这些变量**不会**暴露到浏览器。
+
+### 客户端变量
+
+添加 `NEXT_PUBLIC_` 前缀可使变量在浏览器中可用：
+
+```bash
+NEXT_PUBLIC_CRISP_WEBSITE_ID=abcdefghijk
+```
+
+Next.js 会在**构建时**将这类变量内联到 JavaScript bundle 中：
+
+```typescript
+// 构建前
+setupAnalyticsService(process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID)
+
+// 构建后（客户端收到）
+setupAnalyticsService('abcdefghijk')
+```
+
+> **注意**：动态查找不会内联：
+> ```typescript
+> const varName = 'NEXT_PUBLIC_ANALYTICS_ID'
+> setupAnalyticsService(process.env[varName]) // 不会内联
+> ```
+
+## 环境优先级
+
+环境变量按以下顺序查找，找到后停止：
+
+1. `process.env`（系统环境变量）
+2. `.env.${NODE_ENV}.local`
+3. `.env.local`（测试环境除外）
+4. `.env.${NODE_ENV}`
+5. `.env`
+
+例如：`NODE_ENV=development` 时，优先级为：
+```bash
+process.env → .env.development.local → .env.development → .env
+```
+
+## 三种环境
+
+| NODE_ENV | 说明 |
+|----------|------|
+| `development` | 本地开发 |
+| `production` | 生产构建 |
+| `test` | 单元测试 |
+
+```bash
+# .env.development.local - 开发环境本地覆盖
+# .env.production.local - 生产环境本地覆盖
+# .env.test - 测试环境专用
+```
+
+> **注意**：`.env.local` 在测试环境下不会加载，确保测试结果一致性。
+
+## 构建时 vs 运行时
+
+| 类型 | 特点 |
+|------|------|
+| `NEXT_PUBLIC_*` | 构建时内联，部署后无法修改 |
+| 普通变量 | 运行时读取，支持动态修改 |
+
+对于需要动态配置的变量（如数据库密码），有两条路：
+
+### 方案一：系统环境变量
+
+```bash
+# 部署时设置
+export MYSQL_PASSWORD=secret
+```
+
+### 方案二：复制 .env 文件
+
+在 `postbuild` 脚本中复制：
+
+```json
+{
+  "scripts": {
+    "postbuild": "cp .env.production .next/standalone/apps/ssr-mdx/.env.production"
+  }
+}
+```
+
+## 最佳实践
+
+### 文件规范
+
+```bash
+.env                  # 默认值，本地开发
+.env.local            # 本地敏感信息，不提交
+.env.production       # 生产环境默认值
+.env.production.local # 生产环境覆盖，优先级最高
+.env.example          # 模板，提交到仓库
+```
+
+确保在 `.gitignore` 中添加：
+
+```bash
+.env
+.env.local
+.env.production.local
+```
+
+### 安全建议
+
+- 敏感信息（密码、API Key）使用 `.env.local`
+- `.env.example` 仅包含非敏感的配置示例
+- 生产环境优先使用系统环境变量或密钥管理服务
+
+### 常用配置示例
+
+```bash
+# 本地开发
+DATABASE_URL=postgres://localhost:5432/mydb
+
+# 生产环境（使用系统变量或 .env.production）
+# DATABASE_URL 在运行时从系统环境变量读取
+```
+
+## 总结
+
+- 使用 `NEXT_PUBLIC_` 前缀暴露变量到客户端
+- 环境变量在构建时内联，构建后无法修改
+- 使用系统环境变量或复制 .env 文件实现动态配置
+- 遵循文件命名规范区分不同环境

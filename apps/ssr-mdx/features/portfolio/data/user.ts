@@ -4,7 +4,7 @@ export const USER = {
   displayName: 'Till i Confess',
   gender: 'male',
   flipSentences: [''],
-  email: 'ZGFpQGNoYW5oZGFpLmNvbQ==', // base64 encoded
+  email: '17858409452@163.com', // base64 encoded
   website: 'https://ticscreek.top',
   jobTitle: 'Design Engineer',
   avatar: 'https://avatars.githubusercontent.com/u/113968468?v=4',

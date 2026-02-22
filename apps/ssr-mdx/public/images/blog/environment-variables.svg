@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#1a1a2e"/>
+  <defs>
+    <linearGradient id="envGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#envGrad)"/>
+  <text x="600" y="280" font-family="system-ui, sans-serif" font-size="72" font-weight="700" fill="white" text-anchor="middle">Next.js</text>
+  <text x="600" y="370" font-family="system-ui, sans-serif" font-size="42" font-weight="400" fill="#4ade80" text-anchor="middle">环境变量</text>
+  <rect x="150" y="450" width="150" height="80" rx="8" fill="#22c55e" fill-opacity="0.3"/>
+  <text x="225" y="505" font-family="monospace" font-size="24" fill="#4ade80">.env</text>
+  <rect x="350" y="450" width="150" height="80" rx="8" fill="#3b82f6" fill-opacity="0.3"/>
+  <text x="425" y="505" font-family="monospace" font-size="24" fill="#60a5fa">dev</text>
+  <rect x="550" y="450" width="150" height="80" rx="8" fill="#f59e0b" fill-opacity="0.3"/>
+  <text x="625" y="505" font-family="monospace" font-size="24" fill="#fbbf24">prod</text>
+  <rect x="750" y="450" width="150" height="80" rx="8" fill="#8b5cf6" fill-opacity="0.3"/>
+  <text x="825" y="505" font-family="monospace" font-size="24" fill="#a78bfa">NEXT_</text>
+  <circle cx="1050" cy="490" r="60" fill="#4ade80" fill-opacity="0.1"/>
+  <text x="1050" y="505" font-family="monospace" font-size="48" fill="#4ade80" text-anchor="middle">{}</text>
+</svg>

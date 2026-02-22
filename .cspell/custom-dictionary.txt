@@ -1,4 +1,5 @@
 bunx
+chanhdai
 cmdk
 codesandbox
 duyi
@@ -12,5 +13,7 @@ rehype
 sandpack
 Sandpack
 shiki
+ticscreek
+ticscreektop
 vaul
 yoyo

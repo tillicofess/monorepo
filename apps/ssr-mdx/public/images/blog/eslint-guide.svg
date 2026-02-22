@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#1e1b4b"/>
+  <defs>
+    <linearGradient id="eslintGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#312e81"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#eslintGrad)"/>
+  <text x="600" y="260" font-family="system-ui, sans-serif" font-size="56" font-weight="700" fill="white" text-anchor="middle">ESLint</text>
+  <text x="600" y="330" font-family="system-ui, sans-serif" font-size="40" font-weight="600" fill="#c0aefe" text-anchor="middle">前端工程化配置指南</text>
+  <rect x="200" y="380" width="800" height="120" rx="12" fill="#0f0" fill-opacity="0.05"/>
+  <text x="600" y="450" font-family="monospace" font-size="32" fill="#4ade80" text-anchor="middle">npx eslint . --fix</text>
+  <circle cx="350" cy="450" r="20" fill="#4ade80"/>
+  <circle cx="850" cy="450" r="20" fill="#4ade80"/>
+  <rect x="280" y="430" width="140" height="40" rx="6" fill="#a855f7" fill-opacity="0.3"/>
+  <text x="350" y="457" font-family="monospace" font-size="18" fill="#d8b4fe" text-anchor="middle">flat config</text>
+  <rect x="780" y="430" width="140" height="40" rx="6" fill="#a855f7" fill-opacity="0.3"/>
+  <text x="850" y="457" font-family="monospace" font-size="18" fill="#d8b4fe" text-anchor="middle">TypeScript</text>
+</svg>

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { USER } from '@/features/portfolio/data/user';
 
 export function ProfileHeader() {
@@ -5,11 +6,13 @@ export function ProfileHeader() {
     <div className="screen-line-after flex border-x border-edge">
       <div className="shrink-0 border-r border-edge">
         <div className="mx-0.5 my-0.75">
-          <img
+          <Image
             className="size-30 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background select-none sm:size-40"
             alt={`${USER.displayName}'s avatar`}
             src={USER.avatar}
-            fetchPriority="high"
+            width={128}
+            height={128}
+            priority
           />
         </div>
       </div>

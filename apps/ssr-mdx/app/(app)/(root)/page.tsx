@@ -3,6 +3,7 @@ import { Posts } from '@/features/portfolio/components/Posts';
 import { ProfileHeader } from '@/features/portfolio/components/profile-header';
 import { Separator } from '@/features/portfolio/components/separator';
 import { TechStack } from '@/features/portfolio/components/TechStack';
+import { Projects } from "@/features/portfolio/components/project/projects";
 
 export default function Home() {
   return (
@@ -15,6 +16,9 @@ export default function Home() {
       <Separator />
 
       <Posts />
+      <Separator />
+
+      <Projects />
       <Separator />
     </div>
   );
