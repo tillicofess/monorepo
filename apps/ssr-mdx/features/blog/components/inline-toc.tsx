@@ -1,12 +1,10 @@
-import type { TOCItemType } from "fumadocs-core/toc"
-import { TextIcon } from "lucide-react"
+'use client';
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { cn } from "@/lib/utils"
+import type { TOCItemType } from 'fumadocs-core/toc';
+import { TextIcon } from 'lucide-react';
+
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 export function InlineTOC({
   items,
@@ -14,20 +12,20 @@ export function InlineTOC({
   children,
   ...props
 }: React.ComponentProps<typeof Collapsible> & {
-  items: TOCItemType[]
+  items: TOCItemType[];
 }) {
   if (!items.length) {
-    return null
+    return null;
   }
 
   return (
     <Collapsible
-      className={cn("not-prose rounded-xl bg-code font-sans mb-6", className)}
+      className={cn('not-prose rounded-xl bg-code font-sans mb-6', className)}
       {...props}
     >
       <CollapsibleTrigger className="inline-flex w-full items-center gap-2 py-2.5 pr-2 pl-4 text-sm font-medium [&_svg]:size-4">
         <TextIcon className="-translate-x-0.5" />
-        {children ?? "On this page"}
+        {children ?? 'On this page'}
       </CollapsibleTrigger>
 
       <CollapsibleContent className="overflow-hidden duration-300 data-open:animate-collapsible-down data-closed:animate-collapsible-up">
@@ -51,5 +49,5 @@ export function InlineTOC({
         </ul>
       </CollapsibleContent>
     </Collapsible>
-  )
+  );
 }

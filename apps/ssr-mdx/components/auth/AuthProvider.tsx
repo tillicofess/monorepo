@@ -8,7 +8,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 const keycloakConfig = {
   url: process.env.NEXT_PUBLIC_KEYCLOAK_URL || 'https://auth.ticscreek.top',
   realm: process.env.NEXT_PUBLIC_KEYCLOAK_REALM || 'myrealm',
-  clientId: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || 'blog-spa',
+  clientId: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || 'blog',
 };
 
 interface AuthContextType {

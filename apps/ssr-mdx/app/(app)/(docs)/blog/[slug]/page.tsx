@@ -8,6 +8,15 @@ import { InlineTOC } from '@/features/blog/components/inline-toc';
 import { MDX } from '@/features/blog/components/mdx';
 import { Separator } from '@/features/portfolio/components/separator';
 import { getPostBySlug } from '@/lib/mdx';
+import CommentSection from '@/features/blog/components/CommentSection';
+import { getAllPosts } from '@/lib/mdx';
+
+export function generateStaticParams() {
+  const posts = getAllPosts();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -51,6 +60,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           <MDX code={post.content} />
         </div>
       </Prose>
+
+      <div className="screen-line-before screen-line-after">
+        <Separator />
+      </div>
+
+      <CommentSection slug={slug} />
     </>
   );
 }

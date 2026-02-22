@@ -55,18 +55,22 @@ type HeadingProps<T extends HeadingTypes> = React.ComponentProps<T> & {
 function Heading<T extends HeadingTypes = 'h1'>({
   as,
   className,
+  id,
+  children,
   ...props
 }: HeadingProps<T>): React.ReactElement {
   const Comp = as ?? 'h1';
 
-  if (!props.id) {
-    return <Comp className={className} {...props} />;
+  const { tw: _tw, ...restProps } = props;
+
+  if (!id) {
+    return <Comp className={className} id={id} children={children} {...restProps} />;
   }
 
   return (
-    <Comp className={cn('flex flex-row items-center gap-2', className)} {...props}>
-      <a href={`#${props.id}`} className="peer not-prose">
-        {props.children}
+    <Comp className={cn('flex flex-row items-center gap-2', className)} id={id} {...restProps}>
+      <a href={`#${id}`} className="peer not-prose">
+        {children}
       </a>
 
       <LinkIcon

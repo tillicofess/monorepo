@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import './globals.css';
+import '@/styles/globals.css';
 import AuthProvider from '@/components/auth/AuthProvider';
 import CrispChat from '@/components/CrispChat';
 import { ThemeProvider } from '@/components/theme-provider';

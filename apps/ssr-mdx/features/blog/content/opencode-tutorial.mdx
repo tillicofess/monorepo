@@ -1,229 +1,105 @@
 ---
-title: "Opencode 使用教程：AI编程助手完全指南"
-date: 2026-02-11
-author: "Tech Writer"
+title: OpenCode 使用指南
+date: 2026-02-22
 ---
 
-# Opencode 使用教程
+OpenCode 是一个开源 AI 编程助手，可在终端、桌面或 IDE 中使用。
 
-Opencode 是一个强大的 AI 编程助手，可以帮助开发者更高效地完成软件开发任务。本教程将详细介绍 opencode 的安装、配置和常用功能。
-
-## 1. 什么是 Opencode
-
-Opencode 是一个交互式 CLI 工具，利用先进的 AI 模型来协助软件工程任务。它可以：
-
-- 编写和编辑代码
-- 回答编程问题
-- 搜索和浏览代码库
-- 运行终端命令
-- 创建文件和项目
-
-## 2. 安装
-
-### 2.1 系统要求
-
-- Node.js 18.0 或更高版本
-- Git（用于代码库操作）
-
-### 2.2 安装命令
+## 安装
 
 ```bash
-npm install -g opencode
+curl -fsSL https://opencode.ai/install | bash
 ```
 
-安装完成后，可以通过以下命令验证安装：
+也可以使用包管理器安装：
 
 ```bash
-opencode --version
+npm install -g opencode-ai
 ```
-
-## 3. 快速开始
-
-### 3.1 启动 Opencode
-
-在项目目录中运行：
 
 ```bash
-opencode
+pnpm install -g opencode-ai
 ```
-
-或者直接启动并执行命令：
 
 ```bash
-opencode "你的问题或命令"
+yarn global add opencode-ai
 ```
 
-### 3.2 基本使用模式
+## 快速开始
 
-Opencode 支持两种主要的使用模式：
+### 配置
 
-1. **交互模式**：启动后进入对话界面，可以连续提问
-2. **单次模式**：直接在命令行传入问题，执行后立即退出
-
-## 4. 核心功能
-
-### 4.1 代码编写
-
-Opencode 可以帮助你编写各种编程语言的代码：
+运行 `/connect` 命令选择 AI 提供商并配置 API 密钥。
 
 ```bash
-opencode "编写一个 Python 函数来计算斐波那契数列"
+/opencode
+/connect
 ```
 
-### 4.2 代码解释
+### 初始化项目
 
-当你遇到不理解的代码时，可以让 opencode 解释：
+在项目目录中运行以下命令初始化 OpenCode：
 
 ```bash
-opencode "解释这段代码的作用" --file src/example.js
+/opencode
+/init
 ```
 
-### 4.3 代码审查
+这会分析项目并创建 `AGENTS.md` 文件，帮助 OpenCode 理解项目结构和编码规范。
 
-Opencode 可以审查代码并提供改进建议：
+## 使用方式
+
+### 提问
+
+使用 `@` 键搜索项目中的文件：
 
 ```bash
-opencode "审查这个文件的代码质量" --file src/app.ts
+How is authentication handled in @packages/functions/src/api/index.ts
 ```
 
-### 4.4 代码搜索
+### 添加功能
 
-在代码库中搜索特定功能或模式：
+1. 按 **Tab** 键切换到 Plan 模式
+2. 描述你想要的功能
+3. 再次按 **Tab** 键切换回 Build 模式执行
+
+### 撤销更改
+
+使用 `/undo` 撤销更改：
 
 ```bash
-opencode "搜索处理用户认证的代码"
+/undo
 ```
 
-## 5. 常用命令
-
-### 5.1 文件操作
+使用 `/redo` 重做：
 
 ```bash
-# 读取文件内容
-opencode "/read 文件路径"
-
-# 编辑文件
-opencode "编辑文件，将函数名从 foo 改为 bar"
-
-# 创建新文件
-opencode "创建一个新的 React 组件文件"
+/redo
 ```
 
-### 5.2 代码库导航
+### 分享对话
 
 ```bash
-# 搜索文件
-opencode "/glob **/*.tsx"
-
-# 搜索代码内容
-opencode "/grep function"
-
-# 运行 bash 命令
-opencode "/bash ls -la"
+/share
 ```
 
-## 6. 最佳实践
+创建当前对话的分享链接。
 
-### 6.1 清晰的指令
+## 常用命令
 
-给 opencode 的指令越清晰，结果越好：
+| 命令 | 描述 |
+|------|------|
+| `/init` | 初始化项目分析 |
+| `/connect` | 连接 AI 提供商 |
+| `/undo` | 撤销更改 |
+| `/redo` | 重做更改 |
+| `/share` | 分享对话 |
 
-- ❌ "修复这个 bug"
-- ✅ "修复 src/utils.js 中的空指针异常，当 user 对象为空时应该返回默认值"
+## 配置
 
-### 6.2 提供上下文
+参考 [OpenCode 官方文档](https://opencode.ai/docs) 了解：
 
-在询问复杂问题时，提供足够的上下文信息：
-
-```bash
-opencode "这个函数在项目中哪里被调用了？" --context "这是一个处理用户登录的函数"
-```
-
-### 6.3 逐步迭代
-
-对于复杂任务，采用分步骤的方式：
-
-1. 先让 opencode 分析需求
-2. 然后制定实现计划
-3. 逐步执行每个步骤
-4. 最后进行测试和优化
-
-## 7. 高级功能
-
-### 7.1 自定义配置
-
-Opencode 支持通过配置文件自定义行为：
-
-```json
-{
-  "model": "gpt-4",
-  "temperature": 0.7,
-  "maxTokens": 2000
-}
-```
-
-### 7.2 插件系统
-
-Opencode 支持插件扩展功能：
-
-```bash
-opencode plugin install opencode-git-enhanced
-```
-
-### 7.3 会话管理
-
-```bash
-# 保存当前会话
-opencode session save my-project-session
-
-# 加载之前的会话
-opencode session load my-project-session
-```
-
-## 8. 故障排除
-
-### 8.1 常见问题
-
-**Q: Opencode 响应很慢？**
-
-A: 可以尝试：
-- 检查网络连接
-- 减小请求上下文的大小
-- 使用更快的模型
-
-**Q: 生成的代码不符合预期？**
-
-A: 建议：
-- 提供更详细的说明
-- 给出代码示例
-- 分步骤提出需求
-
-**Q: 如何处理大型代码库？**
-
-A: 使用以下策略：
-- 指定具体的文件或目录
-- 先让 opencode 分析代码结构
-- 分模块处理
-
-## 9. 安全注意事项
-
-使用 opencode 时需要注意：
-
-1. **敏感信息**：不要与 opencode 分享 API 密钥、密码等敏感信息
-2. **代码审查**：始终审查 AI 生成的代码，特别是涉及安全的部分
-3. **知识产权**：确保生成的代码不侵犯第三方版权
-
-## 10. 总结
-
-Opencode 是一个强大的开发助手，可以显著提高开发效率。通过本教程，你已经了解了：
-
-- Opencode 的基本概念和安装方法
-- 核心功能和常用命令
-- 最佳实践和使用技巧
-- 故障排除和安全注意事项
-
-随着使用经验的积累，你会发现更多提高工作效率的方法。Happy coding!
-
----
-
-*最后更新：2026年2月11日*
+- [主题配置](https://opencode.ai/docs/themes)
+- [快捷键绑定](https://opencode.ai/docs/keybinds)
+- [自定义命令](https://opencode.ai/docs/commands)
+- [MCP 服务器](https://opencode.ai/docs/mcp-servers)
