@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Prose } from '@/components/ui/typography';
-import { InlineToc } from '@/features/blog/components/inline-toc';
+import { InlineTOC } from '@/features/blog/components/inline-toc';
 import { MDX } from '@/features/blog/components/mdx';
 import { Separator } from '@/features/portfolio/components/separator';
 import { getPostBySlug } from '@/lib/mdx';
@@ -45,7 +45,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
         <p className="text-muted-foreground">{post.metadata.description}</p>
 
-        <InlineToc toc={toc} />
+        <InlineTOC items={toc} />
 
         <div>
           <MDX code={post.content} />

@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -39,6 +39,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-number: var(--code-number);
+  --color-code-highlight: var(--code-highlight);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -82,6 +86,16 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* zinc-50 */
+  --code: oklch(0.985 0 0);
+
+  /* zinc-950 */
+  --code-foreground: oklch(0.141 0.005 285.823);
+
+  /* zinc-400 */
+  --code-number: oklch(0.705 0.015 286.067);
+
+  --code-highlight: oklch(0.9584 0.0013 286.37);
 }
 
 .dark {
@@ -116,6 +130,35 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* zinc-900 */
+  --code: oklch(0.21 0.006 285.885);
+
+  /* zinc-50 */
+  --code-foreground: oklch(0.985 0 0);
+
+  /* zinc-500 */
+  --code-number: oklch(0.552 0.016 285.938);
+
+  /* zinc-800 */
+  --code-highlight: oklch(0.274 0.006 286.033);
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility screen-line-before {
+  @apply relative before:absolute before:top-0 before:-left-[100vw] before:-z-1 before:h-px before:w-[200vw] before:bg-edge;
+}
+
+@utility screen-line-after {
+  @apply relative after:absolute after:bottom-0 after:-left-[100vw] after:-z-1 after:h-px after:w-[200vw] after:bg-edge;
 }
 
 @layer base {
@@ -129,16 +172,45 @@
 }
 
 @layer components {
-  /* Smooth scroll behavior for anchor links */
-  html {
-    scroll-behavior: smooth;
+  [data-rehype-pretty-code-figure] {
+    @apply relative my-[1.25em] rounded-xl bg-code text-code-foreground;
+
+    pre {
+      @apply no-scrollbar overflow-x-auto overscroll-x-contain px-4 py-4 has-data-line-numbers:px-0;
+    }
+
+    code {
+      @apply font-mono text-sm;
+    }
   }
-}
 
-@utility screen-line-before {
-  @apply relative before:absolute before:top-0 before:-left-[100vw] before:-z-1 before:h-px before:w-[200vw] before:bg-edge;
-}
+  [data-line] {
+    @apply py-0.5 pe-4;
+  }
 
-@utility screen-line-after {
-  @apply relative after:absolute after:bottom-0 after:-left-[100vw] after:-z-1 after:h-px after:w-[200vw] after:bg-edge;
+  [data-line] span {
+    @apply text-(--shiki-light) dark:text-(--shiki-dark);
+  }
+
+  [data-rehype-pretty-code-title] {
+    @apply flex items-center gap-3 border-b px-4 py-2.5 pe-10 text-sm text-muted-foreground group-data-[slot=collapsible]/collapsible:pe-20 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground;
+  }
+
+  [data-line-numbers] {
+    counter-reset: line;
+  }
+
+  [data-line-numbers] > [data-line]::before {
+    counter-increment: line;
+    content: counter(line);
+    @apply sticky left-0 inline-block w-16 bg-code pe-6 text-right text-sm text-code-number;
+  }
+
+  [data-line-numbers] [data-highlighted-line][data-line]::before {
+    @apply bg-code-highlight;
+  }
+
+  [data-highlighted-line] {
+    @apply bg-code-highlight;
+  }
 }

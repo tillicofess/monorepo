@@ -8,6 +8,7 @@ lintstagedrc
 myrealm
 nums
 radixui
+rehype
 sandpack
 Sandpack
 shiki

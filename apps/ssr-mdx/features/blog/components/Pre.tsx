@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CopyButton } from './CopyButton';
+import { CopyButton } from './copy-button';
 
 interface PreProps extends React.HTMLAttributes<HTMLPreElement> {
   raw?: string;
@@ -30,13 +30,9 @@ export default function Pre({ children, raw, __rawString__, ...props }: PreProps
         }, ''));
 
   return (
-    <div className="relative group my-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-950">
-      <div className="absolute right-4 top-4 z-10 opacity-0 transition-opacity group-hover:opacity-100">
-        <CopyButton value={rawText} className="bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400" />
-      </div>
-      <pre {...props} className="p-4 overflow-x-auto">
-        {children}
-      </pre>
-    </div>
+    <>
+      <CopyButton value={rawText} className="absolute top-2 right-2" />
+      <pre {...props}>{children}</pre>
+    </>
   );
 }
