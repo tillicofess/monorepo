@@ -3,12 +3,12 @@ import { AbilityBuilder, createMongoAbility, type MongoAbility } from '@casl/abi
 export function defineAbilityFor(roles: string[]): MongoAbility {
   const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
 
-  if (roles.includes('role_user')) {
+  if (roles.includes('user')) {
     can('read', 'all');
     cannot('upload', 'largeFile');
   }
 
-  if (roles.includes('role_admin')) {
+  if (roles.includes('admin')) {
     can('manage', 'all');
   }
 

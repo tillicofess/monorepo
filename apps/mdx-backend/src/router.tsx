@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import AppLayout from '@/components/Layout.tsx';
 import ProtectedRoute from '@/components/ProtectedRoute.tsx';
-import BlogPage from '@/views/Blog/Blog/BlogPage';
+// import BlogPage from '@/views/Blog/Blog/BlogPage';
 import Editor from '@/views/Blog/Editor/editor';
 import FileManager from '@/views/File';
 import Home from '@/views/Home.tsx';
@@ -21,14 +21,14 @@ export const router = createBrowserRouter([
         path: 'fileManagement',
         element: <FileManager />,
       },
-      {
-        path: 'blog',
-        element: <BlogPage />,
-      },
-      {
-        path: 'editor',
-        element: <Editor />,
-      },
+      // {
+      //   path: 'blog',
+      //   element: <BlogPage />,
+      // },
+      // {
+      //   path: 'editor',
+      //   element: <Editor />,
+      // },
       {
         path: 'editor/:id',
         element: <Editor />,
