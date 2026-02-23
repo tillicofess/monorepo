@@ -12,7 +12,7 @@ dist*
 dist-ssr
 *.local
 dev.*
-.env
+.env*
 docs*
 dev.ticscreek.top-key.pem
 dev.ticscreek.top.pem

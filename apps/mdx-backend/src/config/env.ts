@@ -9,7 +9,7 @@ export const mode = import.meta.env.MODE;
 export const API_CONFIG = {
   // 开发环境配置
   development: {
-    baseURL: 'https://api.ticscreek.top',
+    baseURL: 'http://localhost:4000',
     timeout: 15000,
     withCredentials: true,
   },

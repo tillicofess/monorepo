@@ -6,3 +6,7 @@ docs
 # packages
 packages/*/dist/
 packages/*/node_modules/
+
+# apps
+apps/*/node_modules/
+apps/*/dist/
