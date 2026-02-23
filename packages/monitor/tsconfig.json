@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": ["DOM", "ES2018"],
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "outDir": "dist",
+    "sourceMap": true,
+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@monitor/*": ["src/monitor/*"]
+    }
+  },
+  "include": ["src/monitor/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

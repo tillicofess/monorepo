@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="../dist/monitor.umd.js"></script>
+  <script>
+    MonitorSDK.initMonitor({
+      reportUrl: 'http://localhost:4000/errorLogs/create',
+      appName: 'react-mdx',
+      version: '1.0.0',
+      enableBehavior: true,
+      enableError: true,
+      maxBreadcrumb: 10,
+      enablePerformance: true,
+    });
+  </script>
+</head>
+
+<body>
+  <h1>Hello World</h1>
+  <script>
+    (() => {
+      throw new TypeError('模拟同步代码错误');
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+{
+  "name": "@monorepo/monitor",
+  "version": "1.0.4",
+  "description": "A lightweight front-end monitor SDK for error, behavior and performance tracking",
+  "keywords": [
+    "monitor",
+    "sdk",
+    "frontend",
+    "error",
+    "performance"
+  ],
+  "author": "tillicofess",
+  "license": "MIT",
+  "main": "dist/monitor.cjs.js",
+  "module": "dist/monitor.esm.js",
+  "browser": "dist/monitor.umd.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/monitor.esm.js",
+      "require": "./dist/monitor.cjs.js",
+      "browser": "./dist/monitor.umd.js"
+    }
+  },
+  "scripts": {
+    "prebuild": "pnpm run clean",
+    "build": "rollup -c",
+    "clean": "rimraf dist",
+    "dev": "rollup -c -w",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rimraf": "^6.1.2",
+    "rollup": "^4.57.0",
+    "rollup-plugin-dts": "^6.3.0",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "catalog:"
+  }
+}
