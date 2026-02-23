@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import Script from 'next/script';
 import '@/styles/globals.css';
 import AuthProvider from '@/components/auth/AuthProvider';
 import CrispChat from '@/components/CrispChat';
@@ -45,6 +46,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TooltipProvider>{children}</TooltipProvider>
             <ScrollToTop />
             <CrispChat />
+            <Script
+              defer
+              src="https://umami.ticscreek.top/script.js"
+              data-website-id="00a1090c-ed02-4aa0-85a9-2915a980c736"
+              strategy="afterInteractive"
+            />
           </AuthProvider>
         </ThemeProvider>
       </body>

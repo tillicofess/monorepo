@@ -1,15 +1,11 @@
 import { format } from 'date-fns';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import type { Post } from '@/features/blog/types/post';
 import { cn } from '@/lib/utils';
 
-export function PostItem({
-  post,
-}: {
-  post: Post
-}) {
+export function PostItem({ post }: { post: Post }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -31,7 +27,6 @@ export function PostItem({
           />
 
           <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-black/10 ring-inset dark:ring-white/10" />
-
         </div>
       )}
       <div className="flex flex-col gap-1 p-2">

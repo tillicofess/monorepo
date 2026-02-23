@@ -1,0 +1,23 @@
+/* MDX编辑器图片样式 */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 针对MDX编辑器中插入的图片 */
+.plugin-inserted-image {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 针对图片节点的特定样式 */
+.mdx-image-node img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 确保在深色主题下也生效 */
+.dark-editor img {
+  max-width: 100%;
+  height: auto;
+}

@@ -1,9 +1,9 @@
 import { HeroDecoration } from '@/features/portfolio/components/hero-decoration';
 import { Posts } from '@/features/portfolio/components/Posts';
 import { ProfileHeader } from '@/features/portfolio/components/profile-header';
+import { Projects } from '@/features/portfolio/components/project/projects';
 import { Separator } from '@/features/portfolio/components/separator';
 import { TechStack } from '@/features/portfolio/components/TechStack';
-import { Projects } from "@/features/portfolio/components/project/projects";
 
 export default function Home() {
   return (

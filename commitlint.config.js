@@ -10,7 +10,7 @@ export default {
         'fix', // Bug 修复
         'docs', // 文档更新
         'style', // 代码格式（不影响功能）
-        'refactor', // 重构
+        'refactor', // 代码重构
         'perf', // 性能优化
         'test', // 测试相关
         'build', // 构建系统或外部依赖变化
@@ -34,7 +34,7 @@ export default {
       { value: 'fix', name: 'fix:      Bug 修复', emoji: '🐛' },
       { value: 'docs', name: 'docs:    文档更新', emoji: '📝' },
       { value: 'style', name: 'style:   代码格式', emoji: '💄' },
-      { value: 'refactor', name: 'refactor: 重构', emoji: '♻️' },
+      { value: 'refactor', name: 'refactor: 代码重构', emoji: '♻️' },
       { value: 'perf', name: 'perf:    性能优化', emoji: '⚡️' },
       { value: 'test', name: 'test:    测试相关', emoji: '✅' },
       { value: 'ci', name: 'ci:      CI 配置', emoji: '👷' },
@@ -44,8 +44,8 @@ export default {
     scopes: [
       { name: 'root' },
       { name: 'ssr-mdx' },
-      { name: 'bff-backend' },
-      { name: 'csr-backend' },
+      { name: 'backend' },
+      { name: 'mdx-backend' },
       { name: 'ui' },
       { name: 'utils' },
       { name: 'config' },

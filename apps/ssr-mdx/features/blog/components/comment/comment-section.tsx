@@ -6,7 +6,7 @@ interface Props {
   slug: string;
 }
 
-export async function CommentSection({ slug}: Props) {
+export async function CommentSection({ slug }: Props) {
   const comments = await getComments(slug);
 
   return (

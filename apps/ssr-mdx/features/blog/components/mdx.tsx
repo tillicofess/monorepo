@@ -5,6 +5,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeSlug from 'rehype-slug';
 import codeImport from 'remark-code-import';
 import remarkGfm from 'remark-gfm';
+import { visit } from 'unist-util-visit';
 import {
   Table,
   TableBody,
@@ -15,13 +16,12 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Code, Heading } from '@/components/ui/typography';
-import { cn } from '@/lib/utils';
-import type { NpmCommands } from "@/types/unist"
-import Sandpack from './Sandpack';
-import { visit } from "unist-util-visit"
-import { CopyButton } from './copy-button';
 import { rehypeNpmCommand } from '@/lib/rehype-npm-command';
+import { cn } from '@/lib/utils';
+import type { NpmCommands } from '@/types/unist';
 import { CodeBlockCommand } from './code-block-command';
+import { CopyButton } from './copy-button';
+import Sandpack from './Sandpack';
 
 const components: MDXRemoteProps['components'] = {
   h1: (props: React.ComponentProps<'h1'>) => <Heading as="h1" {...props} />,
@@ -61,11 +61,11 @@ const components: MDXRemoteProps['components'] = {
     __bun__,
 
     ...props
-  }: React.ComponentProps<"pre"> & {
-    __withMeta__?: boolean
-    __rawString__?: string
+  }: React.ComponentProps<'pre'> & {
+    __withMeta__?: boolean;
+    __rawString__?: string;
   } & NpmCommands) {
-    const isNpmCommand = __pnpm__ && __yarn__ && __npm__ && __bun__
+    const isNpmCommand = __pnpm__ && __yarn__ && __npm__ && __bun__;
 
     if (isNpmCommand) {
       return (
@@ -75,7 +75,7 @@ const components: MDXRemoteProps['components'] = {
           __npm__={__npm__}
           __bun__={__bun__}
         />
-      )
+      );
     }
 
     return (
@@ -83,20 +83,17 @@ const components: MDXRemoteProps['components'] = {
         <pre {...props} />
 
         {__rawString__ && (
-          <CopyButton
-            className="absolute top-2 right-2 z-10"
-            value={__rawString__}
-          />
+          <CopyButton className="absolute top-2 right-2 z-10" value={__rawString__} />
         )}
       </>
-    )
+    );
   },
   code: Code,
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
-  Sandpack
+  Sandpack,
 };
 
 const options: NonNullable<MDXRemoteProps['options']> = {
@@ -108,16 +105,16 @@ const options: NonNullable<MDXRemoteProps['options']> = {
       () => (tree) => {
         visit(tree, (node) => {
           // is this process node.__rawString is not exist
-          if (node?.type === "element" && node?.tagName === "pre") {
+          if (node?.type === 'element' && node?.tagName === 'pre') {
             // console.log('in the first process node:', node)
-            const [codeEl] = node.children
-            if (codeEl.tagName !== "code") {
-              return
+            const [codeEl] = node.children;
+            if (codeEl.tagName !== 'code') {
+              return;
             }
 
-            node.__rawString__ = codeEl.children?.[0].value
+            node.__rawString__ = codeEl.children?.[0].value;
           }
-        })
+        });
       },
       [
         rehypePrettyCode,
@@ -138,26 +135,26 @@ const options: NonNullable<MDXRemoteProps['options']> = {
       ],
       () => (tree) => {
         visit(tree, (node) => {
-          if (node?.type === "element" && node?.tagName === "figure") {
-            if (!("data-rehype-pretty-code-figure" in node.properties)) {
-              return
+          if (node?.type === 'element' && node?.tagName === 'figure') {
+            if (!('data-rehype-pretty-code-figure' in node.properties)) {
+              return;
             }
             // through snapshot we can see the figure element has __rawString__ property
             // console.log(JSON.parse(JSON.stringify(node)))
-            const preElement = node.children.at(-1)
-            if (preElement.tagName !== "pre") {
-              return
+            const preElement = node.children.at(-1);
+            if (preElement.tagName !== 'pre') {
+              return;
             }
 
-            preElement.properties["__withMeta__"] = node.children.at(0).tagName === "figcaption"
-            preElement.properties["__rawString__"] = node.__rawString__
+            preElement.properties.__withMeta__ = node.children.at(0).tagName === 'figcaption';
+            preElement.properties.__rawString__ = node.__rawString__;
             // in this way we can see the pre element has __rawString__ property in the second process
             // console.log('in the second process node:', preElement)
           }
-        })
+        });
       },
       // traversal pre replaces attributes according to __rawString__
-      rehypeNpmCommand
+      rehypeNpmCommand,
     ],
   },
 };

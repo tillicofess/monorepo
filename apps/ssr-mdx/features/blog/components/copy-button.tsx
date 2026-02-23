@@ -5,16 +5,11 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-interface CopyButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface CopyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;
 }
 
-export function CopyButton({
-  value,
-  className,
-  ...props
-}: CopyButtonProps) {
+export function CopyButton({ value, className, ...props }: CopyButtonProps) {
   const [hasCopied, setHasCopied] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -52,7 +47,7 @@ export function CopyButton({
       variant="ghost"
       className={cn(
         'z-10 h-6 w-6 hover:bg-zinc-400 hover:text-zinc-50 [&_svg]:h-3 [&_svg]:w-3',
-        className
+        className,
       )}
       onClick={handleCopy}
       {...props}
