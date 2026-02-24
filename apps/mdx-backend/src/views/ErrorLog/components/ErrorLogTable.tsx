@@ -36,6 +36,11 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 
   const columns: TableProps<DataType>['columns'] = [
     {
+      title: <FormattedMessage id="projectName" defaultMessage="项目名称" />,
+      dataIndex: 'app_name',
+      key: 'app_name',
+    },
+    {
       title: <FormattedMessage id="errorMessage" defaultMessage="错误信息" />,
       dataIndex: 'error',
       key: 'error',

@@ -18,20 +18,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | undefined>();
 
   useEffect(() => {
-    keycloak.onAuthSuccess = () => {
-      setAuthenticated(true);
-      if (keycloak.token) {
-        setToken(keycloak.token);
-        setUser({
-          sub: keycloak.tokenParsed?.sub || '',
-          preferred_username: keycloak.tokenParsed?.preferred_username || '',
-          email: keycloak.tokenParsed?.email || '',
-          name: keycloak.tokenParsed?.name || '',
-          roles: keycloak.tokenParsed?.resource_access?.['api-backend']?.roles || [],
-        });
-      }
-    };
-
     keycloak.onAuthLogout = () => {
       setAuthenticated(false);
       setToken(undefined);
@@ -47,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setAuthenticated(authenticated);
         if (authenticated) {
+          console.log(keycloak.tokenParsed);
           setToken(keycloak.token);
           setUser({
             sub: keycloak.tokenParsed?.sub || '',

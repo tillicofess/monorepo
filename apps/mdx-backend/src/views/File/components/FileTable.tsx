@@ -9,6 +9,8 @@ import { RowContext } from '@/components/DraggableRow.tsx';
 import { TableFolderDroppable } from '@/components/DroppableNode.tsx';
 import { formatFileSize } from '@/utils/utils';
 import type { FileItem } from '../types';
+import { useAbility } from '@/providers/AbilityProvider';
+
 
 export interface FileTableProps {
   fileList: FileItem[] | undefined;
@@ -39,6 +41,7 @@ export function FileTable({
   onRename,
   onDelete,
 }: FileTableProps) {
+  const ability = useAbility();
   const columns: TableColumnsType<FileItem> = [
     {
       title: <FormattedMessage id="fileName" defaultMessage="File Name" />,
@@ -57,17 +60,7 @@ export function FileTable({
 
             {isDir ? <FolderOpenOutlined style={{ color: '#6366F1' }} /> : <FileOutlined />}
 
-            {isDir ? (
-              <Button
-                type="link"
-                onClick={() => onEnterFolder(record)}
-                style={{ color: 'inherit', cursor: 'pointer' }}
-              >
-                {text}
-              </Button>
-            ) : (
-              text
-            )}
+            {text}
           </Space>
         );
 
@@ -114,6 +107,7 @@ export function FileTable({
             size="small"
             danger
             onClick={() => onDelete(record.id, record.name, record.isDir)}
+            disabled={!ability.can('delete', 'editor')}
           >
             删除
           </Button>

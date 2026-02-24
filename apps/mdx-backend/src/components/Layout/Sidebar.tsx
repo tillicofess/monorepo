@@ -39,7 +39,7 @@ export function Sidebar({
       },
     ];
 
-    if (user?.roles?.includes('admin')) {
+    if (user?.roles?.includes('user:read')) {
       baseItems.push({
         key: 'sub2',
         icon: <AlertTriangle size={18} />,

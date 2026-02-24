@@ -41,7 +41,7 @@ export function FileToolbar({
         <FormattedMessage id="fileManagement" />
       </Typography.Title>
       <Space wrap>
-        <Button icon={<FolderPlus size={16} />} onClick={onCreateFolder} disabled={uploading}>
+        <Button icon={<FolderPlus size={16} />} onClick={onCreateFolder} disabled={uploading || !ability.can('create', 'editor')}>
           新建文件夹
         </Button>
         <Button
@@ -57,7 +57,7 @@ export function FileToolbar({
           icon={<Upload size={16} />}
           onClick={onUpload}
           loading={uploading}
-          disabled={!selectedFile || uploading || !ability.can('upload', 'largeFile')}
+          disabled={!selectedFile || uploading || !ability.can('upload', 'editor')}
         >
           上传文件
         </Button>

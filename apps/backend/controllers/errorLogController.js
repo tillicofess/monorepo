@@ -63,9 +63,9 @@ export const getAllLogs = async (req, res) => {
 
 // 处理错误日志
 async function handleErrorLog(body) {
-  const { error, actions, time, version } = body;
-  if (!error || !time || !version) {
-    throw new Error('Missing error, time or version field');
+  const { appName, error, actions, time, version } = body;
+  if (!appName || !error || !time || !version) {
+    throw new Error('Missing appName, error, time or version field');
   }
 
   const fingerprint = createFingerprint(error);
@@ -90,10 +90,11 @@ async function handleErrorLog(body) {
     await pool.execute(
       `
       INSERT INTO error_logs 
-      (fingerprint, error, actions, time, version, count)
-      VALUES (?, ?, ?, ?, ?, 1)
+      (app_name, fingerprint, error, actions, time, version, count)
+      VALUES (?, ?, ?, ?, ?, ?, 1)
       `,
       [
+        appName,
         fingerprint,
         JSON.stringify(error),
         JSON.stringify(actions || []),
