@@ -19,7 +19,7 @@ import { DragOverlayContent } from './components/DragOverlayContent';
 import { FileTable } from './components/FileTable';
 import { FileToolbar } from './components/FileToolbar';
 import { RenameModal } from './components/RenameModal';
-import { UploadPanel } from './components/UploadPanel';
+import { UploadModal } from './components/UploadModal';
 import { useFileOperations } from './hooks/useFileOperations';
 import { useFileUpload } from './hooks/useFileUpload';
 import type { BreadcrumbItem, FileItem } from './types';
@@ -32,6 +32,7 @@ const File: React.FC = () => {
   const sensors = useSensors(pointerSensor);
 
   const [activeItem, setActiveItem] = useState<FileItem | null>(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   const [currentPath, setCurrentPath] = useState<BreadcrumbItem[]>([
     { id: null, name: <FormattedMessage id="file.root" defaultMessage="Root Directory" /> },
@@ -62,10 +63,6 @@ const File: React.FC = () => {
     currentFolderId,
     onSuccess: refreshFileList,
   });
-
-  const openFileDialog = () => {
-    fileInputRef.current?.click();
-  };
 
   const {
     createFolder,
@@ -122,24 +119,14 @@ const File: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <FileToolbar
-        uploading={uploading}
-        files={files}
         onCreateFolder={createFolder.open}
-        onOpenFileDialog={openFileDialog}
-        onUpload={uploadAll}
-        onAbort={cancelAll}
+        onOpenUploadModal={() => setUploadModalOpen(true)}
       />
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFilesSelect}
-        multiple
-        style={{ display: 'none' }}
-      />
-
-      {/* 上传面板 */}
-      <UploadPanel
+      <UploadModal
+        open={uploadModalOpen}
+        onOpen={() => setUploadModalOpen(true)}
+        onClose={() => setUploadModalOpen(false)}
         files={files}
         uploading={uploading}
         onUpload={uploadAll}
@@ -147,6 +134,8 @@ const File: React.FC = () => {
         onRemove={removeFile}
         onRetry={retryFile}
         onClear={clearAllFiles}
+        onFileSelect={handleFilesSelect}
+        fileInputRef={fileInputRef}
       />
 
       {/* FileTable */}

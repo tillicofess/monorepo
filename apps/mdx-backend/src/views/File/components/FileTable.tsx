@@ -7,10 +7,9 @@ import { downloadFile } from '@/apis/index';
 import DraggableRow from '@/components/DraggableRow';
 import { RowContext } from '@/components/DraggableRow.tsx';
 import { TableFolderDroppable } from '@/components/DroppableNode.tsx';
+import { useAbility } from '@/providers/AbilityProvider';
 import { formatFileSize } from '@/utils/utils';
 import type { FileItem } from '../types';
-import { useAbility } from '@/providers/AbilityProvider';
-
 
 export interface FileTableProps {
   fileList: FileItem[] | undefined;
