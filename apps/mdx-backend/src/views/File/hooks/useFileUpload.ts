@@ -23,17 +23,19 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllers = useRef<AbortController[]>([]);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [progress, setProgress] = useState<number>(0);
+  const generateId = () => Math.random().toString(36).substring(2, 15);
+
+  const [files, setFiles] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setProgress(0);
-    }
-    // 清空 input value，允许重复选择同一文件
+    const newFiles = Array.from(e.target.files || []).map((file) => ({
+      id: generateId(),
+      file,
+      progress: 0,
+      status: 'pending' as UploadStatus,
+    }));
+    setFiles((prev) => [...prev, ...newFiles]);
     e.target.value = '';
   };
 
@@ -42,48 +44,75 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
+    const pendingFiles = files.filter((f) => f.status === 'pending');
+    if (!pendingFiles.length) {
       message.warning('请先选择文件');
       return;
     }
     setUploading(true);
-    try {
-      const chunks = createChunks(selectedFile);
-      const fileHash = await calculateFileHash(chunks);
-      const { shouldUpload, uploadedChunks } = await checkFileExist(fileHash, selectedFile.name);
-      if (!shouldUpload) {
-        message.success('文件已存在，秒传成功');
-        setSelectedFile(null);
-        setProgress(0);
-        onSuccess();
-        return;
+    setFiles((prev) =>
+      prev.map((f) => (f.status === 'pending' ? { ...f, status: 'uploading' as UploadStatus } : f)),
+    );
+    for (const uploadFile of pendingFiles) {
+      try {
+        const chunks = createChunks(uploadFile.file);
+        const fileHash = await calculateFileHash(chunks);
+        const { shouldUpload, uploadedChunks } = await checkFileExist(
+          fileHash,
+          uploadFile.file.name,
+        );
+        if (!shouldUpload) {
+          message.success(`${uploadFile.file.name} 秒传成功`);
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: 'completed' as UploadStatus, progress: 100 }
+                : f,
+            ),
+          );
+          continue;
+        }
+        const uploadChunks = chunks.filter((_, index) => {
+          const chunkHash = `${fileHash}-${index}`;
+          return !uploadedChunks.includes(chunkHash);
+        });
+        await uploadFileChunks({
+          fileHash,
+          fileName: uploadFile.file.name,
+          fileSize: uploadFile.file.size,
+          parentId: currentFolderId,
+          uploadChunks,
+          abortControllers,
+          setProgress: (p) => {
+            setFiles((prev) =>
+              prev.map((f) => (f.id === uploadFile.id ? { ...f, progress: p } : f)),
+            );
+          },
+        });
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id
+              ? { ...f, status: 'completed' as UploadStatus, progress: 100 }
+              : f,
+          ),
+        );
+        message.success(`${uploadFile.file.name} 上传成功`);
+      } catch (error: any) {
+        if (error?.message === 'Upload aborted') {
+          return;
+        }
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id
+              ? { ...f, status: 'failed' as UploadStatus, error: error?.message || '上传失败' }
+              : f,
+          ),
+        );
+        message.error(`${uploadFile.file.name} 上传失败: ${error}`);
       }
-      const uploadChunks = chunks.filter((_, index) => {
-        const chunkHash = `${fileHash}-${index}`;
-        return !uploadedChunks.includes(chunkHash);
-      });
-      await uploadFileChunks({
-        fileHash,
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        parentId: currentFolderId,
-        uploadChunks,
-        abortControllers,
-        setProgress,
-      });
-      setSelectedFile(null);
-      setProgress(0);
-      message.success('文件上传成功');
-      onSuccess();
-    } catch (error: any) {
-      if (error?.message === 'Upload aborted') {
-        // 主动取消上传，不显示错误提示
-        return;
-      }
-      message.error(`文件上传失败: ${error}`);
-    } finally {
-      setUploading(false);
     }
+    setUploading(false);
+    onSuccess();
   };
 
   const abortUpload = () => {
@@ -95,24 +124,26 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
     });
     abortControllers.current = [];
     setUploading(false);
-    setProgress(0);
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.status === 'uploading' ? { ...f, status: 'cancelled' as UploadStatus } : f,
+      ),
+    );
     message.info('已取消上传');
   };
 
-  const clearSelectedFile = () => {
-    setSelectedFile(null);
-    setProgress(0);
+  const clearFiles = () => {
+    setFiles([]);
   };
 
   return {
     fileInputRef,
-    selectedFile,
-    progress,
+    files,
     uploading,
     handleFileSelect,
     openFileDialog,
     handleUpload,
     abortUpload,
-    clearSelectedFile,
+    clearFiles,
   };
 }

@@ -4,6 +4,16 @@ import { http } from '@/lib/axios';
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB 每个分片的大小
 const MAX_CONCURRENT = 6; // 并发上传最大并发数
 
+export interface UploadOptions {
+  fileHash: string;
+  fileName: string;
+  fileSize: number;
+  parentId: string | null;
+  uploadChunks: Blob[];
+  abortControllers: React.RefObject<AbortController[]>;
+  setProgress: (percent: number) => void;
+}
+
 /**
  * 创建文件分片
  * @param file 大文件
@@ -73,19 +83,11 @@ export const checkFileExist = async (fileHash: string, fileName: string) => {
 
 /**
  * 大文件分片上传
- * @param fileHash 文件哈希
- * @param uploadChunks 分片数组
- * @param abortControllers 中断控制器数组
  */
-export const uploadFileChunks = async (
-  fileHash: string,
-  fileName: string,
-  fileSize: number,
-  parentId: string | null,
-  uploadChunks: Blob[],
-  abortControllers: React.RefObject<AbortController[]>,
-  setProgress: (percent: number) => void,
-) => {
+export const uploadFileChunks = async (options: UploadOptions) => {
+  const { fileHash, fileName, fileSize, parentId, uploadChunks, abortControllers, setProgress } =
+    options;
+
   abortControllers.current.length = 0;
 
   const chunkInfoList = uploadChunks.map((chunk, index) => ({
@@ -104,43 +106,26 @@ export const uploadFileChunks = async (
     return formData;
   });
 
-  // 上传完所有分片后，请求合并
+  // 空文件直接调用合并（实际上传0个分片）
   if (formData.length === 0) {
     setProgress(100);
-    mergeRequest(fileHash, fileName, fileSize, parentId);
-    return;
+    return mergeRequest(fileHash, fileName, fileSize, parentId);
   }
 
   // 并发上传分片
-  await uploadWithConcurrencyControl(
-    fileHash,
-    fileName,
-    fileSize,
-    parentId,
-    formData,
-    abortControllers,
-    setProgress,
-  );
+  return uploadWithConcurrencyControl(options, formData);
 };
 
 /**
  * 并发上传文件分片
- * @param fileHash 文件哈希
- * @param fileName 文件名称
- * @param formData 分片数组
- * @param abortControllers 中断控制器数组
  */
 const uploadWithConcurrencyControl = async (
-  fileHash: string,
-  fileName: string,
-  fileSize: number,
-  parentId: string | null,
+  { fileHash, fileName, fileSize, parentId, abortControllers, setProgress }: UploadOptions,
   formData: FormData[],
-  abortControllers: React.RefObject<AbortController[]>,
-  setProgress: (percent: number) => void,
 ) => {
   let currentIndex = 0; // 当前待上传的分片索引
   let completedCount = 0;
+  let isAborted = false;
   const taskPool: Promise<void>[] = []; // 存储当前正在执行的请求（请求池）
   while (currentIndex < formData.length) {
     const controller = new AbortController();
@@ -154,6 +139,7 @@ const uploadWithConcurrencyControl = async (
         },
       })
       .then((res) => {
+        if (isAborted) return;
         completedCount += 1;
         const percent = Math.floor((completedCount / formData.length) * 100);
         setProgress(percent);
@@ -162,12 +148,13 @@ const uploadWithConcurrencyControl = async (
         return res.data.data;
       })
       .catch((err) => {
-        // 捕获错误：区分「用户中断」和「其他错误」
-        if (err.name === 'AbortError') {
-          console.error('上传已中断');
+        if (err.name === 'AbortError' || err.name === 'CanceledError') {
+          isAborted = true;
+          throw new Error('Upload aborted');
         }
         taskPool.splice(taskPool.indexOf(task), 1);
         abortControllers.current = abortControllers.current.filter((c) => c !== controller);
+        throw err;
       });
 
     taskPool.push(task);
@@ -184,15 +171,15 @@ const uploadWithConcurrencyControl = async (
   await Promise.all(taskPool);
 
   // 如果用户取消了上传，不请求合并
-  if (completedCount === formData.length) {
-    mergeRequest(fileHash, fileName, fileSize, parentId);
+  if (isAborted) {
+    throw new Error('Upload aborted');
   }
+
+  return mergeRequest(fileHash, fileName, fileSize, parentId);
 };
 
 /**
  * 合并文件分片
- * @param fileHash 文件哈希
- * @param fileName 文件名称
  */
 const mergeRequest = async (
   fileHash: string,
