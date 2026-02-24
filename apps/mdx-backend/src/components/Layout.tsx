@@ -1,4 +1,4 @@
-import { Button, Drawer, Layout } from 'antd';
+import { Button, Drawer, Layout, theme } from 'antd';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
@@ -12,6 +12,7 @@ const AppLayout = () => {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   const { lang, themeMode, changeLang, changeThemeMode } = useLocale();
+  const { token } = theme.useToken();
   const [selectedKey, setSelectedKey] = useState<string[]>([]);
   const [openKeys, setOpenKeys] = useState<string[]>(['sub2']);
   const [collapsed, setCollapsed] = useState(false);
@@ -52,10 +53,10 @@ const AppLayout = () => {
     }
   };
 
-  const siderBg = themeMode === 'dark' ? '#1f1f1f' : '#ffffff';
+  const siderBg = token.colorBgContainer;
 
   if (!isAuthenticated) {
-    return <Loading background={themeMode === 'dark' ? '#141414' : '#f5f5f5'} />;
+    return <Loading background={token.colorBgLayout} />;
   }
 
   return (
@@ -85,7 +86,7 @@ const AppLayout = () => {
               height: 'calc(100% - 64px)',
               left: 'unset',
               insetBlockStart: '64px',
-              borderRight: '1px solid rgba(0, 0, 0, 0.06)',
+              borderRight: `1px solid ${token.colorBorder}`,
               background: siderBg,
               transition: 'all 0.2s ease',
             }}
@@ -156,15 +157,15 @@ const AppLayout = () => {
         />
         <AntHeader
           style={{
-            background: themeMode === 'dark' ? '#1f1f1f' : '#fff',
+            background: token.colorBgContainer,
             zIndex: 100,
             position: 'fixed',
             insetBlockStart: 0,
             insetInlineStart: 0,
             width: '100%',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+            borderBottom: `1px solid ${token.colorBorder}`,
             padding: 0,
-            boxShadow: themeMode === 'light' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+            boxShadow: themeMode === 'light' ? `0 1px 4px ${token.colorBorderSecondary}` : 'none',
             transition: 'all 0.2s ease',
           }}
         >
@@ -185,7 +186,7 @@ const AppLayout = () => {
             paddingBlock: isMobile ? 16 : 28,
             paddingInline: isMobile ? 16 : 40,
             minHeight: 280,
-            background: themeMode === 'dark' ? '#141414' : '#f5f5f5',
+            background: token.colorBgLayout,
             transition: 'all 0.2s ease',
           }}
         >

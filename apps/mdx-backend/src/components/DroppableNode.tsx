@@ -1,4 +1,5 @@
 import { useDroppable } from '@dnd-kit/core';
+import { theme } from 'antd';
 
 // 通用的Droppable Props类型
 interface DroppableProps {
@@ -11,6 +12,7 @@ interface DroppableProps {
  * 使用inline-flex布局，适合面包屑的行内元素场景
  */
 export const FolderDroppable = ({ folder, children }: DroppableProps) => {
+  const { token } = theme.useToken();
   const { setNodeRef, isOver } = useDroppable({
     id: `folder-${folder.id}`,
   });
@@ -29,8 +31,8 @@ export const FolderDroppable = ({ folder, children }: DroppableProps) => {
         style={{
           position: 'absolute',
           inset: '-6px -4px', // ⭐ 扩大点击/拖拽区域
-          border: isOver ? '2px solid #1677ff' : '2px solid transparent',
-          backgroundColor: isOver ? 'rgba(22, 119, 255, 0.1)' : 'transparent',
+          border: isOver ? `2px solid ${token.colorPrimary}` : '2px solid transparent',
+          backgroundColor: isOver ? token.colorPrimaryBg : 'transparent',
           transition: 'all 0.1s ease',
           borderRadius: 6,
           pointerEvents: 'none', // ⭐ 不影响点击，只给 DnD 用
@@ -48,6 +50,7 @@ export const FolderDroppable = ({ folder, children }: DroppableProps) => {
  * 使用flex布局，适合表格单元格的场景
  */
 export const TableFolderDroppable = ({ folder, children }: DroppableProps) => {
+  const { token } = theme.useToken();
   const { setNodeRef, isOver } = useDroppable({
     id: `folder-${folder.id}`,
   });
@@ -67,8 +70,8 @@ export const TableFolderDroppable = ({ folder, children }: DroppableProps) => {
         style={{
           position: 'absolute',
           inset: '-6px -4px', // ⭐ 扩大点击/拖拽区域
-          border: isOver ? '2px solid #1677ff' : '2px solid transparent',
-          backgroundColor: isOver ? 'rgba(22, 119, 255, 0.1)' : 'transparent',
+          border: isOver ? `2px solid ${token.colorPrimary}` : '2px solid transparent',
+          backgroundColor: isOver ? token.colorPrimaryBg : 'transparent',
           transition: 'all 0.1s ease',
           borderRadius: 6,
           pointerEvents: 'none', // ⭐ 不影响点击，只给 DnD 用

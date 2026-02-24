@@ -1,4 +1,4 @@
-import { Avatar, Button, Dropdown, type MenuProps } from 'antd';
+import { Avatar, Button, Dropdown, type MenuProps, theme } from 'antd';
 import { LogOut, Settings, User } from 'lucide-react';
 
 interface UserMenuProps {
@@ -7,6 +7,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ userName, onLogout }: UserMenuProps) {
+  const { token } = theme.useToken();
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
@@ -53,8 +54,8 @@ export function UserMenu({ userName, onLogout }: UserMenuProps) {
         <Avatar
           size={32}
           style={{
-            backgroundColor: '#6366F1',
-            border: '2px solid rgba(99, 102, 241, 0.3)',
+            backgroundColor: token.colorPrimary,
+            border: `2px solid ${token.colorPrimaryBg}`,
           }}
           icon={<User size={16} />}
         />

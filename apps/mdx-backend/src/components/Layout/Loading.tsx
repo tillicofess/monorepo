@@ -1,4 +1,4 @@
-import { Space, Typography } from 'antd';
+import { Space, Typography, theme } from 'antd';
 
 const { Text } = Typography;
 
@@ -7,6 +7,9 @@ interface LoadingProps {
 }
 
 export function Loading({ background }: LoadingProps) {
+  const { token } = theme.useToken();
+  const bg = background ?? token.colorBgLayout;
+
   return (
     <div
       style={{
@@ -14,22 +17,22 @@ export function Loading({ background }: LoadingProps) {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        background: background,
+        background: bg,
       }}
     >
       <Space direction="vertical" align="center">
         <div
           className="loading-spinner"
           style={{
-            border: '4px solid rgba(99, 102, 241, 0.2)',
-            borderTop: '4px solid #6366F1',
+            border: `4px solid ${token.colorPrimaryBg}`,
+            borderTop: `4px solid ${token.colorPrimary}`,
             borderRadius: '50%',
             width: '40px',
             height: '40px',
             animation: 'spin 1s linear infinite',
           }}
         />
-        <Text>加载中...</Text>
+        <Text style={{ color: token.colorText }}>加载中...</Text>
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }

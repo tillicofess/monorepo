@@ -1,4 +1,4 @@
-import { Button, Dropdown, Menu } from 'antd';
+import { Button, Dropdown, Menu, theme } from 'antd';
 import React from 'react';
 import { FolderDroppable } from '@/components/DroppableNode.tsx';
 
@@ -24,6 +24,8 @@ export default function EllipsisBreadcrumb({
   onItemClick,
   maxDisplayCount = 2,
 }: EllipsisBreadcrumbProps) {
+  const { token } = theme.useToken();
+
   if (items.length <= maxDisplayCount) {
     return (
       <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -41,7 +43,9 @@ export default function EllipsisBreadcrumb({
 
           return (
             <React.Fragment key={index}>
-              {index > 0 && <span style={{ margin: '0 8px', color: '#bfbfbf' }}>/</span>}
+              {index > 0 && (
+                <span style={{ margin: '0 8px', color: token.colorTextQuaternary }}>/</span>
+              )}
               {isLast ? (
                 titleContent // ⭐ 最后一项不包裹 FolderDroppable
               ) : (
@@ -74,7 +78,7 @@ export default function EllipsisBreadcrumb({
         <Dropdown overlay={menu}>
           <span style={{ cursor: 'pointer', marginRight: '8px' }}>···</span>
         </Dropdown>
-        <span style={{ color: '#bfbfbf' }}>/</span>
+        <span style={{ color: token.colorTextQuaternary }}>/</span>
 
         {visibleItems.map((item, index) => {
           const isLast = index === visibleItems.length - 1; // ⭐ 判断是否为最后一项
@@ -92,7 +96,9 @@ export default function EllipsisBreadcrumb({
 
           return (
             <React.Fragment key={index}>
-              {index > 0 && <span style={{ margin: '0 8px', color: '#bfbfbf' }}>/</span>}
+              {index > 0 && (
+                <span style={{ margin: '0 8px', color: token.colorTextQuaternary }}>/</span>
+              )}
               {isLast ? (
                 titleContent // ⭐ 最后一项不包裹 FolderDroppable
               ) : (

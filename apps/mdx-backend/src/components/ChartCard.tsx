@@ -21,6 +21,8 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
   const buildOption = (data: ChartData, intl: IntlShape) => {
     const pageviewsData = data.pageviews.map((point) => [point.x, point.y]);
     const visibleData = data.sessions.map((point) => [point.x, point.y]);
+    const primaryColor = token.colorPrimary;
+    const successColor = token.colorSuccess;
 
     return {
       // 标题
@@ -39,7 +41,7 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
         axisPointer: {
           type: 'line',
           lineStyle: {
-            color: '#6366F1',
+            color: primaryColor,
             width: 1,
           },
         },
@@ -128,10 +130,10 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
           height: 20,
           borderColor: 'transparent',
           backgroundColor: token.colorBorderSecondary,
-          fillerColor: 'rgba(99, 102, 241, 0.2)',
+          fillerColor: `${primaryColor}33`,
           handleStyle: {
-            color: '#6366F1',
-            borderColor: '#6366F1',
+            color: primaryColor,
+            borderColor: primaryColor,
           },
           textStyle: {
             color: token.colorTextSecondary,
@@ -153,12 +155,12 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
           symbolSize: 6, // 数据点大小
           // 折线拐点标志的样式
           itemStyle: {
-            color: '#6366F1',
+            color: primaryColor,
           },
           // 线条样式
           lineStyle: {
             width: 3,
-            shadowColor: 'rgba(99, 102, 241, 0.3)',
+            shadowColor: `${primaryColor}4D`,
             shadowBlur: 10,
             shadowOffsetY: 10,
           },
@@ -173,11 +175,11 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
               colorStops: [
                 {
                   offset: 0,
-                  color: 'rgba(99, 102, 241, 0.3)',
+                  color: `${primaryColor}4D`,
                 },
                 {
                   offset: 1,
-                  color: 'rgba(99, 102, 241, 0.05)',
+                  color: `${primaryColor}0D`,
                 },
               ],
             },
@@ -192,12 +194,12 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
           symbolSize: 6,
           // 折线拐点标志的样式
           itemStyle: {
-            color: '#10B981',
+            color: successColor,
           },
           // 线条样式
           lineStyle: {
             width: 3,
-            shadowColor: 'rgba(16, 185, 129, 0.3)',
+            shadowColor: `${successColor}4D`,
             shadowBlur: 10,
             shadowOffsetY: 10,
           },
@@ -212,11 +214,11 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
               colorStops: [
                 {
                   offset: 0,
-                  color: 'rgba(16, 185, 129, 0.3)',
+                  color: `${successColor}4D`,
                 },
                 {
                   offset: 1,
-                  color: 'rgba(16, 185, 129, 0.05)',
+                  color: `${successColor}0D`,
                 },
               ],
             },
@@ -232,7 +234,7 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
 
     const option = buildOption(props.data, intl);
     chartRef.current.setOption(option as any);
-  }, [props, intl.locale]);
+  }, [props, intl.locale, token]);
 
   return (
     <Card
@@ -245,7 +247,7 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
         borderRadius: 12,
         marginBlock: 16,
         border: `1px solid ${token.colorBorderSecondary}`,
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+        boxShadow: token.boxShadow,
       }}
       bodyStyle={{ padding: token.padding }}
       extra={
@@ -270,7 +272,7 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            background: 'rgba(255,255,255,0.6)',
+            background: `${token.colorBgContainer}99`,
             zIndex: 10,
           }}
         >

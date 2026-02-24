@@ -59,7 +59,7 @@ const OverviewCard: React.FC<{ data: OverviewData; loading: boolean }> = ({ data
               style={{
                 borderRadius: 12,
                 border: `1px solid ${token.colorBorderSecondary}`,
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                boxShadow: token.boxShadow,
               }}
               bodyStyle={{ padding: 20 }}
             >
@@ -105,7 +105,7 @@ const OverviewCard: React.FC<{ data: OverviewData; loading: boolean }> = ({ data
                     style={{
                       fontSize: 13,
                       fontWeight: 500,
-                      color: isIncrease ? '#10B981' : '#EF4444',
+                      color: isIncrease ? token.colorSuccess : token.colorError,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,

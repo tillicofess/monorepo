@@ -1,11 +1,15 @@
+import { theme } from 'antd';
 import { useEffect, useRef } from 'react';
 import useChartResize from '@/hooks/chart/useChartResize.ts';
 import { useEChart } from '@/hooks/chart/useEChart.ts';
 import type { PageLoadTiming } from '@/types/log/performanceType';
 
+const CHART_COLORS = ['#37A2DA', '#32C5E9', '#67E0E3', '#9FE6B8', '#FFDB5C', '#ff9f7f', '#fb7293'];
+
 const MetricChart = (props: PageLoadTiming) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useEChart(containerRef);
+  const { token } = theme.useToken();
 
   useChartResize(containerRef, chartRef);
 
@@ -38,11 +42,14 @@ const MetricChart = (props: PageLoadTiming) => {
       title: {
         text: 'Navigation Timing Waterfall',
         left: 'center',
-        textStyle: { fontSize: 14, color: '#666' },
+        textStyle: { fontSize: 14, color: token.colorTextSecondary },
       },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
+        backgroundColor: token.colorBgElevated,
+        borderColor: token.colorBorder,
+        textStyle: { color: token.colorText },
         formatter: (params: any) => {
           const tar = params[1]; // 取第二个系列（实际数据）
           return `${tar.name}<br/>Duration: <b>${tar.value}ms</b>`;
@@ -56,13 +63,16 @@ const MetricChart = (props: PageLoadTiming) => {
       },
       xAxis: {
         type: 'value',
-        splitLine: { lineStyle: { type: 'dashed' } },
-        axisLabel: { formatter: '{value} ms' },
+        splitLine: { lineStyle: { type: 'dashed', color: token.colorBorderSecondary } },
+        axisLabel: { formatter: '{value} ms', color: token.colorTextSecondary },
+        axisLine: { lineStyle: { color: token.colorBorderSecondary } },
       },
       yAxis: {
         type: 'category',
         inverse: true, // 让阶段从上往下排列，符合 Network 面板习惯
         data: stages.map((s) => s.name),
+        axisLabel: { color: token.colorTextSecondary },
+        axisLine: { lineStyle: { color: token.colorBorderSecondary } },
       },
       series: [
         {
@@ -86,20 +96,12 @@ const MetricChart = (props: PageLoadTiming) => {
             show: true,
             position: 'right',
             formatter: '{c}ms',
+            color: token.colorTextSecondary,
           },
           itemStyle: {
             // 根据阶段类型赋予不同的 Chrome 风格颜色
             color: (params: any) => {
-              const colors = [
-                '#37A2DA',
-                '#32C5E9',
-                '#67E0E3',
-                '#9FE6B8',
-                '#FFDB5C',
-                '#ff9f7f',
-                '#fb7293',
-              ];
-              return colors[params.dataIndex];
+              return CHART_COLORS[params.dataIndex];
             },
           },
           data: values,
@@ -112,7 +114,7 @@ const MetricChart = (props: PageLoadTiming) => {
     if (!chartRef.current) return;
     const option = buildOption(props);
     chartRef.current.setOption(option as any, { notMerge: true });
-  }, [props]);
+  }, [props, token]);
 
   return <div ref={containerRef} style={{ width: '100%', height: 400 }} />;
 };

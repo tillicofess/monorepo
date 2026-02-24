@@ -1,3 +1,4 @@
+import { theme } from 'antd';
 import { useEffect, useRef } from 'react';
 import useChartResize from '@/hooks/chart/useChartResize.ts';
 import { useEChart } from '@/hooks/chart/useEChart.ts';
@@ -7,18 +8,19 @@ const THEME = {
   good: '#0cce6b', // 翠绿
   improve: '#ffa400', // 琥珀
   poor: '#ff4e42', // 砖红
-  indicator: '#2d3436', // 深灰
-  bg: '#f0f2f5', // 容器背景
 };
 
 const MetricChart = (props: ChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useEChart(containerRef);
+  const { token } = theme.useToken();
 
   useChartResize(containerRef, chartRef);
 
   const buildOption = ({ metricKey, p75, thresholds, min, max }: ChartProps) => {
     const [good, need] = thresholds;
+    const indicatorColor = token.colorText;
+    const borderColor = token.colorBgContainer;
 
     return {
       title: {
@@ -27,8 +29,8 @@ const MetricChart = (props: ChartProps) => {
         top: 'center',
         textStyle: {
           rich: {
-            val: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-            unit: { fontSize: 12, color: '#999', padding: [0, 0, 4, 4] },
+            val: { fontSize: 20, fontWeight: 'bold', color: token.colorText },
+            unit: { fontSize: 12, color: token.colorTextTertiary, padding: [0, 0, 4, 4] },
           },
         },
       },
@@ -58,12 +60,12 @@ const MetricChart = (props: ChartProps) => {
               position: 'start',
               formatter: '{b}', // 显示名称，如 "2500"
               fontSize: 10,
-              color: '#999',
+              color: token.colorTextTertiary,
               distance: 10, // 文字与线的距离
             },
             lineStyle: {
               type: 'dashed',
-              color: 'rgba(0,0,0,0.1)',
+              color: token.colorBorderSecondary,
               width: 1,
             },
             data: [
@@ -100,11 +102,11 @@ const MetricChart = (props: ChartProps) => {
           symbolPosition: 'end',
           data: [p75],
           itemStyle: {
-            color: THEME.indicator,
+            color: indicatorColor,
             shadowBlur: 4,
-            shadowColor: 'rgba(0,0,0,0.3)',
+            shadowColor: `${token.colorText}4D`,
             borderWidth: 2,
-            borderColor: '#fff',
+            borderColor: borderColor,
           },
           // 增加数值标注
           label: {
@@ -113,7 +115,7 @@ const MetricChart = (props: ChartProps) => {
             formatter: metricKey.toUpperCase(),
             fontSize: 12,
             fontWeight: 'bold',
-            color: '#666',
+            color: token.colorTextSecondary,
             distance: 10,
           },
         },
@@ -126,7 +128,7 @@ const MetricChart = (props: ChartProps) => {
 
     const option = buildOption(props);
     chartRef.current.setOption(option as any);
-  }, [props]);
+  }, [props, token]);
 
   return <div ref={containerRef} style={{ width: '100%', height: 90 }} />;
 };
