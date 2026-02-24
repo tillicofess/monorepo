@@ -155,7 +155,23 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
     }
   };
 
-  const abortUpload = () => {
+  const cancelFile = (id: string) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, status: 'cancelled' as UploadStatus } : f)),
+    );
+  };
+
+  const retryFile = (id: string) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, status: 'pending' as UploadStatus, progress: 0 } : f)),
+    );
+  };
+
+  const removeFile = (id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const cancelAll = () => {
     if (!abortControllers.current.length) {
       return;
     }
@@ -183,7 +199,10 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
     handleFileSelect,
     openFileDialog,
     handleUpload,
-    abortUpload,
+    cancelAll,
+    cancelFile,
+    retryFile,
+    removeFile,
     clearFiles,
   };
 }
