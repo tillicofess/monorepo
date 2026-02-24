@@ -4,9 +4,9 @@ import type React from 'react';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import useSWR from 'swr';
-import ErrorLogTable from '@/components/ErrorLogTable';
-import SourceCodeModal from '@/components/modal/SourceCodeModal';
-import UserActionLogModal from '@/components/modal/UserActionLogModal';
+import ErrorLogTable from '@/views/ErrorLog/components/ErrorLogTable';
+import SourceCodeModal from '@/views/ErrorLog/components/SourceCodeModal';
+import UserActionLogModal from '@/views/ErrorLog/components/UserActionLogModal';
 import { fetcher } from '@/lib/axios';
 import { findCodeBySourceMap } from '@/utils/map';
 
@@ -24,6 +24,7 @@ const ErrorLog: React.FC = () => {
 
   const { data, isLoading, mutate } = useSWR('/errorLogs/all', fetcher);
 
+  // 刷新数据
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -33,6 +34,7 @@ const ErrorLog: React.FC = () => {
     }
   };
 
+  // 查看源码
   const handleViewSourceCode = async (completeError: any) => {
     try {
       const { result, codeSnippet } = await findCodeBySourceMap(completeError);
@@ -42,6 +44,7 @@ const ErrorLog: React.FC = () => {
     }
   };
 
+  // 查看相关用户操作日志
   const handleViewActions = (actions: any[]) => {
     setActionModalData(actions);
   };
@@ -78,7 +81,6 @@ const ErrorLog: React.FC = () => {
           border: `1px solid ${token.colorBorder}`,
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         }}
-        bodyStyle={{ padding: 0 }}
       >
         <ErrorLogTable
           data={data || []}

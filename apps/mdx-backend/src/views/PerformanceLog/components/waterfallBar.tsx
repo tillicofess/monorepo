@@ -2,7 +2,7 @@ import { theme } from 'antd';
 import { useEffect, useRef } from 'react';
 import useChartResize from '@/hooks/chart/useChartResize.ts';
 import { useEChart } from '@/hooks/chart/useEChart.ts';
-import type { PageLoadTiming } from '@/types/log/performanceType';
+import type { PageLoadTiming } from '@/views/PerformanceLog/types/performanceType';
 
 const CHART_COLORS = ['#37A2DA', '#32C5E9', '#67E0E3', '#9FE6B8', '#FFDB5C', '#ff9f7f', '#fb7293'];
 

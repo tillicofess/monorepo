@@ -2,7 +2,7 @@ import { theme } from 'antd';
 import { useEffect, useRef } from 'react';
 import useChartResize from '@/hooks/chart/useChartResize.ts';
 import { useEChart } from '@/hooks/chart/useEChart.ts';
-import type { ChartProps } from '@/types/log/performanceType';
+import type { ChartProps } from '@/views/PerformanceLog/types/performanceType';
 
 const THEME = {
   good: '#0cce6b', // 翠绿

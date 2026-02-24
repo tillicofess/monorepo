@@ -5,8 +5,8 @@ import ProtectedRoute from '@/components/ProtectedRoute.tsx';
 // import Editor from '@/views/Blog/Editor/editor';
 import FileManager from '@/views/File';
 import Home from '@/views/Home.tsx';
-import ErrorLog from '@/views/Log/errorLog';
-import PerformanceLog from '@/views/Log/performanceLog';
+import ErrorLog from '@/views/ErrorLog';
+import PerformanceLog from '@/views/PerformanceLog';
 
 export const router = createBrowserRouter([
   {

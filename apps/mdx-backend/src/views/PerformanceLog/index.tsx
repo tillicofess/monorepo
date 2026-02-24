@@ -3,11 +3,11 @@ import { Activity, BarChart3, Globe } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import useSWR from 'swr';
-import BarChart from '@/components/charts/performanceBar';
-import WaterfallBarChart from '@/components/charts/waterfallBar';
+import BarChart from '@/views/PerformanceLog/components/performanceBar';
+import WaterfallBarChart from '@/views/PerformanceLog/components/waterfallBar';
 import { fetcher } from '@/lib/axios';
-import type { PageLoadTiming, PerformanceData } from '@/types/log/performanceType';
-import { METRIC_KEYS, performanceMetrics } from '@/types/log/performanceType';
+import type { PageLoadTiming, PerformanceData } from '@/views/PerformanceLog/types/performanceType';
+import { METRIC_KEYS, performanceMetrics } from '@/views/PerformanceLog/types/performanceType';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -144,12 +144,52 @@ const PerformanceLog: React.FC = () => {
           <Row gutter={[16, 16]}>
             {!performanceLoading && performanceLogs
               ? performanceLogs.map((metric: PerformanceData) => (
-                  <Col xs={24} lg={12} xl={6} key={metric.sub_type}>
+                <Col xs={24} lg={12} xl={6} key={metric.sub_type}>
+                  <Card
+                    title={
+                      <Space>
+                        <Text strong style={{ textTransform: 'uppercase' }}>
+                          {metric.sub_type}
+                        </Text>
+                      </Space>
+                    }
+                    style={{
+                      borderRadius: 12,
+                      border: `1px solid ${token.colorBorder}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    <BarChart
+                      metricKey={metric.sub_type}
+                      p75={metric.p75}
+                      {...performanceMetrics[metric.sub_type]}
+                    />
+
+                    <Row gutter={[8, 8]} style={{ marginTop: 16 }}>
+                      <Col span={12}>
+                        <Text type="secondary">
+                          P75: {metric.p75}
+                          {metric.sub_type !== 'cls' ? 'ms' : ''}
+                        </Text>
+                      </Col>
+                      <Col span={12}>
+                        <Text type="secondary">
+                          P90: {metric.p90}
+                          {metric.sub_type !== 'cls' ? 'ms' : ''}
+                        </Text>
+                      </Col>
+                    </Row>
+                  </Card>
+                </Col>
+              ))
+              : Array.from({ length: 4 }).map((_, i) => {
+                return (
+                  <Col xs={24} lg={12} xl={6} key={METRIC_KEYS[i]}>
                     <Card
                       title={
                         <Space>
                           <Text strong style={{ textTransform: 'uppercase' }}>
-                            {metric.sub_type}
+                            {METRIC_KEYS[i]}
                           </Text>
                         </Space>
                       }
@@ -159,51 +199,11 @@ const PerformanceLog: React.FC = () => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                       }}
                     >
-                      <BarChart
-                        metricKey={metric.sub_type}
-                        p75={metric.p75}
-                        {...performanceMetrics[metric.sub_type]}
-                      />
-
-                      <Row gutter={[8, 8]} style={{ marginTop: 16 }}>
-                        <Col span={12}>
-                          <Text type="secondary">
-                            P75: {metric.p75}
-                            {metric.sub_type !== 'cls' ? 'ms' : ''}
-                          </Text>
-                        </Col>
-                        <Col span={12}>
-                          <Text type="secondary">
-                            P90: {metric.p90}
-                            {metric.sub_type !== 'cls' ? 'ms' : ''}
-                          </Text>
-                        </Col>
-                      </Row>
+                      <Skeleton active paragraph={{ rows: 2 }} />
                     </Card>
                   </Col>
-                ))
-              : Array.from({ length: 4 }).map((_, i) => {
-                  return (
-                    <Col xs={24} lg={12} xl={6} key={METRIC_KEYS[i]}>
-                      <Card
-                        title={
-                          <Space>
-                            <Text strong style={{ textTransform: 'uppercase' }}>
-                              {METRIC_KEYS[i]}
-                            </Text>
-                          </Space>
-                        }
-                        style={{
-                          borderRadius: 12,
-                          border: `1px solid ${token.colorBorder}`,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                        }}
-                      >
-                        <Skeleton active paragraph={{ rows: 2 }} />
-                      </Card>
-                    </Col>
-                  );
-                })}
+                );
+              })}
           </Row>
         </Space>
       ) : null}

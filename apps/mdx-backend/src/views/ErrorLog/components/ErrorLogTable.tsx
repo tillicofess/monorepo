@@ -4,7 +4,7 @@ import { Code, Play } from 'lucide-react';
 import type React from 'react';
 import { useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
-import type { DataType } from '@/types/log/errorLogType';
+import type { DataType } from '@/views/ErrorLog/types/errorLogType';
 import { throttle } from '@/utils/throttle';
 
 interface ErrorLogTableProps {
