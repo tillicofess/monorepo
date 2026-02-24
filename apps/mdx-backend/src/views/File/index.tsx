@@ -18,8 +18,8 @@ import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { DragOverlayContent } from './components/DragOverlayContent';
 import { FileTable } from './components/FileTable';
 import { FileToolbar } from './components/FileToolbar';
-import { FileUploadPanel } from './components/FileUploadPanel';
 import { RenameModal } from './components/RenameModal';
+import { UploadPanel } from './components/UploadPanel';
 import { useFileOperations } from './hooks/useFileOperations';
 import { useFileUpload } from './hooks/useFileUpload';
 import type { BreadcrumbItem, FileItem } from './types';
@@ -50,17 +50,22 @@ const File: React.FC = () => {
 
   const {
     fileInputRef,
-    selectedFile,
-    progress,
+    files,
     uploading,
-    handleFileSelect,
-    openFileDialog,
-    handleUpload,
-    abortUpload,
+    handleFilesSelect,
+    uploadAll,
+    cancelAll,
+    retryFile,
+    removeFile,
+    clearAllFiles,
   } = useFileUpload({
     currentFolderId,
     onSuccess: refreshFileList,
   });
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
 
   const {
     createFolder,
@@ -118,22 +123,31 @@ const File: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <FileToolbar
         uploading={uploading}
-        selectedFile={selectedFile}
+        files={files}
         onCreateFolder={createFolder.open}
         onOpenFileDialog={openFileDialog}
-        onUpload={handleUpload}
-        onAbort={abortUpload}
+        onUpload={uploadAll}
+        onAbort={cancelAll}
       />
 
       <input
         type="file"
         ref={fileInputRef}
-        onChange={handleFileSelect}
+        onChange={handleFilesSelect}
+        multiple
         style={{ display: 'none' }}
       />
 
       {/* 上传面板 */}
-      <FileUploadPanel selectedFile={selectedFile} progress={progress} uploading={uploading} />
+      <UploadPanel
+        files={files}
+        uploading={uploading}
+        onUpload={uploadAll}
+        onCancel={cancelAll}
+        onRemove={removeFile}
+        onRetry={retryFile}
+        onClear={clearAllFiles}
+      />
 
       {/* FileTable */}
       <Card

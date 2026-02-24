@@ -4,9 +4,11 @@ import { FileUp, FolderPlus, Upload, X } from 'lucide-react';
 import { FormattedMessage } from 'react-intl';
 import { useAbility } from '@/providers/AbilityProvider';
 
+import type { UploadFile } from '../hooks/useFileUpload';
+
 export interface FileToolbarProps {
   uploading: boolean;
-  selectedFile: File | null;
+  files: UploadFile[];
   onCreateFolder: () => void;
   onOpenFileDialog: () => void;
   onUpload: () => void;
@@ -15,13 +17,15 @@ export interface FileToolbarProps {
 
 export function FileToolbar({
   uploading,
-  selectedFile,
+  files,
   onCreateFolder,
   onOpenFileDialog,
   onUpload,
   onAbort,
 }: FileToolbarProps) {
   const ability = useAbility();
+  const pendingCount = files.filter((f) => f.status === 'pending').length;
+  const hasFiles = files.length > 0;
 
   return (
     <div
@@ -41,7 +45,11 @@ export function FileToolbar({
         <FormattedMessage id="fileManagement" />
       </Typography.Title>
       <Space wrap>
-        <Button icon={<FolderPlus size={16} />} onClick={onCreateFolder} disabled={uploading || !ability.can('create', 'editor')}>
+        <Button
+          icon={<FolderPlus size={16} />}
+          onClick={onCreateFolder}
+          disabled={uploading || !ability.can('create', 'editor')}
+        >
           新建文件夹
         </Button>
         <Button
@@ -57,7 +65,9 @@ export function FileToolbar({
           icon={<Upload size={16} />}
           onClick={onUpload}
           loading={uploading}
-          disabled={!selectedFile || uploading || !ability.can('upload', 'editor')}
+          disabled={
+            !hasFiles || pendingCount === 0 || uploading || !ability.can('upload', 'editor')
+          }
         >
           上传文件
         </Button>
