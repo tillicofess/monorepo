@@ -2,6 +2,18 @@ import { message } from 'antd';
 import { useRef, useState } from 'react';
 import { calculateFileHash, checkFileExist, createChunks, uploadFileChunks } from '@/lib/file';
 
+export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
+
+export interface UploadFile {
+  id: string;
+  file: File;
+  fileHash?: string;
+  progress: number;
+  status: UploadStatus;
+  error?: string;
+  uploadedChunks?: number[];
+}
+
 export interface UseFileUploadOptions {
   currentFolderId: string | null;
   onSuccess: () => void;
@@ -21,6 +33,8 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
       setSelectedFile(file);
       setProgress(0);
     }
+    // 清空 input value，允许重复选择同一文件
+    e.target.value = '';
   };
 
   const openFileDialog = () => {
@@ -48,20 +62,24 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
         const chunkHash = `${fileHash}-${index}`;
         return !uploadedChunks.includes(chunkHash);
       });
-      await uploadFileChunks(
+      await uploadFileChunks({
         fileHash,
-        selectedFile.name,
-        selectedFile.size,
-        currentFolderId,
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        parentId: currentFolderId,
         uploadChunks,
         abortControllers,
         setProgress,
-      );
+      });
       setSelectedFile(null);
       setProgress(0);
       message.success('文件上传成功');
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.message === 'Upload aborted') {
+        // 主动取消上传，不显示错误提示
+        return;
+      }
       message.error(`文件上传失败: ${error}`);
     } finally {
       setUploading(false);
