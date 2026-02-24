@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
       {
         path: 'errorLog',
         element: (
-          <ProtectedRoute requiredRoles={['user:read']}>
+          <ProtectedRoute requiredRoles={['user:default']}>
             <ErrorLog />
           </ProtectedRoute>
         ),
@@ -44,7 +44,7 @@ export const router = createBrowserRouter([
       {
         path: 'performanceLog',
         element: (
-          <ProtectedRoute requiredRoles={['user:read']}>
+          <ProtectedRoute requiredRoles={['user:default']}>
             <PerformanceLog />
           </ProtectedRoute>
         ),

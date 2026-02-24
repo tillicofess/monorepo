@@ -5,7 +5,6 @@ import type { KeycloakUser } from './user';
 interface AuthContextValue {
   isAuthenticated: boolean;
   user: KeycloakUser | null;
-  token: string | undefined;
   login: () => void;
   logout: () => void;
 }
@@ -15,12 +14,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState<KeycloakUser | null>(null);
-  const [token, setToken] = useState<string | undefined>();
 
   useEffect(() => {
     keycloak.onAuthLogout = () => {
       setAuthenticated(false);
-      setToken(undefined);
       setUser(null);
     };
 
@@ -34,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthenticated(authenticated);
         if (authenticated) {
           console.log(keycloak.tokenParsed);
-          setToken(keycloak.token);
           setUser({
             sub: keycloak.tokenParsed?.sub || '',
             email: keycloak.tokenParsed?.email || '',
@@ -58,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        token,
         user,
         login,
         logout,

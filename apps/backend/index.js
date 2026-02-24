@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from "cookie-parser";
-import articleRoutes from './routes/articleRoutes.js';
+// import articleRoutes from './routes/articleRoutes.js';
 import largeFileRoutes from './routes/largeFile.js';
 import cosRoutes from './routes/cosRoutes.js';
 import errorLogRoutes from './routes/errorLogRoutes.js';
@@ -17,7 +17,7 @@ const allowList = [
     'https://ticscreek.top',
     'http://localhost:5173',
     'http://localhost:3000',
-    'null' // 允许没有 Origin 的请求（如 Postman 或 curl）
+    'null'
 ];
 
 app.use(cors({
@@ -43,7 +43,7 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use('/articles', articleRoutes);
+// app.use('/articles', articleRoutes);
 app.use('/largeFile', largeFileRoutes);
 app.use('/cos', cosRoutes);
 app.use('/errorLogs', errorLogRoutes);
