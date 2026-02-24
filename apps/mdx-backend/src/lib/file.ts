@@ -1,6 +1,20 @@
 import SparkMD5 from 'spark-md5';
 import { http } from '@/lib/axios';
 
+const GLOBAL_MAX_CONCURRENT = 6;
+let currentConcurrent = 0;
+
+export const semaphore = async () => {
+  while (currentConcurrent >= GLOBAL_MAX_CONCURRENT) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  currentConcurrent++;
+};
+
+export const release = () => {
+  currentConcurrent--;
+};
+
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB 每个分片的大小
 const MAX_CONCURRENT = 6; // 并发上传最大并发数
 
