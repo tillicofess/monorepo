@@ -47,10 +47,6 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
     e.target.value = '';
   };
 
-  const openFileDialog = () => {
-    fileInputRef.current?.click();
-  };
-
   const updateFileProgress = (id: string, progress: number, status?: UploadStatus) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === id ? { ...f, progress, status: status || f.status } : f)),
@@ -196,13 +192,12 @@ export function useFileUpload({ currentFolderId, onSuccess }: UseFileUploadOptio
     fileInputRef,
     files,
     uploading,
-    handleFileSelect,
-    openFileDialog,
-    handleUpload,
+    handleFilesSelect: handleFileSelect,
+    uploadAll: handleUpload,
     cancelAll,
     cancelFile,
     retryFile,
     removeFile,
-    clearFiles,
+    clearAllFiles: clearFiles,
   };
 }
