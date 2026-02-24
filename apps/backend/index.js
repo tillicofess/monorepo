@@ -15,7 +15,9 @@ const PORT = process.env.PORT || 4000;
 const allowList = [
     'https://dev.ticscreek.top:5173',
     'https://ticscreek.top',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'null' // 允许没有 Origin 的请求（如 Postman 或 curl）
 ];
 
 app.use(cors({

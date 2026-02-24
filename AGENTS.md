@@ -7,7 +7,19 @@
 - **包管理器**: pnpm (v10.29.3+)
 - **Node.js**: >= 24.13.1
 - **TypeScript**: 5.9.3+
-- **Monorepo 结构**: pnpm 工作区，包含 `apps/*` 和 `packages/*`
+- **Monorepo 结构**: pnpm 工作区 + catalogs，包含 `apps/*` 和 `packages/*`
+
+### 应用 (apps/)
+- **@monorepo/ssr-mdx** - Next.js 16 SSR 应用 (MDX 文档站点)
+- **@monorepo/backend** - Express 后端服务
+- **@monorepo/mdx-backend** - 中台系统
+
+### 包 (packages/)
+- **@monorepo/ui** - 共享 UI 组件
+- **@monorepo/components** - 共享业务组件
+- **@monorepo/utils** - 共享工具函数
+- **@monorepo/apis** - API 封装
+- **@monorepo/monitor** - 监控相关
 
 ## 构建 / 代码检查 / 测试命令
 
@@ -50,7 +62,7 @@ pnpm spell         # 拼写检查
 
 ### 开发
 ```bash
-pnpm dev                    # 启动开发服务器（每个应用）
+pnpm dev                    # 启动 ssr-mdx 开发服务器
 pnpm dev --filter <app>     # 启动指定应用
 pnpm clean                  # 清理 node_modules 和构建产物
 ```
@@ -122,14 +134,20 @@ function List<T>({ items, renderItem }: ListProps<T>) {
 ### 文件组织
 ```
 apps/
-  nextFrontend/src/
+  ssr-mdx/src/
     app/         # Next.js App Router 页面
     components/ # 特性专用组件
     lib/        # 工具函数
     hooks/      # 自定义 React Hooks
+    content/    # MDX 内容
+  backend/      # Express 后端服务
+  mdx-backend/  # 中台系统
 packages/
-  components/   # 共享 UI 组件
+  ui/           # 共享 UI 组件
+  components/   # 共享业务组件
   utils/        # 共享工具函数
+  apis/         # API 封装
+  monitor/      # 监控相关
 ```
 
 ### 测试规范
@@ -148,6 +166,7 @@ packages/
 - 将依赖添加到相应的工作区包
 - 使用 `pnpm add <package> --filter <package>` 添加到指定包
 - 使用工作区协议: `workspace:*`
+- 使用 catalogs 共享版本号: 在 `pnpm-workspace.yaml` 中定义 catalog，然后在 `package.json` 中使用 `catalog:` 引用
 
 ## 环境变量
 - 永不提交密钥

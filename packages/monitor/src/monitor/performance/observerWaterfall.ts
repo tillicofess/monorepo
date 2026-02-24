@@ -33,16 +33,25 @@ function calculateWaterfallData(entry: PerformanceNavigationTiming): Performance
   };
 }
 
+function collectWaterfall() {
+  const entries = performance.getEntriesByType('navigation');
+  if (entries.length > 0) {
+    const entry = entries[0] as PerformanceNavigationTiming;
+    if (entry.loadEventEnd) {
+      const metrics = calculateWaterfallData(entry);
+      eventBus.emit('performance', metrics);
+      return true;
+    }
+  }
+  return false;
+}
+
 export default function waterfallObserver() {
-  window.addEventListener('load', () => {
-    const observer = new PerformanceObserver((list) => {
-      const entry = list.getEntries()[0] as PerformanceNavigationTiming;
-      if (entry.loadEventEnd) {
-        const metrics = calculateWaterfallData(entry);
-        eventBus.emit('performance', metrics);
-        observer.disconnect();
-      }
+  if (document.readyState === 'complete') {
+    collectWaterfall();
+  } else {
+    window.addEventListener('load', () => {
+      setTimeout(collectWaterfall, 0);
     });
-    observer.observe({ type: 'navigation', buffered: true });
-  });
+  }
 }

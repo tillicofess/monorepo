@@ -7,6 +7,7 @@ import CrispChat from '@/components/CrispChat';
 import { ThemeProvider } from '@/components/theme-provider';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import MonitorInit from '@/components/monitor/monitor-init';
 
 const geist = localFont({
   src: [
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TooltipProvider>{children}</TooltipProvider>
             <ScrollToTop />
             <CrispChat />
+            <MonitorInit />
             <Script
               defer
               src="https://umami.ticscreek.top/script.js"
