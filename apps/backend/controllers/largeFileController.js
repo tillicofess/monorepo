@@ -158,8 +158,10 @@ export const mergeChunks = async (req, res) => {
         readStream.pipe(writeStream);
 
         readStream.on('end', async () => {
-          // 分片写入完成后删除
-          await fse.unlink(chunkPath);
+          // 分片写入完成后删除（检查文件是否存在，避免并发冲突）
+          if (fse.existsSync(chunkPath)) {
+            await fse.unlink(chunkPath).catch(() => {});
+          }
           resolve();
         });
 
