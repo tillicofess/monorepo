@@ -96,6 +96,16 @@ export const checkFileExist = async (fileHash: string, fileName: string) => {
 };
 
 /**
+ * 批量秒传检查
+ * @param files 文件列表
+ * @returns 批量秒传检查结果
+ */
+export const checkBatchFileExist = async (files: { fileHash: string; fileName: string }[]) => {
+  const res = await http.post('/largeFile/batchCheck', { files });
+  return res.data.data;
+};
+
+/**
  * 大文件分片上传
  */
 export const uploadFileChunks = async (options: UploadOptions) => {
