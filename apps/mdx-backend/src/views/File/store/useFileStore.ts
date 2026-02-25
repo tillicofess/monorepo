@@ -10,6 +10,7 @@ import {
   semaphore,
   uploadFileChunks,
 } from '@/lib/file';
+import { generateId } from '@/utils/utils';
 
 export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
 
@@ -60,7 +61,7 @@ interface FileStoreState {
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     openModal: () => void;
     closeModal: () => void;
-    handleFilesSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleFilesSelect: (e: File[]) => void;
     uploadAll: (parentId: string | null, onSuccess: () => void) => Promise<void>;
     cancelAll: () => void;
     retryFile: (id: string) => void;
@@ -87,8 +88,6 @@ interface FileStoreState {
     submit: (onSuccess: () => void) => Promise<void>;
   };
 }
-
-const generateId = () => Math.random().toString(36).substring(2, 15);
 
 const abortControllers: { current: AbortController[] } = { current: [] };
 
@@ -134,17 +133,17 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
       set((state) => ({
         upload: { ...state.upload, isModalOpen: false, files: [], uploading: false },
       })),
-    handleFilesSelect: (e) => {
-      const newFiles = Array.from(e.target.files || []).map((file) => ({
+    handleFilesSelect: (files: File[]) => {
+      const newFiles = files.map((file) => ({
         id: generateId(),
         file,
         progress: 0,
         status: 'pending' as UploadStatus,
       }));
+
       set((state) => ({
         upload: { ...state.upload, files: [...state.upload.files, ...newFiles] },
       }));
-      e.target.value = '';
     },
     uploadAll: async (parentId, onSuccess) => {
       const { upload: up } = get();

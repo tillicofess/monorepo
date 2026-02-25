@@ -6,6 +6,7 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { Button, Modal, Progress, Space, Typography, theme } from 'antd';
+import { useState } from 'react';
 import { useFileStore } from '../store/useFileStore';
 
 interface UploadModalProps {
@@ -39,12 +40,22 @@ const getStatusIcon = (status: string) => {
 };
 
 export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
+  const [dragging, setDragging] = useState(false);
   const { token } = useToken();
   const upload = useFileStore((state) => state.upload);
 
   const pendingCount = upload.files.filter((f) => f.status === 'pending').length;
   const completedCount = upload.files.filter((f) => f.status === 'completed').length;
   const uploadingCount = upload.files.filter((f) => f.status === 'uploading').length;
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement | HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    upload.handleFilesSelect(files);
+  };
 
   return (
     <Modal
@@ -61,11 +72,16 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
       <input
         type="file"
         ref={upload.fileInputRef as React.RefObject<HTMLInputElement>}
-        onChange={upload.handleFilesSelect}
+        onChange={(e) => {
+          if (!e.target.files) return;
+          upload.handleFilesSelect(Array.from(e.target.files));
+          e.target.value = '';
+        }}
         multiple
         style={{ display: 'none' }}
       />
 
+      {/* 按钮组 */}
       <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
         <Space>
           <Button
@@ -94,55 +110,100 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           已完成 {completedCount}/{upload.files.length}
         </Text>
       </Space>
+
+      {/* 文件列表 */}
       <div style={{ maxHeight: '400px', overflow: 'auto' }}>
-        {upload.files.map((file) => (
-          <div
-            key={file.id}
+        {/* 拖拽上传 */}
+        {upload.files.length === 0 ? (
+          <button
+            type="button"
+            onClick={() =>
+              (upload.fileInputRef as React.RefObject<HTMLInputElement>).current?.click()
+            }
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                (upload.fileInputRef as React.RefObject<HTMLInputElement>).current?.click();
+              }
+            }}
+            onDrop={handleDrop}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setDragging(false);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px 0',
-              borderBottom: `1px solid ${token.colorBorder}`,
+              height: 300,
+              border: '2px dashed',
+              borderRadius: 8,
+              padding: 40,
+              textAlign: 'center',
+              transition: '0.2s',
+              cursor: 'pointer',
+              borderColor: dragging ? token.colorPrimary : token.colorBorder,
+              background: dragging ? token.colorPrimaryBg : undefined,
+              width: '100%',
+              display: 'block',
+              font: 'inherit',
+              color: 'inherit',
             }}
           >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Text ellipsis style={{ display: 'block' }}>
-                {file.file.name}
-              </Text>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {formatSize(file.file.size)}
-              </Text>
+            <p>拖拽文件到这里上传</p>
+            <p>或点击选择文件</p>
+          </button>
+        ) : (
+          // 文件列表
+          upload.files.map((file) => (
+            <div
+              key={file.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 0',
+                borderBottom: `1px solid ${token.colorBorder}`,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Text ellipsis style={{ display: 'block' }}>
+                  {file.file.name}
+                </Text>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {formatSize(file.file.size)}
+                </Text>
+              </div>
+
+              <div style={{ width: '120px', margin: '0 16px' }}>
+                {file.status === 'uploading' && (
+                  <Progress percent={file.progress} size="small" strokeColor={token.colorPrimary} />
+                )}
+              </div>
+
+              <div style={{ width: '40px', textAlign: 'center' }}>{getStatusIcon(file.status)}</div>
+
+              <Space style={{ marginLeft: '8px' }}>
+                {file.status === 'failed' && (
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<SyncOutlined />}
+                    onClick={() => upload.retryFile(file.id)}
+                  />
+                )}
+                {(file.status === 'pending' || file.status === 'failed') && (
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => upload.removeFile(file.id)}
+                  />
+                )}
+              </Space>
             </div>
-
-            <div style={{ width: '120px', margin: '0 16px' }}>
-              {file.status === 'uploading' && (
-                <Progress percent={file.progress} size="small" strokeColor={token.colorPrimary} />
-              )}
-            </div>
-
-            <div style={{ width: '40px', textAlign: 'center' }}>{getStatusIcon(file.status)}</div>
-
-            <Space style={{ marginLeft: '8px' }}>
-              {file.status === 'failed' && (
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<SyncOutlined />}
-                  onClick={() => upload.retryFile(file.id)}
-                />
-              )}
-              {(file.status === 'pending' || file.status === 'failed') && (
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => upload.removeFile(file.id)}
-                />
-              )}
-            </Space>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {upload.files.length > 0 && !upload.uploading && (
