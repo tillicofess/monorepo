@@ -1,40 +1,32 @@
 import { Input, Modal } from 'antd';
+import { useFileStore } from '../store/useFileStore';
 
-export interface CreateFolderModalProps {
-  open: boolean;
-  folderName: string;
-  loading: boolean;
-  onNameChange: (name: string) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
+interface CreateFolderModalProps {
+  parentId: string | null;
+  onSuccess: () => void;
 }
 
-export function CreateFolderModal({
-  open,
-  folderName,
-  loading,
-  onNameChange,
-  onSubmit,
-  onCancel,
-}: CreateFolderModalProps) {
+export function CreateFolderModal({ parentId, onSuccess }: CreateFolderModalProps) {
+  const { createFolder } = useFileStore();
+
   return (
     <Modal
       title="新建文件夹"
-      open={open}
-      onOk={onSubmit}
-      confirmLoading={loading}
+      open={createFolder.isOpen}
+      onOk={() => createFolder.submit(parentId, onSuccess)}
+      confirmLoading={createFolder.loading}
       okButtonProps={{
-        disabled: !folderName.trim(),
+        disabled: !createFolder.name.trim(),
       }}
-      onCancel={onCancel}
+      onCancel={createFolder.close}
       destroyOnHidden
     >
       <Input
         placeholder="请输入文件夹名称"
-        value={folderName}
+        value={createFolder.name}
         maxLength={100}
-        onChange={(e) => onNameChange(e.target.value)}
-        onPressEnter={onSubmit}
+        onChange={(e) => createFolder.setName(e.target.value)}
+        onPressEnter={() => createFolder.submit(parentId, onSuccess)}
         autoFocus
       />
     </Modal>

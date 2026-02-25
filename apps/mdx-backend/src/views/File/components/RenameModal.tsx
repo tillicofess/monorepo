@@ -1,45 +1,35 @@
 import { Input, Modal } from 'antd';
-import type { FileNameState } from '../types';
+import { useFileStore } from '../store/useFileStore';
 
-export interface RenameModalProps {
-  open: boolean;
-  fileName: FileNameState;
-  loading: boolean;
-  onNameChange: (name: FileNameState) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
+interface RenameModalProps {
+  onSuccess: () => void;
 }
 
-export function RenameModal({
-  open,
-  fileName,
-  loading,
-  onNameChange,
-  onSubmit,
-  onCancel,
-}: RenameModalProps) {
+export function RenameModal({ onSuccess }: RenameModalProps) {
+  const { rename } = useFileStore();
+
   return (
     <Modal
       title="重命名"
-      open={open}
-      onOk={onSubmit}
-      confirmLoading={loading}
+      open={rename.isOpen}
+      onOk={() => rename.submit(onSuccess)}
+      confirmLoading={rename.loading}
       okButtonProps={{
-        disabled: !fileName.name.trim(),
+        disabled: !rename.fileName.name.trim(),
       }}
-      onCancel={onCancel}
+      onCancel={rename.close}
       destroyOnHidden
     >
       <Input
-        value={fileName.name}
+        value={rename.fileName.name}
         maxLength={100}
         onChange={(e) =>
-          onNameChange({
-            id: fileName.id,
+          rename.setFileName({
+            id: rename.fileName.id,
             name: e.target.value,
           })
         }
-        onPressEnter={onSubmit}
+        onPressEnter={() => rename.submit(onSuccess)}
         autoFocus
       />
     </Modal>

@@ -31,7 +31,8 @@
     "react-router-dom": "^7.7.1",
     "source-map-js": "^1.2.1",
     "spark-md5": "^3.0.2",
-    "swr": "^2.3.6"
+    "swr": "^2.3.6",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@formatjs/cli": "^6.7.3",

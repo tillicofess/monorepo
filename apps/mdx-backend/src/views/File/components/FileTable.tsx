@@ -1,5 +1,5 @@
 import { FileOutlined, FolderOpenOutlined, HolderOutlined } from '@ant-design/icons';
-import type { TableColumnsType } from 'antd';
+import type { TableColumnsType, TableProps } from 'antd';
 import { Button, Space, Table } from 'antd';
 import { useContext } from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -9,9 +9,12 @@ import { RowContext } from '@/components/DraggableRow.tsx';
 import { TableFolderDroppable } from '@/components/DroppableNode.tsx';
 import { useAbility } from '@/providers/AbilityProvider';
 import { formatFileSize } from '@/utils/utils';
+import { useFileStore } from '../store/useFileStore';
 import type { FileItem } from '../types';
 
-export interface FileTableProps {
+type TableRowSelection<T extends object = object> = TableProps<T>['rowSelection'];
+
+interface FileTableProps {
   fileList: FileItem[] | undefined;
   isLoading: boolean;
   onEnterFolder: (record: FileItem) => void;
@@ -41,6 +44,8 @@ export function FileTable({
   onDelete,
 }: FileTableProps) {
   const ability = useAbility();
+  const { selectedRowKeys, setSelectedRowKeys } = useFileStore();
+
   const columns: TableColumnsType<FileItem> = [
     {
       title: <FormattedMessage id="fileName" defaultMessage="File Name" />,
@@ -120,6 +125,11 @@ export function FileTable({
     },
   ];
 
+  const rowSelection: TableRowSelection<FileItem> = {
+    selectedRowKeys,
+    onChange: setSelectedRowKeys,
+  };
+
   return (
     <Table
       size="middle"
@@ -140,6 +150,7 @@ export function FileTable({
           row: DraggableRow,
         },
       }}
+      rowSelection={rowSelection}
     />
   );
 }

@@ -16,12 +16,11 @@ import EllipsisBreadcrumb from '@/components/EllipsisBreadcrumb.tsx';
 import { CreateFolderModal } from './components/CreateFolderModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { DragOverlayContent } from './components/DragOverlayContent';
+import { FileActions } from './components/FileActions';
 import { FileTable } from './components/FileTable';
-import { FileToolbar } from './components/FileToolbar';
 import { RenameModal } from './components/RenameModal';
 import { UploadModal } from './components/UploadModal';
-import { useFileOperations } from './hooks/useFileOperations';
-import { useFileUpload } from './hooks/useFileUpload';
+import { useFileStore } from './store/useFileStore';
 import type { BreadcrumbItem, FileItem } from './types';
 
 const { useToken } = theme;
@@ -32,7 +31,6 @@ const File: React.FC = () => {
   const sensors = useSensors(pointerSensor);
 
   const [activeItem, setActiveItem] = useState<FileItem | null>(null);
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   const [currentPath, setCurrentPath] = useState<BreadcrumbItem[]>([
     { id: null, name: <FormattedMessage id="file.root" defaultMessage="Root Directory" /> },
@@ -47,30 +45,6 @@ const File: React.FC = () => {
   } = useSWR(['/file/list', currentFolderId], async ([_, parentId]) => {
     const res = await getFileList(parentId as string | null);
     return res.data.data;
-  });
-
-  const {
-    fileInputRef,
-    files,
-    uploading,
-    handleFilesSelect,
-    uploadAll,
-    cancelAll,
-    retryFile,
-    removeFile,
-    clearAllFiles,
-  } = useFileUpload({
-    currentFolderId,
-    onSuccess: refreshFileList,
-  });
-
-  const {
-    createFolder,
-    rename,
-    delete: deleteOp,
-  } = useFileOperations({
-    currentFolderId,
-    refreshFileList,
   });
 
   const handleDragStart = (event: { active: { id: unknown } }) => {
@@ -118,27 +92,6 @@ const File: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <FileToolbar
-        onCreateFolder={createFolder.open}
-        onOpenUploadModal={() => setUploadModalOpen(true)}
-      />
-
-      <UploadModal
-        open={uploadModalOpen}
-        onOpen={() => setUploadModalOpen(true)}
-        onClose={() => setUploadModalOpen(false)}
-        files={files}
-        uploading={uploading}
-        onUpload={uploadAll}
-        onCancel={cancelAll}
-        onRemove={removeFile}
-        onRetry={retryFile}
-        onClear={clearAllFiles}
-        onFileSelect={handleFilesSelect}
-        fileInputRef={fileInputRef}
-      />
-
-      {/* FileTable */}
       <Card
         style={{
           borderRadius: 12,
@@ -152,19 +105,21 @@ const File: React.FC = () => {
           sensors={sensors}
           collisionDetection={pointerWithin}
         >
-          <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             <EllipsisBreadcrumb
               items={currentPath}
               onItemClick={handleBreadcrumbClick}
               maxDisplayCount={3}
             />
 
+            <FileActions />
+
             <FileTable
               fileList={fileList}
               isLoading={isLoading}
               onEnterFolder={handleEnterFolder}
-              onRename={rename.open}
-              onDelete={deleteOp.open}
+              onRename={(id, name) => useFileStore.getState().rename.open(id, name)}
+              onDelete={(id, name, isDir) => useFileStore.getState().delete.open(id, name, isDir)}
             />
           </Space>
 
@@ -174,31 +129,10 @@ const File: React.FC = () => {
         </DndContext>
       </Card>
 
-      <CreateFolderModal
-        open={createFolder.isOpen}
-        folderName={createFolder.name}
-        loading={createFolder.loading}
-        onNameChange={createFolder.setName}
-        onSubmit={createFolder.submit}
-        onCancel={createFolder.close}
-      />
-
-      <RenameModal
-        open={rename.isOpen}
-        fileName={rename.fileName}
-        loading={rename.loading}
-        onNameChange={rename.setFileName}
-        onSubmit={rename.submit}
-        onCancel={rename.close}
-      />
-
-      <DeleteConfirmModal
-        open={deleteOp.isOpen}
-        fileInfo={deleteOp.fileInfo}
-        loading={deleteOp.loading}
-        onSubmit={deleteOp.submit}
-        onCancel={deleteOp.close}
-      />
+      <UploadModal parentId={currentFolderId} onSuccess={refreshFileList} />
+      <CreateFolderModal parentId={currentFolderId} onSuccess={refreshFileList} />
+      <RenameModal onSuccess={refreshFileList} />
+      <DeleteConfirmModal onSuccess={refreshFileList} />
     </div>
   );
 };
