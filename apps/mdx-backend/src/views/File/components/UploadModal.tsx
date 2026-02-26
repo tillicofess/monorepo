@@ -70,7 +70,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 
   const file = upload.currentFile;
   const isUploading = upload.uploading;
-  const canUpload = file?.status === 'pending' && !isUploading;
+  const canUpload = !isUploading;
 
   return (
     <Modal
@@ -282,6 +282,11 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           gap: 8,
         }}
       >
+        {isUploading && (
+          <Button danger onClick={upload.cancelUpload} style={{ borderRadius: 6 }}>
+            取消上传
+          </Button>
+        )}
         <Button onClick={upload.closeModal} style={{ borderRadius: 6 }}>
           关闭
         </Button>

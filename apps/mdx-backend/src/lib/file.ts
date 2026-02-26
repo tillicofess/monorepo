@@ -78,6 +78,7 @@ export const uploadFileChunks = async (
   uploadChunks: { chunk: Blob; size: number }[],
   fileSize: number,
   onProgress?: (uploaded: number, total: number) => void,
+  signal?: AbortSignal,
 ) => {
   // 创建实际上传分片对象
   const chunkInfoList = uploadChunks.map((item, index) => ({
@@ -96,7 +97,7 @@ export const uploadFileChunks = async (
     return { formData, size: item.size };
   });
 
-  return concurRequset(formData, MAX_CONCURRENT, fileSize, onProgress);
+  return concurRequset(formData, MAX_CONCURRENT, fileSize, onProgress, signal);
 };
 
 const concurRequset = async (
@@ -104,41 +105,63 @@ const concurRequset = async (
   maxNum: number,
   fileSize: number,
   onProgress?: (uploaded: number, total: number) => void,
+  signal?: AbortSignal,
 ) => {
-  return new Promise<number>((resolve) => {
+  return new Promise<number>((resolve, reject) => {
     // 已上传字节数
     let uploadedBytes = 0;
     // 下一个请求索引
     let index = 0;
+    // 是否已取消
+    let isAborted = false;
+
+    // 监听取消信号
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        isAborted = true;
+        reject(new Error('Upload aborted'));
+      });
+    }
 
     // 发送请求
     async function request() {
-      if (index >= formdata.length) return;
+      if (index >= formdata.length || isAborted) return;
       const idx = index++;
-      const item = formdata[idx]!;
+      const item = formdata[idx];
+      if (!item) return;
+
+      const options: Record<string, unknown> = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent: { loaded?: number }) => {
+          uploadedBytes += progressEvent.loaded || 0;
+          onProgress?.(uploadedBytes, fileSize);
+        },
+      };
+
+      if (signal) {
+        options.signal = signal;
+      }
 
       try {
-        await http.post('/largeFile/upload', item.formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (progressEvent) => {
-            uploadedBytes += progressEvent.loaded || 0;
-            onProgress?.(uploadedBytes, fileSize);
-          },
-        });
+        await http.post('/largeFile/upload', item.formData, options);
       } catch (err) {
-        console.error(err);
-      } finally {
-        if (index >= formdata.length && uploadedBytes < fileSize) {
-          uploadedBytes = fileSize;
-          onProgress?.(uploadedBytes, fileSize);
+        if (!isAborted) {
+          console.error(err);
         }
+      } finally {
+        if (!isAborted) {
+          if (index >= formdata.length && uploadedBytes < fileSize) {
+            uploadedBytes = fileSize;
+            onProgress?.(uploadedBytes, fileSize);
+          }
 
-        if (index >= formdata.length) {
-          resolve(uploadedBytes);
-        } else {
-          request();
+          if (index >= formdata.length) {
+            resolve(uploadedBytes);
+          } else {
+            request();
+          }
         }
       }
     }

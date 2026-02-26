@@ -11,7 +11,7 @@ import {
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
 
-export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed';
+export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
 
 export interface UploadFile {
   id: string;
@@ -57,10 +57,12 @@ interface FileStoreState {
     currentFile: UploadFile | null;
     uploading: boolean;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
+    abortController: AbortController | null;
     openModal: () => void;
     closeModal: () => void;
     selectFile: (file: File) => void;
     uploadFile: (parentId: string | null, onSuccess: () => void) => Promise<void>;
+    cancelUpload: () => void;
   };
   rename: {
     isOpen: boolean;
@@ -122,8 +124,13 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
     currentFile: null,
     uploading: false,
     fileInputRef: { current: null },
+    abortController: null,
     openModal: () => set((state) => ({ upload: { ...state.upload, isModalOpen: true } })),
     closeModal: () => {
+      const { upload: up } = get();
+      if (up.abortController) {
+        up.abortController.abort();
+      }
       set((state) => ({
         upload: {
           ...state.upload,
@@ -131,6 +138,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
           currentFile: null,
           uploading: false,
           fileInputRef: { current: null },
+          abortController: null,
         },
       }));
     },
@@ -147,12 +155,16 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
     },
     uploadFile: async (parentId: string | null, onSuccess: () => void) => {
       const { upload: up } = get();
-      if (!up.currentFile || up.currentFile.status !== 'pending') {
+      if (!up.currentFile) {
         message.warning('请先选择文件');
         return;
       }
 
-      set((state) => ({ upload: { ...state.upload, uploading: true } }));
+      // 创建 AbortController
+      const controller = new AbortController();
+      set((state) => ({
+        upload: { ...state.upload, uploading: true, abortController: controller },
+      }));
 
       const file = up.currentFile;
 
@@ -163,10 +175,10 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
             ...state.upload,
             currentFile: state.upload.currentFile
               ? {
-                  ...state.upload.currentFile,
-                  progress,
-                  status: status || state.upload.currentFile.status,
-                }
+                ...state.upload.currentFile,
+                progress,
+                status: status || state.upload.currentFile.status,
+              }
               : null,
           },
         }));
@@ -187,6 +199,9 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
         if (!shouldUpload) {
           updateProgress(100, 'completed');
           message.success('文件已存在');
+          set((state) => ({
+            upload: { ...state.upload, uploading: false, abortController: null },
+          }));
           onSuccess();
           return;
         }
@@ -206,23 +221,41 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
           size: chunk.size,
         }));
 
-        await uploadFileChunks(fileHash, chunksWithSize, file.file.size, (uploaded, total) => {
-          // 进度 = (已上传字节 + 后端已有字节) / 总字节
-          const progress = Math.floor(((uploadedBytes + uploaded) / total) * 100);
-          updateProgress(progress);
-        });
+        await uploadFileChunks(
+          fileHash,
+          chunksWithSize,
+          file.file.size,
+          (uploaded, total) => {
+            // 进度 = (已上传字节 + 后端已有字节) / 总字节
+            const progress = Math.floor(((uploadedBytes + uploaded) / total) * 100);
+            updateProgress(progress);
+          },
+          controller.signal,
+        );
 
         await mergeRequest(fileHash, file.file.name, file.file.size, parentId);
 
         updateProgress(100, 'completed');
         message.success('上传成功');
+        set((state) => ({ upload: { ...state.upload, uploading: false, abortController: null } }));
         onSuccess();
       } catch (error) {
-        console.error('上传失败:', error);
-        updateProgress(file.progress, 'failed');
-        message.error('上传失败');
+        if (error instanceof Error && error.message === 'Upload aborted') {
+          updateProgress(file.progress, 'cancelled');
+          message.info('已取消上传');
+        } else {
+          console.error('上传失败:', error);
+          updateProgress(file.progress, 'failed');
+          message.error('上传失败');
+        }
       } finally {
-        set((state) => ({ upload: { ...state.upload, uploading: false } }));
+        set((state) => ({ upload: { ...state.upload, uploading: false, abortController: null } }));
+      }
+    },
+    cancelUpload: () => {
+      const { upload: up } = get();
+      if (up.abortController) {
+        up.abortController.abort();
       }
     },
   },
