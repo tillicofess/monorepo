@@ -9,9 +9,7 @@ import {
   uploadFileChunks,
 } from '@/lib/file';
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
-
-export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
+export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled' | 'paused';
 
 export interface UploadFile {
   id: string;
@@ -62,6 +60,7 @@ interface FileStoreState {
     closeModal: () => void;
     selectFile: (file: File) => void;
     uploadFile: (parentId: string | null, onSuccess: () => void) => Promise<void>;
+    pauseUpload: () => void;
     cancelUpload: () => void;
   };
   rename: {
@@ -185,16 +184,19 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
       };
 
       try {
-        updateProgress(0, 'uploading');
+        updateProgress(file.progress || 0, 'uploading');
 
-        // 创建分片 done
+        //  生成原始分片
         const chunks = createChunks(file.file);
 
-        // 计算文件哈希 done
+        //  计算 hash
         const fileHash = await calculateFileHash(chunks);
 
-        // 秒传检查 done
-        const { shouldUpload, uploadedChunks } = await checkFileExist(fileHash, file.file.name);
+        //  秒传检测
+        const { shouldUpload, uploadedChunks } = await checkFileExist(
+          fileHash,
+          file.file.name,
+        );
 
         if (!shouldUpload) {
           updateProgress(100, 'completed');
@@ -207,56 +209,128 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
         }
 
         // 已上传的分片数
-        const uploadedChunkCount = uploadedChunks?.length || 0;
-        const uploadedBytes = uploadedChunkCount * CHUNK_SIZE;
+        const uploadedBytes =
+          uploadedChunks?.reduce((total: number, index: number) => {
+            return total + (chunks[index]?.size ?? 0);
+          }, 0) || 0;
 
-        // 续传分片filter done
-        const uploadChunks = uploadedChunks?.length
-          ? chunks.filter((_, index) => !uploadedChunks.includes(index))
-          : chunks;
+        //  保留真实 index
+        const uploadChunks = chunks
+          .map((chunk, index) => ({
+            chunk,
+            index,
+          }))
+          .filter(({ index }) => !uploadedChunks?.includes(index));
 
-        // 转换为带大小的分片数组
-        const chunksWithSize = uploadChunks.map((chunk) => ({
+        const chunksWithSize = uploadChunks.map(({ chunk, index }) => ({
+          fileHash,
+          chunkHash: `${fileHash}-${index}`, // ⭐ 真实 index
           chunk,
           size: chunk.size,
         }));
 
+        console.log('开始上传', chunksWithSize);
+
+        // 上传分片
         await uploadFileChunks(
-          fileHash,
           chunksWithSize,
-          file.file.size,
-          (uploaded, total) => {
-            // 进度 = (已上传字节 + 后端已有字节) / 总字节
-            const progress = Math.floor(((uploadedBytes + uploaded) / total) * 100);
+          (chunkUploaded: number) => {
+            const uploadedSoFar = uploadedBytes + chunkUploaded;
+
+            const progress = Math.floor(
+              (uploadedSoFar / file.file.size) * 100,
+            );
+
             updateProgress(progress);
           },
           controller.signal,
         );
 
-        await mergeRequest(fileHash, file.file.name, file.file.size, parentId);
+        // 合并文件
+        await mergeRequest(
+          fileHash,
+          file.file.name,
+          file.file.size,
+          parentId,
+        );
 
         updateProgress(100, 'completed');
+
+        set((state) => ({
+          upload: { ...state.upload, uploading: false, abortController: null },
+        }));
+
         message.success('上传成功');
-        set((state) => ({ upload: { ...state.upload, uploading: false, abortController: null } }));
         onSuccess();
       } catch (error) {
+        const current = get().upload.currentFile;
+
         if (error instanceof Error && error.message === 'Upload aborted') {
-          updateProgress(file.progress, 'cancelled');
-          message.info('已取消上传');
-        } else {
-          console.error('上传失败:', error);
-          updateProgress(file.progress, 'failed');
-          message.error('上传失败');
+          if (current?.status === 'paused') {
+            message.info('已暂停上传');
+          } else if (current?.status === 'cancelled') {
+            set((state) => ({
+              upload: {
+                ...state.upload,
+                currentFile: null,
+                uploading: false,
+                abortController: null,
+              },
+            }));
+            message.info('已取消上传');
+          }
+
+          return;
         }
-      } finally {
-        set((state) => ({ upload: { ...state.upload, uploading: false, abortController: null } }));
+
+        console.error('上传失败:', error);
+
+        updateProgress(current?.progress || 0, 'failed');
+
+        set((state) => ({
+          upload: { ...state.upload, uploading: false, abortController: null },
+        }));
+
+        message.error('上传失败');
       }
     },
-    cancelUpload: () => {
+    pauseUpload: () => {
       const { upload: up } = get();
+
       if (up.abortController) {
         up.abortController.abort();
       }
+
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          currentFile: state.upload.currentFile
+            ? {
+              ...state.upload.currentFile,
+              status: 'paused',
+            }
+            : null,
+        },
+      }));
+    },
+    cancelUpload: () => {
+      const { upload: up } = get();
+
+      if (up.abortController) {
+        up.abortController.abort();
+      }
+
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          currentFile: state.upload.currentFile
+            ? {
+              ...state.upload.currentFile,
+              status: 'cancelled',
+            }
+            : null,
+        },
+      }));
     },
   },
   rename: {

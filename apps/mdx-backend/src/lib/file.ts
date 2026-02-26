@@ -74,22 +74,13 @@ export const checkFileExist = async (fileHash: string, fileName: string) => {
  * 大文件分片上传 done
  */
 export const uploadFileChunks = async (
-  fileHash: string,
-  uploadChunks: { chunk: Blob; size: number }[],
-  fileSize: number,
-  onProgress: (uploaded: number, total: number) => void,
+  uploadChunks: { fileHash: string, chunkHash: string, chunk: Blob; size: number }[],
+  onProgress: (uploaded: number) => void,
   signal: AbortSignal,
 ) => {
-  // 创建实际上传分片对象
-  const chunkInfoList = uploadChunks.map((item, index) => ({
-    fileHash,
-    chunkHash: `${fileHash}-${index}`,
-    chunk: item.chunk,
-    size: item.size,
-  }));
 
   // 添加到formdata中
-  const formData = chunkInfoList.map((item) => {
+  const formData = uploadChunks.map((item) => {
     const formData = new FormData();
     formData.append('filehash', item.fileHash);
     formData.append('chunkhash', item.chunkHash);
@@ -97,72 +88,83 @@ export const uploadFileChunks = async (
     return { formData, size: item.size };
   });
 
-  return concurRequset(formData, MAX_CONCURRENT, fileSize, onProgress, signal);
+  return concurRequset(formData, MAX_CONCURRENT, onProgress, signal);
 };
 
 const concurRequset = async (
   formdata: { formData: FormData; size: number }[],
   maxNum: number,
-  fileSize: number,
-  onProgress: (uploaded: number, total: number) => void,
+  onProgress: (uploaded: number) => void,
   signal: AbortSignal,
-) => {
-  return new Promise<number>((resolve, reject) => {
-    // 已上传字节数
+): Promise<number> => {
+  return new Promise((resolve, reject) => {
     let uploadedBytes = 0;
-    // 下一个请求索引
     let index = 0;
-    // 是否已取消
+    let finishedCount = 0;
     let isAborted = false;
+    let isResolved = false;
 
-    // 监听取消信号
-    signal.addEventListener('abort', () => {
+    const totalChunks = formdata.length;
+
+    const cleanup = () => {
+      signal.removeEventListener('abort', handleAbort);
+    };
+
+    const handleAbort = () => {
       isAborted = true;
+      cleanup();
       reject(new Error('Upload aborted'));
-    });
+    };
 
-    // 发送请求
+    signal.addEventListener('abort', handleAbort);
+
     async function request() {
-      if (index >= formdata.length || isAborted) return;
-      const idx = index++;
-      const item = formdata[idx];
+      if (isAborted) return;
+
+      const currentIndex = index++;
+      if (currentIndex >= totalChunks) return;
+
+      const item = formdata[currentIndex];
       if (!item) return;
 
-      const options: Record<string, unknown> = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent: { loaded?: number }) => {
-          uploadedBytes += progressEvent.loaded || 0;
-          onProgress(uploadedBytes, fileSize);
-        },
-        signal,
-      };
-
       try {
-        await http.post('/largeFile/upload', item.formData, options);
-      } catch (err) {
-        if (!isAborted) {
-          console.error(err);
-        }
-      } finally {
-        if (!isAborted) {
-          if (index >= formdata.length && uploadedBytes < fileSize) {
-            uploadedBytes = fileSize;
-            onProgress(uploadedBytes, fileSize);
-          }
+        await http.post('/largeFile/upload', item.formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          signal,
+        });
 
-          if (index >= formdata.length) {
-            resolve(uploadedBytes);
-          } else {
-            request();
-          }
+        // ✅ 成功后才增加真实字节
+        uploadedBytes += item.size;
+
+        onProgress(uploadedBytes);
+
+        finishedCount++;
+
+        // 所有分片完成
+        if (finishedCount === totalChunks && !isResolved) {
+          isResolved = true;
+          cleanup();
+          resolve(uploadedBytes);
+          return;
+        }
+
+        // 继续调度下一个
+        request();
+
+      } catch (err) {
+        if (!isAborted && !isResolved) {
+          isResolved = true;
+          cleanup();
+          reject(err);
         }
       }
     }
 
-    // 启动请求
-    for (let i = 0; i < maxNum; i++) {
+    // 启动并发
+    const workerCount = Math.min(maxNum, totalChunks);
+    for (let i = 0; i < workerCount; i++) {
       request();
     }
   });

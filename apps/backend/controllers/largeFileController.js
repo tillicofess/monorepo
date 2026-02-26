@@ -37,7 +37,11 @@ export const checkFile = async (req, res, next) => {
   const chunkDir = path.resolve(TMP_CHUNK_DIR, fileHash);
   let uploadedChunks = [];
   if (fse.existsSync(chunkDir)) {
-    uploadedChunks = await fse.readdir(chunkDir);
+    const files = await fse.readdir(chunkDir);
+    uploadedChunks = files
+      .map((file) => parseInt(file.split('-')[1], 10))
+      .filter((index) => !isNaN(index))
+      .sort((a, b) => a - b);
   }
 
   res.json({

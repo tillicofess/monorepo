@@ -1,7 +1,9 @@
 import {
   CheckCircleOutlined,
-  CloseCircleOutlined,
+  PlayCircleOutlined,
+  PauseOutlined,
   DeleteOutlined,
+  CloseCircleOutlined,
   FileOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
@@ -81,6 +83,9 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
       }
       open={upload.isModalOpen}
       onCancel={upload.closeModal}
+      closable
+      maskClosable={false}
+      keyboard={false}
       footer={null}
       width={520}
       styles={{ body: { padding: '16px 24px' }, content: { height: 400 } }}
@@ -238,7 +243,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 
             {/* 进度条 */}
             <div style={{ width: 100, margin: '0 16px', flexShrink: 0 }}>
-              {file.status === 'uploading' && (
+              {(file.status === 'uploading' || file.status === 'paused') && (
                 <Progress
                   percent={file.progress}
                   size="small"
@@ -249,26 +254,39 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
             </div>
 
             {/* 操作按钮 */}
-            <Space size={4} style={{ flexShrink: 0 }}>
-              {file.status === 'completed' && (
+            {(file.status === 'uploading' || file.status === 'paused') &&
+              <Space size={4} style={{ flexShrink: 0 }}>
+                {file.status === 'paused' ? (
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<PlayCircleOutlined />}
+                    onClick={handleUpload}
+                    style={{ borderRadius: 4 }}
+                  ></Button>
+                ) : (
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<PauseOutlined />}
+                    onClick={upload.pauseUpload}
+                    style={{ borderRadius: 4 }}
+                  >
+                  </Button>
+                )}
                 <Button
                   type="text"
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
-                  onClick={upload.closeModal}
-                />
-              )}
-              {(file.status === 'pending' || file.status === 'failed') && (
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={upload.closeModal}
-                />
-              )}
-            </Space>
+                  onClick={upload.cancelUpload}
+                  style={{ borderRadius: 4 }}
+                >
+                </Button>
+              </Space>
+            }
           </div>
         </div>
       )}
@@ -282,23 +300,14 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           gap: 8,
         }}
       >
-        {isUploading && (
-          <Button danger onClick={upload.cancelUpload} style={{ borderRadius: 6 }}>
-            取消上传
-          </Button>
-        )}
-        <Button onClick={upload.closeModal} style={{ borderRadius: 6 }}>
-          关闭
-        </Button>
         <Button
           type="primary"
           onClick={handleUpload}
           loading={isUploading}
-          disabled={!canUpload}
           icon={<UploadOutlined />}
-          style={{ borderRadius: 6 }}
+          style={{ borderRadius: 6, opacity: canUpload ? 1 : 0 }}
         >
-          {file?.status === 'completed' ? '上传完成' : '开始上传'}
+          开始上传
         </Button>
       </div>
     </Modal>
