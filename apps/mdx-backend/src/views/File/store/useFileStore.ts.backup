@@ -3,13 +3,16 @@ import { create } from 'zustand';
 import { createFolder, deleteFile, renameFile } from '@/apis/index';
 import {
   calculateFileHash,
+  checkBatchFileExist,
   checkFileExist,
   createChunks,
-  mergeRequest,
+  release,
+  semaphore,
   uploadFileChunks,
 } from '@/lib/file';
+import { generateId } from '@/utils/utils';
 
-export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed';
+export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
 
 export interface UploadFile {
   id: string;
@@ -18,6 +21,8 @@ export interface UploadFile {
   progress: number;
   status: UploadStatus;
   error?: string;
+  uploadedChunks?: number[];
+  controller?: AbortController;
 }
 
 interface FileNameState {
@@ -52,13 +57,18 @@ interface FileStoreState {
   };
   upload: {
     isModalOpen: boolean;
-    currentFile: UploadFile | null;
+    files: UploadFile[];
     uploading: boolean;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     openModal: () => void;
     closeModal: () => void;
-    selectFile: (file: File) => void;
-    uploadFile: (parentId: string | null, onSuccess: () => void) => Promise<void>;
+    handleFilesSelect: (e: File[]) => void;
+    uploadAll: (parentId: string | null, onSuccess: () => void) => Promise<void>;
+    cancelAll: () => void;
+    cancelFile: (id: string) => void;
+    retryFile: (id: string) => void;
+    removeFile: (id: string) => void;
+    clearAllFiles: () => void;
   };
   rename: {
     isOpen: boolean;
@@ -81,7 +91,8 @@ interface FileStoreState {
   };
 }
 
-const generateId = () => Math.random().toString(36).substring(2, 15);
+const abortControllers: { current: AbortController[] } = { current: [] };
+const fileControllers: Map<string, AbortController> = new Map();
 
 export const useFileStore = create<FileStoreState>((set, get) => ({
   selectedRowKeys: [],
@@ -117,106 +128,199 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
   },
   upload: {
     isModalOpen: false,
-    currentFile: null,
+    files: [],
     uploading: false,
     fileInputRef: { current: null },
     openModal: () => set((state) => ({ upload: { ...state.upload, isModalOpen: true } })),
     closeModal: () => {
+      // 关闭时中止所有正在上传的请求
+      if (abortControllers.current.length > 0) {
+        abortControllers.current.forEach((controller) => {
+          controller.abort();
+        });
+        abortControllers.current = [];
+      }
+      fileControllers.clear();
       set((state) => ({
         upload: {
           ...state.upload,
           isModalOpen: false,
-          currentFile: null,
+          files: [],
           uploading: false,
           fileInputRef: { current: null },
         },
       }));
     },
-    selectFile: (file: File) => {
-      const newFile: UploadFile = {
+    handleFilesSelect: (files: File[]) => {
+      const newFiles = files.map((file) => ({
         id: generateId(),
         file,
         progress: 0,
-        status: 'pending',
-      };
+        status: 'pending' as UploadStatus,
+      }));
+
       set((state) => ({
-        upload: { ...state.upload, currentFile: newFile },
+        upload: { ...state.upload, files: [...state.upload.files, ...newFiles] },
       }));
     },
-    uploadFile: async (parentId: string | null, onSuccess: () => void) => {
+    uploadAll: async (parentId, onSuccess) => {
       const { upload: up } = get();
-      if (!up.currentFile || up.currentFile.status !== 'pending') {
+      const pendingFiles = up.files.filter((f) => f.status === 'pending');
+      if (!pendingFiles.length) {
         message.warning('请先选择文件');
         return;
       }
 
       set((state) => ({ upload: { ...state.upload, uploading: true } }));
 
-      const file = up.currentFile;
-
-      // 更新状态和进度工具函数
-      const updateProgress = (progress: number, status?: UploadStatus) => {
+      const updateProgress = (id: string, progress: number, status?: UploadStatus) => {
         set((state) => ({
           upload: {
             ...state.upload,
-            currentFile: state.upload.currentFile
-              ? {
-                  ...state.upload.currentFile,
-                  progress,
-                  status: status || state.upload.currentFile.status,
-                }
-              : null,
+            files: state.upload.files.map((f) =>
+              f.id === id ? { ...f, progress, status: status || f.status } : f,
+            ),
           },
         }));
       };
 
       try {
-        updateProgress(0, 'uploading');
+        // 计算文件哈希值和分片
+        const fileInfos = await Promise.all(
+          pendingFiles.map(async (f) => {
+            const chunks = createChunks(f.file);
+            const fileHash = await calculateFileHash(chunks);
+            return { ...f, fileHash };
+          }),
+        );
 
-        // 创建分片 done
-        const chunks = createChunks(file.file);
-        const totalChunks = chunks.length;
+        // 检查文件是否已存在
+        const filesWithHash = fileInfos.filter(
+          (f): f is UploadFile & { fileHash: string } => !!f.fileHash,
+        );
 
-        // 计算文件哈希 done
-        const fileHash = await calculateFileHash(chunks);
+        const checkResults = await checkBatchFileExist(
+          filesWithHash.map((f) => ({ fileHash: f.fileHash, fileName: f.file.name })),
+        );
 
-        // 秒传检查 done
-        const { shouldUpload, uploadedChunks } = await checkFileExist(fileHash, file.file.name);
+        // 上传文件
+        const uploadTasks = filesWithHash.map((f, index) => {
+          const controller = new AbortController();
+          abortControllers.current.push(controller);
+          fileControllers.set(f.id, controller);
 
-        if (!shouldUpload) {
-          updateProgress(100, 'completed');
-          message.success('文件已存在');
-          onSuccess();
-          return;
-        }
+          const shouldUpload = checkResults[index].shouldUpload;
 
-        // 已上传的分片数
-        const uploadedCount = uploadedChunks?.length || 0;
+          return (async () => {
+            if (!shouldUpload) {
+              updateProgress(f.id, 100, 'completed');
+              return;
+            }
 
-        // 续传分片filter done
-        const uploadChunks = uploadedChunks?.length
-          ? chunks.filter((_, index) => !uploadedChunks.includes(index))
-          : chunks;
+            updateProgress(f.id, 0, 'uploading');
 
-        await uploadFileChunks(fileHash, uploadChunks, totalChunks, (uploaded, total) => {
-          // 进度 = (已上传 + 本次上传) / 总分片
-          const progress = Math.floor(((uploadedCount + uploaded) / total) * 100);
-          updateProgress(progress);
+            try {
+              await semaphore();
+
+              const chunks = createChunks(f.file);
+              const fileHash = await calculateFileHash(chunks);
+
+              const { shouldUpload: needUpload, uploadedChunks } = await checkFileExist(
+                fileHash,
+                f.file.name,
+              );
+
+              if (!needUpload) {
+                updateProgress(f.id, 100, 'completed');
+                release();
+                return;
+              }
+
+              const uploadChunks =
+                uploadedChunks && uploadedChunks.length > 0
+                  ? chunks.filter((_, index) => !uploadedChunks.includes(index))
+                  : chunks;
+
+              await uploadFileChunks({
+                fileHash,
+                fileName: f.file.name,
+                fileSize: f.file.size,
+                parentId,
+                uploadChunks,
+                abortControllers,
+                fileController: controller,
+                setProgress: (percent) => updateProgress(f.id, percent),
+              });
+
+              updateProgress(f.id, 100, 'completed');
+            } catch (error: unknown) {
+              if (error instanceof Error && error.message === 'Upload aborted') {
+                updateProgress(f.id, f.progress, 'cancelled');
+              } else {
+                updateProgress(f.id, f.progress, 'failed');
+              }
+            } finally {
+              release();
+            }
+          })();
         });
 
-        await mergeRequest(fileHash, file.file.name, file.file.size, parentId);
-
-        updateProgress(100, 'completed');
-        message.success('上传成功');
-        onSuccess();
-      } catch (error) {
-        console.error('上传失败:', error);
-        updateProgress(file.progress, 'failed');
-        message.error('上传失败');
+        await Promise.allSettled(uploadTasks);
+      } catch {
+        message.error('上传过程出错');
       } finally {
+        abortControllers.current = [];
         set((state) => ({ upload: { ...state.upload, uploading: false } }));
+        onSuccess();
       }
     },
+    cancelAll: () => {
+      if (!abortControllers.current.length) return;
+      abortControllers.current.forEach((controller) => {
+        controller.abort();
+      });
+      abortControllers.current = [];
+      fileControllers.clear();
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          uploading: false,
+          files: state.upload.files.map((f) =>
+            f.status === 'uploading' ? { ...f, status: 'cancelled' as UploadStatus } : f,
+          ),
+        },
+      }));
+      message.info('已取消全部上传');
+    },
+    cancelFile: (id) => {
+      const controller = fileControllers.get(id);
+      controller?.abort();
+      fileControllers.delete(id);
+
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          files: state.upload.files.map((f) =>
+            f.id === id ? { ...f, status: 'cancelled' as UploadStatus } : f,
+          ),
+        },
+      }));
+      message.info('已取消上传');
+    },
+    retryFile: (id) =>
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          files: state.upload.files.map((f) =>
+            f.id === id ? { ...f, status: 'pending' as UploadStatus, progress: 0 } : f,
+          ),
+        },
+      })),
+    removeFile: (id) =>
+      set((state) => ({
+        upload: { ...state.upload, files: state.upload.files.filter((f) => f.id !== id) },
+      })),
+    clearAllFiles: () => set((state) => ({ upload: { ...state.upload, files: [] } })),
   },
   rename: {
     isOpen: false,

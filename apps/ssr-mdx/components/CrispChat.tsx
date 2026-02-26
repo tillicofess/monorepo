@@ -10,18 +10,30 @@ export default function CrispChat() {
   }
 
   return (
-    <Script id="crisp-chat" strategy="lazyOnload">
+    <Script id="chaport-chat" strategy="lazyOnload">
       {`
-        window.$crisp = [];
-        window.CRISP_WEBSITE_ID = "${websiteId}";
-        (function() {
-          var d = document;
-          var s = d.createElement("script");
-          s.src = "https://client.crisp.chat/l.js";
-          s.async = 1;
-          d.getElementsByTagName("head")[0].appendChild(s);
-        })();
-      `}
+    (function(w,d,v3){
+      w.chaportConfig = {
+        appId : '699ed3701d1ca94a1cb088a4',
+      };
+
+      if(w.chaport)return;
+      v3=w.chaport={};
+      v3._q=[];
+      v3._l={};
+      v3.q=function(){v3._q.push(arguments)};
+      v3.on=function(e,fn){
+        if(!v3._l[e])v3._l[e]=[];
+        v3._l[e].push(fn)
+      };
+      var s=d.createElement('script');
+      s.type='text/javascript';
+      s.async=true;
+      s.src='https://app.chaport.com/javascripts/insert.js';
+      var ss=d.getElementsByTagName('script')[0];
+      ss.parentNode.insertBefore(s,ss)
+    })(window, document);
+  `}
     </Script>
   );
 }

@@ -1,35 +1,10 @@
 import SparkMD5 from 'spark-md5';
 import { http } from '@/lib/axios';
 
-const GLOBAL_MAX_CONCURRENT = 6;
-let currentConcurrent = 0;
-
-export const semaphore = async () => {
-  while (currentConcurrent >= GLOBAL_MAX_CONCURRENT) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  currentConcurrent++;
-};
-
-export const release = () => {
-  currentConcurrent--;
-};
-
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB 每个分片的大小
 const MAX_CONCURRENT = 6; // 并发上传最大并发数
-
-export interface UploadOptions {
-  fileHash: string;
-  fileName: string;
-  fileSize: number;
-  parentId: string | null;
-  uploadChunks: Blob[];
-  abortControllers: React.RefObject<AbortController[]>;
-  setProgress: (percent: number) => void;
-}
-
 /**
- * 创建文件分片
+ * 创建文件分片 done
  * @param file 大文件
  * @returns 分片数组
  */
@@ -43,7 +18,7 @@ export const createChunks = (file: File) => {
 };
 
 /**
- * 大文件抽样计算文件哈希
+ * 大文件抽样计算文件哈希 done
  * @param chunks 文件分片数组
  * @returns 文件哈希
  */
@@ -75,7 +50,7 @@ export const calculateFileHash = async (chunks: Blob[]) => {
 };
 
 /**
- * 秒传检查
+ * 秒传检查 done
  * @param fileHash 文件哈希
  * @returns 秒传检查结果
  */
@@ -96,116 +71,83 @@ export const checkFileExist = async (fileHash: string, fileName: string) => {
 };
 
 /**
- * 批量秒传检查
- * @param files 文件列表
- * @returns 批量秒传检查结果
+ * 大文件分片上传 done
  */
-export const checkBatchFileExist = async (files: { fileHash: string; fileName: string }[]) => {
-  const res = await http.post('/largeFile/batchCheck', { files });
-  return res.data.data;
-};
-
-/**
- * 大文件分片上传
- */
-export const uploadFileChunks = async (options: UploadOptions) => {
-  const { fileHash, fileName, fileSize, parentId, uploadChunks, abortControllers, setProgress } =
-    options;
-
-  abortControllers.current.length = 0;
-
+export const uploadFileChunks = async (
+  fileHash: string,
+  uploadChunks: Blob[],
+  totalChunks: number,
+  onProgress?: (uploaded: number, total: number) => void,
+) => {
+  // 创建实际上传分片对象
   const chunkInfoList = uploadChunks.map((chunk, index) => ({
     fileHash,
-    chunkHash: `${fileHash}-${index}`, // 分片标识：文件哈希-序号（确保唯一）
+    chunkHash: `${fileHash}-${index}`,
     chunk: chunk,
   }));
 
-  console.log('上传文件分片信息', chunkInfoList);
-
+  // 添加到formdata中
   const formData = chunkInfoList.map((item) => {
     const formData = new FormData();
     formData.append('filehash', item.fileHash);
     formData.append('chunkhash', item.chunkHash);
-    formData.append('chunk', item.chunk); // 分片二进制数据
+    formData.append('chunk', item.chunk);
     return formData;
   });
 
-  // 空文件直接调用合并（实际上传0个分片）
-  if (formData.length === 0) {
-    setProgress(100);
-    return mergeRequest(fileHash, fileName, fileSize, parentId);
-  }
-
-  // 并发上传分片
-  return uploadWithConcurrencyControl(options, formData);
+  return concurRequset(formData, MAX_CONCURRENT, totalChunks, onProgress);
 };
 
-/**
- * 并发上传文件分片
- */
-const uploadWithConcurrencyControl = async (
-  { fileHash, fileName, fileSize, parentId, abortControllers, setProgress }: UploadOptions,
-  formData: FormData[],
+const concurRequset = async (
+  formdata: Object[],
+  maxNum: number,
+  totalChunks: number,
+  onProgress?: (uploaded: number, total: number) => void,
 ) => {
-  let currentIndex = 0; // 当前待上传的分片索引
-  let completedCount = 0;
-  let isAborted = false;
-  const taskPool: Promise<void>[] = []; // 存储当前正在执行的请求（请求池）
-  while (currentIndex < formData.length) {
-    const controller = new AbortController();
-    abortControllers.current.push(controller);
+  return new Promise<number>((resolve) => {
+    // 已完成数
+    let completed = 0;
+    // 下一个请求索引
+    let index = 0;
 
-    const task = http
-      .post('/largeFile/upload', formData[currentIndex], {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-      .then((res) => {
-        if (isAborted) return;
-        completedCount += 1;
-        const percent = Math.floor((completedCount / formData.length) * 100);
-        setProgress(percent);
-        taskPool.splice(taskPool.indexOf(task), 1);
-        abortControllers.current = abortControllers.current.filter((c) => c !== controller);
-        return res.data.data;
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError' || err.name === 'CanceledError') {
-          isAborted = true;
-          throw new Error('Upload aborted');
+    // 发送请求
+    async function request() {
+      if (index >= formdata.length) return;
+      const i = index;
+      index++;
+
+      try {
+        await http.post('/largeFile/upload', formdata[i], {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        completed++;
+        // 回调进度：(已上传 + 本次完成) / 总分片
+        onProgress?.(completed, totalChunks);
+
+        if (completed === formdata.length) {
+          resolve(completed);
+        } else {
+          request();
         }
-        taskPool.splice(taskPool.indexOf(task), 1);
-        abortControllers.current = abortControllers.current.filter((c) => c !== controller);
-        throw err;
-      });
-
-    taskPool.push(task);
-
-    // 当请求池满了，等待最快完成的一个请求再继续（释放并发名额）
-    if (taskPool.length === MAX_CONCURRENT) {
-      await Promise.race(taskPool);
+      }
     }
 
-    currentIndex++;
-  }
-
-  // 等待所有剩余请求完成
-  await Promise.all(taskPool);
-
-  // 如果用户取消了上传，不请求合并
-  if (isAborted) {
-    throw new Error('Upload aborted');
-  }
-
-  return mergeRequest(fileHash, fileName, fileSize, parentId);
+    // 启动请求
+    for (let i = 0; i < maxNum; i++) {
+      request();
+    }
+  });
 };
 
 /**
  * 合并文件分片
  */
-const mergeRequest = async (
+export const mergeRequest = async (
   fileHash: string,
   fileName: string,
   fileSize: number,

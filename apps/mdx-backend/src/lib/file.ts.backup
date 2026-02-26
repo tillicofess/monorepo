@@ -1,0 +1,251 @@
+import SparkMD5 from 'spark-md5';
+import { http } from '@/lib/axios';
+
+const GLOBAL_MAX_CONCURRENT = 6;
+let currentConcurrent = 0;
+
+export const semaphore = async () => {
+  while (currentConcurrent >= GLOBAL_MAX_CONCURRENT) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  currentConcurrent++;
+};
+
+export const release = () => {
+  currentConcurrent--;
+};
+
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB 每个分片的大小
+const MAX_CONCURRENT = 6; // 并发上传最大并发数
+
+export interface UploadOptions {
+  fileHash: string;
+  fileName: string;
+  fileSize: number;
+  parentId: string | null;
+  uploadChunks: Blob[];
+  abortControllers: React.RefObject<AbortController[]>;
+  fileController?: AbortController; // 文件级别的 controller，用于取消整个文件上传
+  setProgress: (percent: number) => void;
+}
+
+/**
+ * 创建文件分片
+ * @param file 大文件
+ * @returns 分片数组
+ */
+export const createChunks = (file: File) => {
+  const chunks = [];
+  for (let i = 0; i < file.size; i += CHUNK_SIZE) {
+    const blob = file.slice(i, i + CHUNK_SIZE);
+    chunks.push(blob);
+  }
+  return chunks;
+};
+
+/**
+ * 大文件抽样计算文件哈希
+ * @param chunks 文件分片数组
+ * @returns 文件哈希
+ */
+export const calculateFileHash = async (chunks: Blob[]) => {
+  return new Promise<string>((resolve) => {
+    const result: Blob[] = []; //抽样分片
+    const spark = new SparkMD5.ArrayBuffer();
+    const fileReader = new FileReader();
+
+    // 抽样分片：第一个分片、最后一个分片、中间分片的前、中、后各2个字节
+    chunks.forEach((chunk, index) => {
+      if (index === 0 || index === chunks.length - 1) {
+        result.push(chunk);
+      } else {
+        result.push(chunk.slice(0, 2));
+        result.push(chunk.slice(CHUNK_SIZE / 2, CHUNK_SIZE / 2 + 2));
+        result.push(chunk.slice(CHUNK_SIZE - 2, CHUNK_SIZE));
+      }
+    });
+
+    fileReader.readAsArrayBuffer(new Blob(result));
+    fileReader.onload = (e) => {
+      if (e.target) {
+        spark.append(e.target.result as ArrayBuffer);
+        resolve(spark.end());
+      }
+    };
+  });
+};
+
+/**
+ * 秒传检查
+ * @param fileHash 文件哈希
+ * @returns 秒传检查结果
+ */
+export const checkFileExist = async (fileHash: string, fileName: string) => {
+  const res = await http.post(
+    '/largeFile/check',
+    {
+      fileHash,
+      fileName,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  return res.data.data;
+};
+
+/**
+ * 批量秒传检查
+ * @param files 文件列表
+ * @returns 批量秒传检查结果
+ */
+export const checkBatchFileExist = async (files: { fileHash: string; fileName: string }[]) => {
+  const res = await http.post('/largeFile/batchCheck', { files });
+  return res.data.data;
+};
+
+/**
+ * 大文件分片上传
+ */
+export const uploadFileChunks = async (options: UploadOptions) => {
+  const { fileHash, fileName, fileSize, parentId, uploadChunks, setProgress } = options;
+
+  const chunkInfoList = uploadChunks.map((chunk, index) => ({
+    fileHash,
+    chunkHash: `${fileHash}-${index}`, // 分片标识：文件哈希-序号（确保唯一）
+    chunk: chunk,
+  }));
+
+  console.log('上传文件分片信息', chunkInfoList);
+
+  const formData = chunkInfoList.map((item) => {
+    const formData = new FormData();
+    formData.append('filehash', item.fileHash);
+    formData.append('chunkhash', item.chunkHash);
+    formData.append('chunk', item.chunk); // 分片二进制数据
+    return formData;
+  });
+
+  // 空文件直接调用合并（实际上传0个分片）
+  if (formData.length === 0) {
+    setProgress(100);
+    return mergeRequest(fileHash, fileName, fileSize, parentId);
+  }
+
+  // 并发上传分片
+  return uploadWithConcurrencyControl(options, formData);
+};
+
+/**
+ * 并发上传文件分片
+ */
+const uploadWithConcurrencyControl = async (
+  {
+    fileHash,
+    fileName,
+    fileSize,
+    parentId,
+    abortControllers,
+    fileController,
+    setProgress,
+  }: UploadOptions,
+  formData: FormData[],
+) => {
+  let currentIndex = 0; // 当前待上传的分片索引
+  let completedCount = 0;
+  let isAborted = false;
+  const taskPool: Promise<void>[] = []; // 存储当前正在执行的请求（请求池）
+
+  // 如果有外部 controller，监听其 abort 事件
+  if (fileController) {
+    fileController.signal.addEventListener('abort', () => {
+      isAborted = true;
+    });
+  }
+
+  while (currentIndex < formData.length) {
+    const controller = new AbortController();
+
+    // 将分片 controller 与外部 fileController 关联
+    if (fileController) {
+      fileController.signal.addEventListener('abort', () => {
+        controller.abort();
+      });
+    }
+
+    abortControllers.current.push(controller);
+
+    const task = http
+      .post('/largeFile/upload', formData[currentIndex], {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((res) => {
+        if (isAborted) return;
+        completedCount += 1;
+        const percent = Math.floor((completedCount / formData.length) * 100);
+        setProgress(percent);
+        taskPool.splice(taskPool.indexOf(task), 1);
+        abortControllers.current = abortControllers.current.filter((c) => c !== controller);
+        return res.data.data;
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError' || err.name === 'CanceledError') {
+          isAborted = true;
+          throw new Error('Upload aborted');
+        }
+        taskPool.splice(taskPool.indexOf(task), 1);
+        abortControllers.current = abortControllers.current.filter((c) => c !== controller);
+        throw err;
+      });
+
+    taskPool.push(task);
+
+    // 当请求池满了，等待最快完成的一个请求再继续（释放并发名额）
+    if (taskPool.length === MAX_CONCURRENT) {
+      await Promise.race(taskPool);
+    }
+
+    currentIndex++;
+  }
+
+  // 等待所有剩余请求完成
+  await Promise.all(taskPool);
+
+  // 如果用户取消了上传，不请求合并
+  if (isAborted) {
+    throw new Error('Upload aborted');
+  }
+
+  return mergeRequest(fileHash, fileName, fileSize, parentId);
+};
+
+/**
+ * 合并文件分片
+ */
+const mergeRequest = async (
+  fileHash: string,
+  fileName: string,
+  fileSize: number,
+  parentId: string | null,
+) => {
+  const res = await http.post(
+    '/largeFile/merge',
+    {
+      fileHash,
+      fileName,
+      fileSize,
+      parentId,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  return res.data.data;
+};

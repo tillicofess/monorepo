@@ -1,5 +1,6 @@
 bunx
 chanhdai
+chaport
 chunkhash
 cmdk
 codesandbox
@@ -16,6 +17,7 @@ nums
 pkce
 radixui
 rehype
+Requset
 sandpack
 Sandpack
 shiki

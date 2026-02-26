@@ -2,8 +2,8 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   DeleteOutlined,
-  LoadingOutlined,
-  SyncOutlined,
+  FileOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import { Button, Modal, Progress, Space, Typography, theme } from 'antd';
 import { useState } from 'react';
@@ -24,18 +24,16 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 };
 
-const getStatusIcon = (status: string) => {
+const getStatusColor = (status: string) => {
   switch (status) {
     case 'completed':
-      return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+      return '#52c41a';
     case 'failed':
-      return <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
+      return '#ff4d4f';
     case 'uploading':
-      return <LoadingOutlined />;
-    case 'cancelled':
-      return <CloseCircleOutlined style={{ color: '#faad14' }} />;
+      return '#1677ff';
     default:
-      return null;
+      return '#8c8c8c';
   }
 };
 
@@ -44,173 +42,260 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
   const { token } = useToken();
   const upload = useFileStore((state) => state.upload);
 
-  const pendingCount = upload.files.filter((f) => f.status === 'pending').length;
-  const completedCount = upload.files.filter((f) => f.status === 'completed').length;
-  const uploadingCount = upload.files.filter((f) => f.status === 'uploading').length;
-
   const handleDrop = (e: React.DragEvent<HTMLDivElement | HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    upload.handleFilesSelect(files);
+    if (files[0]) {
+      upload.selectFile(files[0]);
+    }
   };
+
+  const handleSelectFile = () => {
+    (upload.fileInputRef as React.RefObject<HTMLInputElement>).current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    upload.selectFile(file);
+    e.target.value = '';
+  };
+
+  const handleUpload = () => {
+    upload.uploadFile(parentId, onSuccess);
+  };
+
+  const file = upload.currentFile;
+  const isUploading = upload.uploading;
+  const canUpload = file?.status === 'pending' && !isUploading;
 
   return (
     <Modal
       title={
-        <Title level={4} style={{ margin: 0 }}>
+        <Title level={4} style={{ margin: 0, fontWeight: 600, color: token.colorText }}>
           上传文件
         </Title>
       }
       open={upload.isModalOpen}
       onCancel={upload.closeModal}
       footer={null}
-      width={600}
+      width={520}
+      styles={{ body: { padding: '16px 24px' }, content: { height: 400 } }}
     >
       <input
         type="file"
         ref={upload.fileInputRef as React.RefObject<HTMLInputElement>}
-        onChange={(e) => {
-          if (!e.target.files) return;
-          upload.handleFilesSelect(Array.from(e.target.files));
-          e.target.value = '';
-        }}
-        multiple
+        onChange={handleFileChange}
         style={{ display: 'none' }}
       />
 
-      {/* 按钮组 */}
-      <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
-        <Space>
-          <Button
-            onClick={() =>
-              (upload.fileInputRef as React.RefObject<HTMLInputElement>).current?.click()
+      {/* 拖拽区域 / 文件展示区域 */}
+      {!file ? (
+        <button
+          type="button"
+          onClick={handleSelectFile}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ')') {
+              handleSelectFile();
             }
-            disabled={upload.uploading}
-          >
-            选择文件
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => upload.uploadAll(parentId, onSuccess)}
-            loading={upload.uploading}
-            disabled={pendingCount === 0}
-          >
-            开始上传
-          </Button>
-          {uploadingCount > 0 && (
-            <Button danger onClick={upload.cancelAll}>
-              取消上传
-            </Button>
-          )}
-        </Space>
-        <Text type="secondary">
-          已完成 {completedCount}/{upload.files.length}
-        </Text>
-      </Space>
-
-      {/* 文件列表 */}
-      <div style={{ maxHeight: '400px', overflow: 'auto' }}>
-        {/* 拖拽上传 */}
-        {upload.files.length === 0 ? (
-          <button
-            type="button"
-            onClick={() =>
-              (upload.fileInputRef as React.RefObject<HTMLInputElement>).current?.click()
-            }
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                (upload.fileInputRef as React.RefObject<HTMLInputElement>).current?.click();
-              }
-            }}
-            onDrop={handleDrop}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              setDragging(false);
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragging(true);
-            }}
+          }}
+          onDrop={handleDrop}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setDragging(false);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          style={{
+            height: 280,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+            border: dragging
+              ? `2px dashed ${token.colorPrimary}`
+              : `2px dashed ${token.colorBorder}`,
+            borderRadius: 12,
+            background: dragging
+              ? `linear-gradient(135deg, ${token.colorPrimary}10 0%, ${token.colorPrimary}05 100%)`
+              : token.colorFillQuaternary,
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: 16,
+            width: '100%',
+            font: 'inherit',
+            color: 'inherit',
+          }}
+        >
+          <div
             style={{
-              height: 300,
-              border: '2px dashed',
-              borderRadius: 8,
-              padding: 40,
-              textAlign: 'center',
-              transition: '0.2s',
-              cursor: 'pointer',
-              borderColor: dragging ? token.colorPrimary : token.colorBorder,
-              background: dragging ? token.colorPrimaryBg : undefined,
-              width: '100%',
-              display: 'block',
-              font: 'inherit',
-              color: 'inherit',
+              width: 80,
+              height: 80,
+              borderRadius: 16,
+              background: dragging
+                ? `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimaryHover} 100%)`
+                : `linear-gradient(135deg, ${token.colorPrimary}08 0%, ${token.colorPrimary}05 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              transform: dragging ? 'scale(1.1) rotate(-5deg)' : 'scale(1)',
+              boxShadow: dragging ? `0 8px 24px ${token.colorPrimary}30` : 'none',
             }}
           >
-            <p>拖拽文件到这里上传</p>
-            <p>或点击选择文件</p>
-          </button>
-        ) : (
-          // 文件列表
-          upload.files.map((file) => (
-            <div
-              key={file.id}
+            <UploadOutlined
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px 0',
-                borderBottom: `1px solid ${token.colorBorder}`,
+                fontSize: 36,
+                color: dragging ? '#fff' : token.colorPrimary,
+                transition: 'color 0.2s ease',
+              }}
+            />
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <Text
+              strong
+              style={{
+                fontSize: 16,
+                display: 'block',
+                color: dragging ? token.colorPrimary : token.colorText,
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Text ellipsis style={{ display: 'block' }}>
-                  {file.file.name}
-                </Text>
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  {formatSize(file.file.size)}
-                </Text>
-              </div>
-
-              <div style={{ width: '120px', margin: '0 16px' }}>
-                {file.status === 'uploading' && (
-                  <Progress percent={file.progress} size="small" strokeColor={token.colorPrimary} />
-                )}
-              </div>
-
-              <div style={{ width: '40px', textAlign: 'center' }}>{getStatusIcon(file.status)}</div>
-
-              <Space style={{ marginLeft: '8px' }}>
-                {file.status === 'failed' && (
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<SyncOutlined />}
-                    onClick={() => upload.retryFile(file.id)}
-                  />
-                )}
-                {(file.status === 'pending' || file.status === 'failed') && (
-                  <Button
-                    type="text"
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => upload.removeFile(file.id)}
-                  />
-                )}
-              </Space>
+              {dragging ? '释放以上传文件' : '拖拽文件到这里上传'}
+            </Text>
+            <Text style={{ fontSize: 13, color: token.colorTextTertiary }}>或点击选择文件</Text>
+          </div>
+        </button>
+      ) : (
+        <div
+          style={{
+            border: `1px solid ${token.colorBorder}`,
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}
+        >
+          {/* 文件项 */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '14px 16px',
+              background: file.status === 'uploading' ? `${token.colorPrimary}08` : 'transparent',
+            }}
+          >
+            {/* 文件图标 */}
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 8,
+                background: `linear-gradient(135deg, ${getStatusColor(file.status)}15 0%, ${getStatusColor(file.status)}08 100%)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 14,
+                flexShrink: 0,
+                border: `1px solid ${getStatusColor(file.status)}20`,
+              }}
+            >
+              {file.status === 'completed' ? (
+                <CheckCircleOutlined style={{ fontSize: 18, color: getStatusColor(file.status) }} />
+              ) : file.status === 'failed' ? (
+                <CloseCircleOutlined style={{ fontSize: 18, color: getStatusColor(file.status) }} />
+              ) : (
+                <FileOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
+              )}
             </div>
-          ))
-        )}
-      </div>
 
-      {upload.files.length > 0 && !upload.uploading && (
-        <div style={{ marginTop: 16, textAlign: 'right' }}>
-          <Button onClick={upload.clearAllFiles}>清空列表</Button>
+            {/* 文件信息 */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                ellipsis
+                style={{
+                  display: 'block',
+                  fontWeight: 500,
+                  fontSize: 14,
+                  marginBottom: 2,
+                  color: token.colorText,
+                }}
+              >
+                {file.file.name}
+              </Text>
+              <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>
+                {formatSize(file.file.size)}
+                {file.status === 'failed' && (
+                  <Text type="danger" style={{ fontSize: 12, marginLeft: 8 }}>
+                    上传失败
+                  </Text>
+                )}
+              </Text>
+            </div>
+
+            {/* 进度条 */}
+            <div style={{ width: 100, margin: '0 16px', flexShrink: 0 }}>
+              {file.status === 'uploading' && (
+                <Progress
+                  percent={file.progress}
+                  size="small"
+                  strokeColor={token.colorPrimary}
+                  trailColor={token.colorFillSecondary}
+                />
+              )}
+            </div>
+
+            {/* 操作按钮 */}
+            <Space size={4} style={{ flexShrink: 0 }}>
+              {file.status === 'completed' && (
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={upload.closeModal}
+                />
+              )}
+              {(file.status === 'pending' || file.status === 'failed') && (
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={upload.closeModal}
+                />
+              )}
+            </Space>
+          </div>
         </div>
       )}
+
+      {/* 底部按钮 */}
+      <div
+        style={{
+          marginTop: 16,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 8,
+        }}
+      >
+        <Button onClick={upload.closeModal} style={{ borderRadius: 6 }}>
+          关闭
+        </Button>
+        <Button
+          type="primary"
+          onClick={handleUpload}
+          loading={isUploading}
+          disabled={!canUpload}
+          icon={<UploadOutlined />}
+          style={{ borderRadius: 6 }}
+        >
+          {file?.status === 'completed' ? '上传完成' : '开始上传'}
+        </Button>
+      </div>
     </Modal>
   );
 };
