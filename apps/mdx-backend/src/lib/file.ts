@@ -77,8 +77,8 @@ export const uploadFileChunks = async (
   fileHash: string,
   uploadChunks: { chunk: Blob; size: number }[],
   fileSize: number,
-  onProgress?: (uploaded: number, total: number) => void,
-  signal?: AbortSignal,
+  onProgress: (uploaded: number, total: number) => void,
+  signal: AbortSignal,
 ) => {
   // 创建实际上传分片对象
   const chunkInfoList = uploadChunks.map((item, index) => ({
@@ -104,8 +104,8 @@ const concurRequset = async (
   formdata: { formData: FormData; size: number }[],
   maxNum: number,
   fileSize: number,
-  onProgress?: (uploaded: number, total: number) => void,
-  signal?: AbortSignal,
+  onProgress: (uploaded: number, total: number) => void,
+  signal: AbortSignal,
 ) => {
   return new Promise<number>((resolve, reject) => {
     // 已上传字节数
@@ -116,12 +116,10 @@ const concurRequset = async (
     let isAborted = false;
 
     // 监听取消信号
-    if (signal) {
-      signal.addEventListener('abort', () => {
-        isAborted = true;
-        reject(new Error('Upload aborted'));
-      });
-    }
+    signal.addEventListener('abort', () => {
+      isAborted = true;
+      reject(new Error('Upload aborted'));
+    });
 
     // 发送请求
     async function request() {
@@ -136,13 +134,10 @@ const concurRequset = async (
         },
         onUploadProgress: (progressEvent: { loaded?: number }) => {
           uploadedBytes += progressEvent.loaded || 0;
-          onProgress?.(uploadedBytes, fileSize);
+          onProgress(uploadedBytes, fileSize);
         },
+        signal,
       };
-
-      if (signal) {
-        options.signal = signal;
-      }
 
       try {
         await http.post('/largeFile/upload', item.formData, options);
@@ -154,7 +149,7 @@ const concurRequset = async (
         if (!isAborted) {
           if (index >= formdata.length && uploadedBytes < fileSize) {
             uploadedBytes = fileSize;
-            onProgress?.(uploadedBytes, fileSize);
+            onProgress(uploadedBytes, fileSize);
           }
 
           if (index >= formdata.length) {
