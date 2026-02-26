@@ -75,15 +75,16 @@ export const checkFileExist = async (fileHash: string, fileName: string) => {
  */
 export const uploadFileChunks = async (
   fileHash: string,
-  uploadChunks: Blob[],
-  totalChunks: number,
+  uploadChunks: { chunk: Blob; size: number }[],
+  fileSize: number,
   onProgress?: (uploaded: number, total: number) => void,
 ) => {
   // 创建实际上传分片对象
-  const chunkInfoList = uploadChunks.map((chunk, index) => ({
+  const chunkInfoList = uploadChunks.map((item, index) => ({
     fileHash,
     chunkHash: `${fileHash}-${index}`,
-    chunk: chunk,
+    chunk: item.chunk,
+    size: item.size,
   }));
 
   // 添加到formdata中
@@ -92,45 +93,50 @@ export const uploadFileChunks = async (
     formData.append('filehash', item.fileHash);
     formData.append('chunkhash', item.chunkHash);
     formData.append('chunk', item.chunk);
-    return formData;
+    return { formData, size: item.size };
   });
 
-  return concurRequset(formData, MAX_CONCURRENT, totalChunks, onProgress);
+  return concurRequset(formData, MAX_CONCURRENT, fileSize, onProgress);
 };
 
 const concurRequset = async (
-  formdata: Object[],
+  formdata: { formData: FormData; size: number }[],
   maxNum: number,
-  totalChunks: number,
+  fileSize: number,
   onProgress?: (uploaded: number, total: number) => void,
 ) => {
   return new Promise<number>((resolve) => {
-    // 已完成数
-    let completed = 0;
+    // 已上传字节数
+    let uploadedBytes = 0;
     // 下一个请求索引
     let index = 0;
 
     // 发送请求
     async function request() {
       if (index >= formdata.length) return;
-      const i = index;
-      index++;
+      const idx = index++;
+      const item = formdata[idx]!;
 
       try {
-        await http.post('/largeFile/upload', formdata[i], {
+        await http.post('/largeFile/upload', item.formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (progressEvent) => {
+            uploadedBytes += progressEvent.loaded || 0;
+            onProgress?.(uploadedBytes, fileSize);
           },
         });
       } catch (err) {
         console.error(err);
       } finally {
-        completed++;
-        // 回调进度：(已上传 + 本次完成) / 总分片
-        onProgress?.(completed, totalChunks);
+        if (index >= formdata.length && uploadedBytes < fileSize) {
+          uploadedBytes = fileSize;
+          onProgress?.(uploadedBytes, fileSize);
+        }
 
-        if (completed === formdata.length) {
-          resolve(completed);
+        if (index >= formdata.length) {
+          resolve(uploadedBytes);
         } else {
           request();
         }

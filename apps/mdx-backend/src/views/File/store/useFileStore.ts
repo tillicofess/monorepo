@@ -9,6 +9,8 @@ import {
   uploadFileChunks,
 } from '@/lib/file';
 
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+
 export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed';
 
 export interface UploadFile {
@@ -175,7 +177,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 
         // 创建分片 done
         const chunks = createChunks(file.file);
-        const totalChunks = chunks.length;
 
         // 计算文件哈希 done
         const fileHash = await calculateFileHash(chunks);
@@ -191,16 +192,23 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
         }
 
         // 已上传的分片数
-        const uploadedCount = uploadedChunks?.length || 0;
+        const uploadedChunkCount = uploadedChunks?.length || 0;
+        const uploadedBytes = uploadedChunkCount * CHUNK_SIZE;
 
         // 续传分片filter done
         const uploadChunks = uploadedChunks?.length
           ? chunks.filter((_, index) => !uploadedChunks.includes(index))
           : chunks;
 
-        await uploadFileChunks(fileHash, uploadChunks, totalChunks, (uploaded, total) => {
-          // 进度 = (已上传 + 本次上传) / 总分片
-          const progress = Math.floor(((uploadedCount + uploaded) / total) * 100);
+        // 转换为带大小的分片数组
+        const chunksWithSize = uploadChunks.map((chunk) => ({
+          chunk,
+          size: chunk.size,
+        }));
+
+        await uploadFileChunks(fileHash, chunksWithSize, file.file.size, (uploaded, total) => {
+          // 进度 = (已上传字节 + 后端已有字节) / 总字节
+          const progress = Math.floor(((uploadedBytes + uploaded) / total) * 100);
           updateProgress(progress);
         });
 
