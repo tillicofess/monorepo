@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor SDK Test - All Error Types</title>
   <script src="../dist/monitor.umd.js"></script>
   <script>
+    // Initialize Monitor SDK
     MonitorSDK.initMonitor({
       reportUrl: 'http://localhost:4000/errorLogs/create',
       appName: 'react-mdx',
@@ -17,11 +21,437 @@
 </head>
 
 <body>
-  <h1>Hello World</h1>
+  <h1>Monitor SDK Error Test</h1>
+  <p>Open console to see all errors being captured</p>
+  
+  <div style="padding: 20px; font-family: monospace;">
+    <h2>Test Results:</h2>
+    <ul id="results" style="line-height: 1.8;"></ul>
+  </div>
+
   <script>
+    // Helper to show results
+    const results = document.getElementById('results');
+    function logResult(type, message, captured) {
+      const li = document.createElement('li');
+      li.innerHTML = '<strong>' + type + '</strong>: ' + message + ' - <span style="color: ' + (captured ? 'green">✓ Captured' : 'red">✗ Not Captured') + '</span>';
+      results.appendChild(li);
+    }
+
+    // ==================== SYNCHRONOUS ERRORS ====================
+
+    // 1. TypeError
+    try {
+      const obj = null;
+      obj.property = 'value';
+    } catch (e) {
+      logResult('TypeError', e.message, true);
+    }
+
+    // 2. ReferenceError
+    try {
+      const result = undefinedVariable + 1;
+    } catch (e) {
+      logResult('ReferenceError', e.message, true);
+    }
+
+    // 3. RangeError
+    try {
+      const arr = new Array(-1);
+    } catch (e) {
+      logResult('RangeError', e.message, true);
+    }
+
+    // 4. SyntaxError (via eval)
+    try {
+      eval('const x = {');
+    } catch (e) {
+      logResult('SyntaxError', e.message, true);
+    }
+
+    // 5. URIError
+    try {
+      decodeURIComponent('%');
+    } catch (e) {
+      logResult('URIError', e.message, true);
+    }
+
+    // 6. Custom Error
+    class CustomError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'CustomError';
+      }
+    }
+    try {
+      throw new CustomError('This is a custom error');
+    } catch (e) {
+      logResult('CustomError', e.message, true);
+    }
+
+    // ==================== PROMISE ERRORS ====================
+
+    // 7. Unhandled Promise Rejection
+    Promise.reject(new Error('Unhandled Promise Rejection'));
+
+    // 8. Uncaught Promise Error
+    new Promise((resolve, reject) => {
+      reject(new Error('Uncaught Promise Error'));
+    });
+
+    // 9. Async/Await Error
+    function asyncError() {
+      throw new Error('Async/Await Error');
+    }
+    asyncError();
+
+    // 10. SetTimeout Error
+    setTimeout(() => {
+      throw new Error('SetTimeout Error');
+    }, 100);
+
+    // 11. SetInterval Error
+    var count = 0;
+    var intervalId = setInterval(() => {
+      if (count === 0) {
+        clearInterval(intervalId);
+        throw new Error('SetInterval Error');
+      }
+      count++;
+    }, 100);
+
+    // 12. Event Handler Error
+    document.body.addEventListener('click', () => {
+      throw new Error('Event Handler Error');
+    });
+    document.body.click();
+
+    // ==================== NETWORK ERRORS ====================
+
+    // 13. Fetch Error
+    fetch('https://jsonplaceholder.typicode.com/invalid-url-that-does-not-exist-12345.com')
+      .catch((e) => {
+        logResult('Fetch Error', e.message, true);
+      });
+
+    // 14. Fetch HTTP Error
+    fetch('https://jsonplaceholder.typicode.com/posts/99999')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('HTTP ' + res.status + ' - ' + res.statusText);
+        }
+      })
+      .catch((e) => {
+        logResult('Fetch HTTP Error', e.message, true);
+      });
+
+    // 15. Async Fetch Error
     (() => {
-      throw new TypeError('模拟同步代码错误');
+      fetch('https://invalid-domain-that-does-not-exist-12345.com');
     })();
+
+    // 16. Promise.all Error
+    Promise.all([
+      Promise.reject(new Error('Promise.all Error 1')),
+      Promise.reject(new Error('Promise.all Error 2'))
+    ]);
+
+    // 17. Promise.race Error
+    Promise.race([
+      new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Promise.race Error'));
+        }, 100);
+      })
+    ]);
+
+    // 18. Console Error
+    console.error('Console Error Test');
+
+    // ==================== OBJECT ERRORS ====================
+
+    // 19. JSON Parse Error
+    try {
+      JSON.parse('{ invalid json }');
+    } catch (e) {
+      logResult('JSON Parse Error', e.message, true);
+    }
+
+    // 20. Date Error
+    try {
+      new Date('invalid date');
+    } catch (e) {
+      logResult('Date Error', e.message, true);
+    }
+
+    // 21. Array.forEach Error
+    try {
+      [1, 2, 3].forEach((val) => {
+        throw new Error('ForEach Error');
+      });
+    } catch (e) {
+      logResult('Array.forEach Error', e.message, true);
+    }
+
+    // 22. Array.reduce Error
+    try {
+      [1, 2, 3].reduce((acc, val) => {
+        throw new Error('Reduce Error');
+      }, 0);
+    } catch (e) {
+      logResult('Array.reduce Error', e.message, true);
+    }
+
+    // 23. Map Error
+    try {
+      var map = new Map();
+      map.get(undefined);
+    } catch (e) {
+      logResult('Map Error', e.message, true);
+    }
+
+    // 24. Set Error (duplicate - should not throw)
+    try {
+      var set = new Set();
+      set.add(1);
+      set.add(1);
+    } catch (e) {
+      logResult('Set Error', e.message, true);
+    }
+
+    // ==================== ASYNC ERRORS ====================
+
+    // 25. Nested Async Error
+    (() => {
+      (async () => {
+        await Promise.resolve();
+        throw new Error('Nested Async Error');
+      })();
+    })();
+
+    // 26. Promise Chain Error
+    Promise.resolve()
+      .then(() => { throw new Error('Chain Error 1'); })
+      .then(() => { throw new Error('Chain Error 2'); });
+
+    // 27. Async Sequence Error
+    (() => {
+      (async () => {
+        try {
+          await Promise.resolve(1);
+          await Promise.resolve(2);
+          throw new Error('Async Sequence Error');
+        } catch (e) {
+          logResult('Async Sequence Error', e.message, true);
+        }
+      })();
+    })();
+
+    // 28. Promise Timeout Error
+    new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Promise Timeout Error'));
+      }, 50);
+    });
+
+    // ==================== CLASS ERRORS ====================
+
+    // 29. Class Constructor Error
+    var Parent = () => {
+      throw new Error('Parent Constructor Error');
+    };
+    try {
+      new Parent();
+    } catch (e) {
+      logResult('Class Constructor Error', e.message, true);
+    }
+
+    // 30. Generator Error
+    function gen() {
+      throw new Error('Generator Error');
+    }
+    try {
+      (gen())({});
+    } catch (e) {
+      logResult('Generator Error', e.message, true);
+    }
+
+    // ==================== ADVANCED ERRORS ====================
+
+    // 31. Closure Error
+    (() => {
+      var localVar = 'test';
+      try {
+        (() => { throw new Error('Closure Error: ' + localVar); })();
+      } catch (e) {
+        logResult('Closure Error', e.message, true);
+      }
+    })();
+
+    // 32. Eval Error
+    try {
+      eval('throw new Error("Eval Error")');
+    } catch (e) {
+      logResult('Eval Error', e.message, true);
+    }
+
+    // Note: SyntaxError cannot be caught in try/catch - it fails at parse time
+
+    // 34. ArrayBuffer Error
+    try {
+      new ArrayBuffer(Infinity);
+    } catch (e) {
+      logResult('ArrayBuffer Error', e.message, true);
+    }
+
+    // 35. TypedArray Error
+    try {
+      new Uint8Array(-1);
+    } catch (e) {
+      logResult('TypedArray Error', e.message, true);
+    }
+
+    // 36. DataView Error
+    try {
+      new DataView(new ArrayBuffer(8), 10);
+    } catch (e) {
+      logResult('DataView Error', e.message, true);
+    }
+
+    // 37. Symbol Error
+    try {
+      Symbol.for(123);
+    } catch (e) {
+      logResult('Symbol Error', e.message, true);
+    }
+
+    // 38. BigInt Error
+    try {
+      new BigInt('not a number');
+    } catch (e) {
+      logResult('BigInt Error', e.message, true);
+    }
+
+    // 39. Proxy Error
+    try {
+      var proxy = new Proxy({}, {
+        get: () => { throw new Error('Proxy Error'); }
+      });
+      proxy.test;
+    } catch (e) {
+      logResult('Proxy Error', e.message, true);
+    }
+
+    // 40. WeakMap Error
+    try {
+      var weakMap = new WeakMap();
+      weakMap.get({});
+    } catch (e) {
+      logResult('WeakMap Error', e.message, true);
+    }
+
+    // ==================== DOM ERRORS ====================
+
+    // 41. DOM Exception
+    try {
+      var el = document.querySelector('#nonexistent');
+      if (el) {
+        el.appendChild(null);
+      }
+    } catch (e) {
+      logResult('DOM Exception', e.message, true);
+    }
+
+    // 42. XHR Error
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://invalid-xhr-test-12345.com', true);
+    xhr.send();
+    xhr.onerror = () => {
+      logResult('XHR Error', 'Network Error', true);
+    };
+
+    // 43. Script Load Error
+    var script = document.createElement('script');
+    script.src = 'https://example.com/nonexistent-script.js';
+    script.onerror = () => {
+      logResult('Script Load Error', 'Script failed to load', true);
+    };
+    document.head.appendChild(script);
+
+    // 44. Image Load Error
+    var img = new Image();
+    img.onerror = () => {
+      logResult('Image Load Error', 'Image failed to load', true);
+    };
+    img.src = 'https://example.com/nonexistent-image.png';
+
+    // 45. Video Load Error
+    var video = document.createElement('video');
+    video.onerror = () => {
+      logResult('Video Load Error', 'Video failed to load', true);
+    };
+    video.src = 'https://example.com/nonexistent-video.mp4';
+
+    // 46. Link/CSS Load Error
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://example.com/nonexistent-style.css';
+    link.onerror = () => {
+      logResult('CSS Load Error', 'CSS failed to load', true);
+    };
+    document.head.appendChild(link);
+
+    // ==================== API ERRORS ====================
+
+    // 47. postMessage Error
+    try {
+      window.postMessage('test', '*');
+    } catch (e) {
+      logResult('postMessage Error', e.message, true);
+    }
+
+    // 48. BroadcastChannel Error
+    try {
+      var bc = new BroadcastChannel('test-channel');
+      bc.postMessage({});
+    } catch (e) {
+      logResult('BroadcastChannel Error', e.message, true);
+    }
+
+    // 49. Storage Error (quota exceeded simulation)
+    try {
+      localStorage.setItem('', 'value');
+    } catch (e) {
+      logResult('Storage Error', e.message, true);
+    }
+
+    // 50. IndexedDB Error
+    try {
+      var request = indexedDB.open('TestDB', -1);
+    } catch (e) {
+      logResult('IndexedDB Error', e.message, true);
+    }
+
+    // 51. IntersectionObserver Error
+    try {
+      var observer = new IntersectionObserver(() => {});
+      observer.observe(null);
+    } catch (e) {
+      logResult('IntersectionObserver Error', e.message, true);
+    }
+
+    // 52. MutationObserver Error
+    try {
+      var mo = new MutationObserver(() => {});
+      mo.observe(document.body, { attributes: true });
+      mo.disconnect();
+      mo.observe(document.body, { attributes: true });
+    } catch (e) {
+      logResult('MutationObserver Error', e.message, true);
+    }
+
+    // Final summary
+    console.log('=== All error types have been triggered ===');
   </script>
 </body>
 

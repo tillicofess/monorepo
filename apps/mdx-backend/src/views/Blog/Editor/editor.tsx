@@ -105,14 +105,14 @@ function Editor() {
     try {
       await (id
         ? updateArticle({
-            id,
-            title,
-            content: markdown,
-          })
+          id,
+          title,
+          content: markdown,
+        })
         : uploadArticle({
-            title,
-            content: markdown,
-          }));
+          title,
+          content: markdown,
+        }));
       message.success(id ? '文章更新成功' : '文章上传成功');
       setTitle('');
       setInitialMarkdown('');
@@ -181,7 +181,7 @@ function Editor() {
           display: 'flex',
           flexDirection: 'column',
         }}
-        bodyStyle={{ flex: 1, padding: 0, position: 'relative' }}
+        styles={{ body: { flex: 1, padding: 0, position: 'relative' } }}
       >
         {(articleLoading || (uploading && id)) && (
           <div

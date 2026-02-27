@@ -249,7 +249,7 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
         border: `1px solid ${token.colorBorderSecondary}`,
         boxShadow: token.boxShadow,
       }}
-      bodyStyle={{ padding: token.padding }}
+      styles={{ body: { padding: token.padding } }}
       extra={
         <Text type="secondary" style={{ fontSize: 12 }}>
           <FormattedMessage id="latestUpdateTime" defaultMessage="最新更新" />:{' '}

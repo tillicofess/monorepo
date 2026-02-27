@@ -61,7 +61,7 @@ const OverviewCard: React.FC<{ data: OverviewData; loading: boolean }> = ({ data
                 border: `1px solid ${token.colorBorderSecondary}`,
                 boxShadow: token.boxShadow,
               }}
-              bodyStyle={{ padding: 20 }}
+              styles={{ body: { padding: 20 } }}
             >
               {loading ? (
                 <Skeleton paragraph={{ rows: 2 }} title={false} active></Skeleton>

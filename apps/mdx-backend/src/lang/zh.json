@@ -47,5 +47,9 @@
   "blog": "博客",
   "count": "次数",
   "performanceLog": "性能日志",
-  "errorType": "错误类型"
+  "errorType": "错误类型",
+  "logManagement": "日志管理",
+  "dashboard.overview": "数据概览",
+  "overview.timeRange": "时间范围",
+  "overview.comparison": "同比"
 }

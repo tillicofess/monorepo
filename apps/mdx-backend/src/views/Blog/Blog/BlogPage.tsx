@@ -123,7 +123,7 @@ const BlogList: React.FC = () => {
           border: `1px solid ${token.colorBorder}`,
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         }}
-        bodyStyle={{ padding: articles.length === 0 ? 24 : 0 }}
+        styles={{ body: { padding: articles.length === 0 ? 24 : 0 } }}
       >
         {articles.length === 0 && !loading ? (
           <Empty

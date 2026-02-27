@@ -43,7 +43,7 @@ export function Sidebar({
       baseItems.push({
         key: 'sub2',
         icon: <AlertTriangle size={18} />,
-        label: <FormattedMessage id="errorLog" />,
+        label: <FormattedMessage id="logManagement" />,
         children: [
           {
             key: '/errorLog',

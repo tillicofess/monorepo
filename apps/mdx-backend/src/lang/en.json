@@ -47,5 +47,9 @@
   "blog": "Blog",
   "count": "Count",
   "performanceLog": "Performance Log",
-  "errorType": "Error Type"
+  "errorType": "Error Type",
+  "logManagement": "Log Management",
+  "dashboard.overview" : "Overview",
+  "overview.timeRange": "Time Range",
+  "overview.comparison": "Comparison"
 }
