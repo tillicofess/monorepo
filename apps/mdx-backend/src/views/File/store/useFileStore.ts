@@ -9,7 +9,23 @@ import {
   uploadFileChunks,
 } from '@/lib/file';
 
-export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled' | 'paused';
+export type UploadStatus =
+  | 'pending'
+  | 'uploading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'paused';
+
+export interface UploadTask {
+  id: string;
+  file: File;
+  fileHash?: string;
+  progress: number;
+  status: UploadStatus;
+  error?: string;
+  abortController: AbortController | null;
+}
 
 export interface UploadFile {
   id: string;
@@ -52,16 +68,18 @@ interface FileStoreState {
   };
   upload: {
     isModalOpen: boolean;
-    currentFile: UploadFile | null;
-    uploading: boolean;
+    queue: UploadTask[];
+    maxConcurrent: number;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
-    abortController: AbortController | null;
     openModal: () => void;
     closeModal: () => void;
-    selectFile: (file: File) => void;
-    uploadFile: (parentId: string | null, onSuccess: () => void) => Promise<void>;
-    pauseUpload: () => void;
-    cancelUpload: () => void;
+    addFiles: (files: File[]) => void;
+    removeTask: (taskId: string) => void;
+    startUpload: (parentId: string | null, onSuccess: () => void) => Promise<void>;
+    pauseTask: (taskId: string) => void;
+    resumeTask: (taskId: string, parentId: string | null) => Promise<void>;
+    cancelTask: (taskId: string) => void;
+    retryTask: (taskId: string, parentId: string | null) => Promise<void>;
   };
   rename: {
     isOpen: boolean;
@@ -120,217 +138,255 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
   },
   upload: {
     isModalOpen: false,
-    currentFile: null,
-    uploading: false,
+    queue: [],
+    maxConcurrent: 3,
     fileInputRef: { current: null },
-    abortController: null,
     openModal: () => set((state) => ({ upload: { ...state.upload, isModalOpen: true } })),
     closeModal: () => {
       const { upload: up } = get();
-      if (up.abortController) {
-        up.abortController.abort();
-      }
+      up.queue.forEach((task) => {
+        if (task.abortController) {
+          task.abortController.abort();
+        }
+      });
       set((state) => ({
         upload: {
           ...state.upload,
           isModalOpen: false,
-          currentFile: null,
-          uploading: false,
+          queue: [],
           fileInputRef: { current: null },
-          abortController: null,
         },
       }));
     },
-    selectFile: (file: File) => {
-      const newFile: UploadFile = {
+    // 添加文件任务
+    addFiles: (files: File[]) => {
+      const newTasks: UploadTask[] = files.map((file) => ({
         id: generateId(),
         file,
         progress: 0,
         status: 'pending',
-      };
+        abortController: null,
+      }));
       set((state) => ({
-        upload: { ...state.upload, currentFile: newFile },
+        upload: {
+          ...state.upload,
+          queue: [...state.upload.queue, ...newTasks],
+        },
       }));
     },
-    uploadFile: async (parentId: string | null, onSuccess: () => void) => {
+    // 移除任务
+    removeTask: (taskId: string) => {
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          queue: state.upload.queue.filter((t) => t.id !== taskId),
+        },
+      }));
+    },
+    // 开始上传
+    startUpload: async (parentId: string | null, onSuccess: () => void) => {
       const { upload: up } = get();
-      if (!up.currentFile) {
-        message.warning('请先选择文件');
+      const pendingTasks = up.queue.filter((t) => t.status === 'pending');
+
+      if (pendingTasks.length === 0) {
+        message.warning('没有待上传的文件');
         return;
       }
 
-      // 创建 AbortController
-      const controller = new AbortController();
-      set((state) => ({
-        upload: { ...state.upload, uploading: true, abortController: controller },
-      }));
+      /**
+       * 单个任务执行
+       */
+      const runTask = async (task: UploadTask) => {
+        const controller = new AbortController();
 
-      const file = up.currentFile;
-
-      // 更新状态和进度工具函数
-      const updateProgress = (progress: number, status?: UploadStatus) => {
+        // 🔒 先立刻占位，防止重复调度
         set((state) => ({
           upload: {
             ...state.upload,
-            currentFile: state.upload.currentFile
-              ? {
-                ...state.upload.currentFile,
-                progress,
-                status: status || state.upload.currentFile.status,
-              }
-              : null,
+            queue: state.upload.queue.map((t) =>
+              t.id === task.id
+                ? { ...t, status: 'uploading' as UploadStatus, abortController: controller }
+                : t,
+            ),
           },
         }));
-      };
 
-      try {
-        updateProgress(file.progress || 0, 'uploading');
-
-        //  生成原始分片
-        const chunks = createChunks(file.file);
-
-        //  计算 hash
-        const fileHash = await calculateFileHash(chunks);
-
-        //  秒传检测
-        const { shouldUpload, uploadedChunks } = await checkFileExist(
-          fileHash,
-          file.file.name,
-        );
-
-        if (!shouldUpload) {
-          updateProgress(100, 'completed');
-          message.success('文件已存在');
+        const updateProgress = (progress: number, status?: UploadStatus) => {
           set((state) => ({
-            upload: { ...state.upload, uploading: false, abortController: null },
+            upload: {
+              ...state.upload,
+              queue: state.upload.queue.map((t) =>
+                t.id === task.id
+                  ? { ...t, progress, status: status ?? t.status }
+                  : t,
+              ),
+            },
           }));
-          onSuccess();
-          return;
-        }
+        };
 
-        // 已上传的分片数
-        const uploadedBytes =
-          uploadedChunks?.reduce((total: number, index: number) => {
-            return total + (chunks[index]?.size ?? 0);
-          }, 0) || 0;
+        try {
+          const file = task.file;
+          updateProgress(0, 'uploading');
 
-        //  保留真实 index
-        const uploadChunks = chunks
-          .map((chunk, index) => ({
-            chunk,
-            index,
-          }))
-          .filter(({ index }) => !uploadedChunks?.includes(index));
+          const chunks = createChunks(file);
+          const fileHash = await calculateFileHash(chunks);
 
-        const chunksWithSize = uploadChunks.map(({ chunk, index }) => ({
-          fileHash,
-          chunkHash: `${fileHash}-${index}`, // ⭐ 真实 index
-          chunk,
-          size: chunk.size,
-        }));
+          const { shouldUpload, uploadedChunks } = await checkFileExist(
+            fileHash,
+            file.name,
+          );
 
-        console.log('开始上传', chunksWithSize);
-
-        // 上传分片
-        await uploadFileChunks(
-          chunksWithSize,
-          (chunkUploaded: number) => {
-            const uploadedSoFar = uploadedBytes + chunkUploaded;
-
-            const progress = Math.floor(
-              (uploadedSoFar / file.file.size) * 100,
-            );
-
-            updateProgress(progress);
-          },
-          controller.signal,
-        );
-
-        // 合并文件
-        await mergeRequest(
-          fileHash,
-          file.file.name,
-          file.file.size,
-          parentId,
-        );
-
-        updateProgress(100, 'completed');
-
-        set((state) => ({
-          upload: { ...state.upload, uploading: false, abortController: null },
-        }));
-
-        message.success('上传成功');
-        onSuccess();
-      } catch (error) {
-        const current = get().upload.currentFile;
-
-        if (error instanceof Error && error.message === 'Upload aborted') {
-          if (current?.status === 'paused') {
-            message.info('已暂停上传');
-          } else if (current?.status === 'cancelled') {
-            set((state) => ({
-              upload: {
-                ...state.upload,
-                currentFile: null,
-                uploading: false,
-                abortController: null,
-              },
-            }));
-            message.info('已取消上传');
+          // 秒传
+          if (!shouldUpload) {
+            updateProgress(100, 'completed');
+            message.success(`${file.name} 文件已存在`);
+            return;
           }
 
+          // 已上传字节
+          const uploadedBytes =
+            uploadedChunks?.reduce((total: number, index: number) => {
+              return total + (chunks[index]?.size ?? 0);
+            }, 0) || 0;
+
+          // 需要上传的分片
+          const uploadChunks = chunks
+            .map((chunk: Blob, index: number) => ({ chunk, index }))
+            .filter(({ index }) => !uploadedChunks?.includes(index));
+
+          const chunksWithSize = uploadChunks.map(({ chunk, index }) => ({
+            fileHash,
+            chunkHash: `${fileHash}-${index}`,
+            chunk,
+            size: chunk.size,
+          }));
+
+          await uploadFileChunks(
+            chunksWithSize,
+            (chunkUploaded: number) => {
+              const uploadedSoFar = uploadedBytes + chunkUploaded;
+              const progress = Math.floor((uploadedSoFar / file.size) * 100);
+              updateProgress(progress);
+            },
+            controller.signal,
+          );
+
+          await mergeRequest(fileHash, file.name, file.size, parentId);
+
+          updateProgress(100, 'completed');
+        } catch (error) {
+          if (error instanceof Error && error.message === 'Upload aborted') {
+            return;
+          }
+
+          console.error('上传失败:', error);
+          updateProgress(task.progress || 0, 'failed');
+          message.error(`${task.file.name} 上传失败`);
+        }
+      };
+
+      /**
+       * 单次拉取一个任务执行
+       */
+      const scheduleNext = () => {
+        const { upload: current } = get();
+
+        const runningCount = current.queue.filter(
+          (t) => t.status === 'uploading',
+        ).length;
+
+        if (runningCount >= current.maxConcurrent) return;
+
+        const nextTask = current.queue.find((t) => t.status === 'pending');
+        if (!nextTask) {
+          const stillUploading = current.queue.some(
+            (t) => t.status === 'uploading',
+          );
+          if (!stillUploading) {
+            onSuccess();
+          }
           return;
         }
 
-        console.error('上传失败:', error);
+        runTask(nextTask).finally(() => {
+          scheduleNext(); // 只触发一次
+        });
+      };
 
-        updateProgress(current?.progress || 0, 'failed');
+      /**
+       * 初始化并发启动
+       */
+      const init = () => {
+        const { upload: current } = get();
+        const max = current.maxConcurrent;
 
-        set((state) => ({
-          upload: { ...state.upload, uploading: false, abortController: null },
-        }));
+        for (let i = 0; i < max; i++) {
+          scheduleNext();
+        }
+      };
 
-        message.error('上传失败');
-      }
+      init();
     },
-    pauseUpload: () => {
-      const { upload: up } = get();
-
-      if (up.abortController) {
-        up.abortController.abort();
+    // 暂停任务
+    pauseTask: (taskId: string) => {
+      const task = get().upload.queue.find((t) => t.id === taskId);
+      if (task?.abortController) {
+        task.abortController.abort();
       }
-
       set((state) => ({
         upload: {
           ...state.upload,
-          currentFile: state.upload.currentFile
-            ? {
-              ...state.upload.currentFile,
-              status: 'paused',
-            }
-            : null,
+          queue: state.upload.queue.map((t) =>
+            t.id === taskId ? { ...t, status: 'paused' as UploadStatus, abortController: null } : t,
+          ),
         },
       }));
     },
-    cancelUpload: () => {
-      const { upload: up } = get();
-
-      if (up.abortController) {
-        up.abortController.abort();
-      }
-
+    // 继续任务
+    resumeTask: async (taskId: string, parentId: string | null) => {
       set((state) => ({
         upload: {
           ...state.upload,
-          currentFile: state.upload.currentFile
-            ? {
-              ...state.upload.currentFile,
-              status: 'cancelled',
-            }
-            : null,
+          queue: state.upload.queue.map((t) =>
+            t.id === taskId ? { ...t, status: 'pending' as UploadStatus } : t,
+          ),
         },
       }));
+      await get().upload.startUpload(parentId, () => { });
+    },
+    // 取消任务
+    cancelTask: (taskId: string) => {
+      const task = get().upload.queue.find((t) => t.id === taskId);
+      if (task?.abortController) {
+        task.abortController.abort();
+      }
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          queue: state.upload.queue
+            .map((t) => (t.id === taskId ? { ...t, abortController: null } : t))
+            .filter((t) => t.id !== taskId),
+        },
+      }));
+    },
+    // 重试任务
+    retryTask: async (taskId: string, parentId: string | null) => {
+      const { upload: up } = get();
+      const task = up.queue.find((t) => t.id === taskId);
+      if (!task) return;
+
+      const { error: _error, fileHash: _fileHash, ...taskWithoutError } = task;
+      const taskForRetry = { ...taskWithoutError, status: 'pending' as UploadStatus, progress: 0 };
+      delete (taskForRetry as Record<string, unknown>).fileHash;
+      set((state) => ({
+        upload: {
+          ...state.upload,
+          queue: state.upload.queue.map((t) =>
+            t.id === taskId ? (taskForRetry as UploadTask) : t,
+          ),
+        },
+      }));
+      await get().upload.startUpload(parentId, () => { });
     },
   },
   rename: {

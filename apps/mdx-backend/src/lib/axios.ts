@@ -150,49 +150,4 @@ export interface ApiResponse<T = any> {
   data: T | null;
 }
 
-// 封装带有统一响应格式的请求方法
-export const api = {
-  // GET 请求，返回统一格式
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    const response = await http.get<ApiResponse<T>>(url, config);
-    return response.data;
-  },
-
-  // POST 请求，返回统一格式
-  async post<T = any>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig,
-  ): Promise<ApiResponse<T>> {
-    const response = await http.post<ApiResponse<T>>(url, data, config);
-    return response.data;
-  },
-
-  // PUT 请求，返回统一格式
-  async put<T = any>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig,
-  ): Promise<ApiResponse<T>> {
-    const response = await http.put<ApiResponse<T>>(url, data, config);
-    return response.data;
-  },
-
-  // DELETE 请求，返回统一格式
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    const response = await http.delete<ApiResponse<T>>(url, config);
-    return response.data;
-  },
-
-  // PATCH 请求，返回统一格式
-  async patch<T = any>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig,
-  ): Promise<ApiResponse<T>> {
-    const response = await http.patch<ApiResponse<T>>(url, data, config);
-    return response.data;
-  },
-};
-
 export const fetcher = (url: string) => http.get(url).then((res) => res.data.data);

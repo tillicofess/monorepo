@@ -1,10 +1,10 @@
 import {
   CheckCircleOutlined,
-  PlayCircleOutlined,
-  PauseOutlined,
-  DeleteOutlined,
   CloseCircleOutlined,
+  DeleteOutlined,
   FileOutlined,
+  PauseOutlined,
+  PlayCircleOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
 import { Button, Modal, Progress, Space, Typography, theme } from 'antd';
@@ -50,8 +50,8 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
     setDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    if (files[0]) {
-      upload.selectFile(files[0]);
+    if (files.length > 0) {
+      upload.addFiles(files);
     }
   };
 
@@ -60,19 +60,12 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    upload.selectFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      upload.addFiles(files);
+    }
     e.target.value = '';
   };
-
-  const handleUpload = () => {
-    upload.uploadFile(parentId, onSuccess);
-  };
-
-  const file = upload.currentFile;
-  const isUploading = upload.uploading;
-  const canUpload = !isUploading;
 
   return (
     <Modal
@@ -95,10 +88,11 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
         ref={upload.fileInputRef as React.RefObject<HTMLInputElement>}
         onChange={handleFileChange}
         style={{ display: 'none' }}
+        multiple
       />
 
       {/* 拖拽区域 / 文件展示区域 */}
-      {!file ? (
+      {upload.queue.length === 0 ? (
         <button
           type="button"
           onClick={handleSelectFile}
@@ -177,117 +171,192 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           </div>
         </button>
       ) : (
+        <button
+          type="button"
+          onClick={handleSelectFile}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ')') {
+              handleSelectFile();
+            }
+          }}
+          style={{
+            marginBottom: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            border: `1px dashed ${token.colorBorder}`,
+            borderRadius: 8,
+            padding: '8px 16px',
+            background: 'transparent',
+            cursor: 'pointer',
+            width: '100%',
+            font: 'inherit',
+            color: token.colorTextSecondary,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <UploadOutlined />
+          <Text>点击添加更多文件</Text>
+        </button>
+      )}
+
+      {/* 文件列表 */}
+      {upload.queue.length > 0 && (
         <div
           style={{
             border: `1px solid ${token.colorBorder}`,
             borderRadius: 8,
             overflow: 'hidden',
+            maxHeight: 280,
+            overflowY: 'auto',
           }}
         >
-          {/* 文件项 */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '14px 16px',
-              background: file.status === 'uploading' ? `${token.colorPrimary}08` : 'transparent',
-            }}
-          >
-            {/* 文件图标 */}
+          {upload.queue.map((task) => (
             <div
+              key={task.id}
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 8,
-                background: `linear-gradient(135deg, ${getStatusColor(file.status)}15 0%, ${getStatusColor(file.status)}08 100%)`,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 14,
-                flexShrink: 0,
-                border: `1px solid ${getStatusColor(file.status)}20`,
+                padding: '14px 16px',
+                borderBottom: `1px solid ${token.colorBorder}`,
+                background: task.status === 'uploading' ? `${token.colorPrimary}08` : 'transparent',
               }}
             >
-              {file.status === 'completed' ? (
-                <CheckCircleOutlined style={{ fontSize: 18, color: getStatusColor(file.status) }} />
-              ) : file.status === 'failed' ? (
-                <CloseCircleOutlined style={{ fontSize: 18, color: getStatusColor(file.status) }} />
-              ) : (
-                <FileOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
-              )}
-            </div>
-
-            {/* 文件信息 */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Text
-                ellipsis
+              {/* 文件图标 */}
+              <div
                 style={{
-                  display: 'block',
-                  fontWeight: 500,
-                  fontSize: 14,
-                  marginBottom: 2,
-                  color: token.colorText,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 8,
+                  background: `linear-gradient(135deg, ${getStatusColor(task.status)}15 0%, ${getStatusColor(task.status)}08 100%)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 14,
+                  flexShrink: 0,
+                  border: `1px solid ${getStatusColor(task.status)}20`,
                 }}
               >
-                {file.file.name}
-              </Text>
-              <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>
-                {formatSize(file.file.size)}
-                {file.status === 'failed' && (
-                  <Text type="danger" style={{ fontSize: 12, marginLeft: 8 }}>
-                    上传失败
-                  </Text>
-                )}
-              </Text>
-            </div>
-
-            {/* 进度条 */}
-            <div style={{ width: 100, margin: '0 16px', flexShrink: 0 }}>
-              {(file.status === 'uploading' || file.status === 'paused') && (
-                <Progress
-                  percent={file.progress}
-                  size="small"
-                  strokeColor={token.colorPrimary}
-                  trailColor={token.colorFillSecondary}
-                />
-              )}
-            </div>
-
-            {/* 操作按钮 */}
-            {(file.status === 'uploading' || file.status === 'paused') &&
-              <Space size={4} style={{ flexShrink: 0 }}>
-                {file.status === 'paused' ? (
-                  <Button
-                    type="text"
-                    size="small"
-                    danger
-                    icon={<PlayCircleOutlined />}
-                    onClick={handleUpload}
-                    style={{ borderRadius: 4 }}
-                  ></Button>
+                {task.status === 'completed' ? (
+                  <CheckCircleOutlined
+                    style={{ fontSize: 18, color: getStatusColor(task.status) }}
+                  />
+                ) : task.status === 'failed' ? (
+                  <CloseCircleOutlined
+                    style={{ fontSize: 18, color: getStatusColor(task.status) }}
+                  />
                 ) : (
+                  <FileOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
+                )}
+              </div>
+
+              {/* 文件信息 */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Text
+                  ellipsis
+                  style={{ display: 'block', fontWeight: 500, fontSize: 14, marginBottom: 2 }}
+                >
+                  {task.file.name}
+                </Text>
+                <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>
+                  {formatSize(task.file.size)}
+                  {task.status === 'failed' && (
+                    <Text type="danger" style={{ fontSize: 12, marginLeft: 8 }}>
+                      上传失败
+                    </Text>
+                  )}
+                </Text>
+              </div>
+
+              {/* 进度条 */}
+              <div style={{ width: 100, margin: '0 16px', flexShrink: 0 }}>
+                {(task.status === 'uploading' || task.status === 'paused') && (
+                  <Progress
+                    percent={task.progress}
+                    size="small"
+                    strokeColor={token.colorPrimary}
+                    trailColor={token.colorFillSecondary}
+                  />
+                )}
+              </div>
+
+              {/* 操作按钮 */}
+              <Space size={4} style={{ flexShrink: 0 }}>
+                {task.status === 'pending' && (
                   <Button
                     type="text"
                     size="small"
                     danger
-                    icon={<PauseOutlined />}
-                    onClick={upload.pauseUpload}
-                    style={{ borderRadius: 4 }}
-                  >
-                  </Button>
+                    icon={<DeleteOutlined />}
+                    onClick={() => upload.removeTask(task.id)}
+                  />
                 )}
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={upload.cancelUpload}
-                  style={{ borderRadius: 4 }}
-                >
-                </Button>
+                {task.status === 'uploading' && (
+                  <>
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<PauseOutlined />}
+                      onClick={() => upload.pauseTask(task.id)}
+                    />
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => upload.cancelTask(task.id)}
+                    />
+                  </>
+                )}
+                {task.status === 'paused' && (
+                  <>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<PlayCircleOutlined />}
+                      onClick={() => upload.resumeTask(task.id, parentId)}
+                    />
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => upload.cancelTask(task.id)}
+                    />
+                  </>
+                )}
+                {task.status === 'failed' && (
+                  <>
+                    <Button
+                      type="text"
+                      size="small"
+                      onClick={() => upload.retryTask(task.id, parentId)}
+                    >
+                      重试
+                    </Button>
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => upload.removeTask(task.id)}
+                    />
+                  </>
+                )}
+                {task.status === 'completed' && (
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => upload.removeTask(task.id)}
+                  />
+                )}
               </Space>
-            }
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -302,10 +371,10 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
       >
         <Button
           type="primary"
-          onClick={handleUpload}
-          loading={isUploading}
+          onClick={() => upload.startUpload(parentId, onSuccess)}
+          loading={upload.queue.some((t) => t.status === 'uploading')}
           icon={<UploadOutlined />}
-          style={{ borderRadius: 6, opacity: canUpload ? 1 : 0 }}
+          disabled={!upload.queue.some((t) => t.status === 'pending')}
         >
           开始上传
         </Button>
