@@ -183,6 +183,9 @@ const AppLayout = () => {
         </AntHeader>
         <Content
           style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
             paddingBlock: isMobile ? 16 : 28,
             paddingInline: isMobile ? 16 : 40,
             minHeight: 280,

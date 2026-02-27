@@ -57,9 +57,9 @@ export function FileTable({
         const isDir = record.isDir;
 
         const content = (
-          <Space>
+          <Space size="small">
             <DragHandle>
-              <HolderOutlined />
+              <HolderOutlined style={{ color: '#999' }} />
             </DragHandle>
 
             {isDir ? <FolderOpenOutlined style={{ color: '#6366F1' }} /> : <FileOutlined />}
@@ -84,7 +84,7 @@ export function FileTable({
       title: <FormattedMessage id="fileSize" defaultMessage="File Size" />,
       dataIndex: 'size',
       key: 'size',
-      width: 180,
+      width: 100,
       render: (size: number, record: FileItem) => (record.isDir ? '-' : formatFileSize(size)),
       sorter: (a: FileItem, b: FileItem) => a.size - b.size,
     },
@@ -102,7 +102,7 @@ export function FileTable({
       key: 'action',
       width: 240,
       render: (record: FileItem) => (
-        <Space size="middle">
+        <Space size="small">
           <Button type="text" size="small" onClick={() => onRename(record.id, record.name)}>
             重命名
           </Button>
@@ -132,8 +132,8 @@ export function FileTable({
 
   return (
     <Table
-      size="middle"
-      scroll={{ y: 640 }}
+      size="small"
+      scroll={{ y: 520 }}
       rowKey={(record) => record.id}
       columns={columns}
       loading={isLoading}

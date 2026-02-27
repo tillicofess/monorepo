@@ -7,7 +7,8 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Card, Space, theme } from 'antd';
+import { FileSyncOutlined } from '@ant-design/icons';
+import { Card, Space, theme, Typography } from 'antd';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import useSWR from 'swr';
@@ -23,6 +24,7 @@ import { UploadModal } from './components/UploadModal';
 import { useFileStore } from './store/useFileStore';
 import type { BreadcrumbItem, FileItem } from './types';
 
+const { Title } = Typography;
 const { useToken } = theme;
 
 const File: React.FC = () => {
@@ -91,13 +93,30 @@ const File: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        gap: 16,
+      }}
+    >
+      <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <FileSyncOutlined style={{ color: '#1990FF' }} />
+        <FormattedMessage id="dashboard.overview" defaultMessage="文件管理" />
+      </Title>
       <Card
         style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
           borderRadius: 12,
-          border: `1px solid ${token.colorBorder}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: `1px solid ${token.colorBorderSecondary}`,
+          boxShadow: 'none',
+          background: token.colorBgContainer,
         }}
+        styles={{ body: { padding: 20 } }}
       >
         <DndContext
           onDragStart={handleDragStart}

@@ -50,7 +50,15 @@ const ErrorLog: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        gap: 16,
+      }}
+    >
       {/* 页面标题和操作按钮 */}
       <div
         style={{
@@ -77,6 +85,9 @@ const ErrorLog: React.FC = () => {
 
       <Card
         style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
           borderRadius: 12,
           border: `1px solid ${token.colorBorder}`,
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',

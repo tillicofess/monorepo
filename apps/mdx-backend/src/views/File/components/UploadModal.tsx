@@ -80,8 +80,12 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
       maskClosable={false}
       keyboard={false}
       footer={null}
-      width={520}
-      styles={{ body: { padding: '16px 24px' }, content: { height: 400 } }}
+      width={800}
+      styles={{
+        body: { padding: '20px 24px' },
+        content: { minHeight: 480, maxHeight: 600 },
+        header: { padding: '16px 24px', marginBottom: 0 },
+      }}
     >
       <input
         type="file"
@@ -97,7 +101,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           type="button"
           onClick={handleSelectFile}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ')') {
+            if (e.key === 'Enter') {
               handleSelectFile();
             }
           }}
@@ -111,22 +115,20 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
             setDragging(true);
           }}
           style={{
-            height: 280,
+            height: 320,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 16,
+            gap: 12,
             border: dragging
               ? `2px dashed ${token.colorPrimary}`
-              : `2px dashed ${token.colorBorder}`,
+              : `1px dashed ${token.colorBorder}`,
             borderRadius: 12,
-            background: dragging
-              ? `linear-gradient(135deg, ${token.colorPrimary}10 0%, ${token.colorPrimary}05 100%)`
-              : token.colorFillQuaternary,
+            background: dragging ? `${token.colorPrimaryBg}` : token.colorFillQuaternary,
             cursor: 'pointer',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            padding: 16,
+            transition: 'all 0.2s ease',
+            padding: 24,
             width: '100%',
             font: 'inherit',
             color: 'inherit',
@@ -134,25 +136,20 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
         >
           <div
             style={{
-              width: 80,
-              height: 80,
+              width: 64,
+              height: 64,
               borderRadius: 16,
-              background: dragging
-                ? `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimaryHover} 100%)`
-                : `linear-gradient(135deg, ${token.colorPrimary}08 0%, ${token.colorPrimary}05 100%)`,
+              background: dragging ? token.colorPrimary : `${token.colorPrimaryBg}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.2s ease',
-              transform: dragging ? 'scale(1.1) rotate(-5deg)' : 'scale(1)',
-              boxShadow: dragging ? `0 8px 24px ${token.colorPrimary}30` : 'none',
             }}
           >
             <UploadOutlined
               style={{
-                fontSize: 36,
+                fontSize: 28,
                 color: dragging ? '#fff' : token.colorPrimary,
-                transition: 'color 0.2s ease',
               }}
             />
           </div>
@@ -160,14 +157,14 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
             <Text
               strong
               style={{
-                fontSize: 16,
+                fontSize: 15,
                 display: 'block',
                 color: dragging ? token.colorPrimary : token.colorText,
               }}
             >
               {dragging ? '释放以上传文件' : '拖拽文件到这里上传'}
             </Text>
-            <Text style={{ fontSize: 13, color: token.colorTextTertiary }}>或点击选择文件</Text>
+            <Text style={{ fontSize: 13, color: token.colorTextQuaternary }}>或点击选择文件</Text>
           </div>
         </button>
       ) : (
@@ -175,7 +172,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           type="button"
           onClick={handleSelectFile}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ')') {
+            if (e.key === 'Enter') {
               handleSelectFile();
             }
           }}
@@ -184,10 +181,10 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 8,
+            gap: 6,
             border: `1px dashed ${token.colorBorder}`,
             borderRadius: 8,
-            padding: '8px 16px',
+            padding: '10px 16px',
             background: 'transparent',
             cursor: 'pointer',
             width: '100%',
@@ -197,7 +194,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
           }}
         >
           <UploadOutlined />
-          <Text>点击添加更多文件</Text>
+          <Text style={{ fontSize: 13 }}>点击添加更多文件</Text>
         </button>
       )}
 
@@ -205,10 +202,10 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
       {upload.queue.length > 0 && (
         <div
           style={{
-            border: `1px solid ${token.colorBorder}`,
+            border: `1px solid ${token.colorBorderSecondary}`,
             borderRadius: 8,
             overflow: 'hidden',
-            maxHeight: 280,
+            maxHeight: 300,
             overflowY: 'auto',
           }}
         >
@@ -218,36 +215,36 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                padding: '14px 16px',
-                borderBottom: `1px solid ${token.colorBorder}`,
-                background: task.status === 'uploading' ? `${token.colorPrimary}08` : 'transparent',
+                padding: '12px 16px',
+                borderBottom: `1px solid ${token.colorBorderSecondary}`,
+                background: task.status === 'uploading' ? `${token.colorPrimaryBg}` : 'transparent',
+                transition: 'background 0.2s ease',
               }}
             >
               {/* 文件图标 */}
               <div
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 36,
+                  height: 36,
                   borderRadius: 8,
-                  background: `linear-gradient(135deg, ${getStatusColor(task.status)}15 0%, ${getStatusColor(task.status)}08 100%)`,
+                  background: `${getStatusColor(task.status)}15`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginRight: 14,
+                  marginRight: 12,
                   flexShrink: 0,
-                  border: `1px solid ${getStatusColor(task.status)}20`,
                 }}
               >
                 {task.status === 'completed' ? (
                   <CheckCircleOutlined
-                    style={{ fontSize: 18, color: getStatusColor(task.status) }}
+                    style={{ fontSize: 16, color: getStatusColor(task.status) }}
                   />
                 ) : task.status === 'failed' ? (
                   <CloseCircleOutlined
-                    style={{ fontSize: 18, color: getStatusColor(task.status) }}
+                    style={{ fontSize: 16, color: getStatusColor(task.status) }}
                   />
                 ) : (
-                  <FileOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
+                  <FileOutlined style={{ fontSize: 16, color: token.colorTextQuaternary }} />
                 )}
               </div>
 
@@ -255,14 +252,14 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   ellipsis
-                  style={{ display: 'block', fontWeight: 500, fontSize: 14, marginBottom: 2 }}
+                  style={{ display: 'block', fontWeight: 500, fontSize: 13, marginBottom: 1 }}
                 >
                   {task.file.name}
                 </Text>
-                <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>
+                <Text style={{ fontSize: 12, color: token.colorTextQuaternary }}>
                   {formatSize(task.file.size)}
                   {task.status === 'failed' && (
-                    <Text type="danger" style={{ fontSize: 12, marginLeft: 8 }}>
+                    <Text type="danger" style={{ fontSize: 12, marginLeft: 6 }}>
                       上传失败
                     </Text>
                   )}
@@ -270,19 +267,20 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
               </div>
 
               {/* 进度条 */}
-              <div style={{ width: 100, margin: '0 16px', flexShrink: 0 }}>
+              <div style={{ width: 80, margin: '0 12px', flexShrink: 0 }}>
                 {(task.status === 'uploading' || task.status === 'paused') && (
                   <Progress
                     percent={task.progress}
                     size="small"
                     strokeColor={token.colorPrimary}
                     trailColor={token.colorFillSecondary}
+                    format={(percent) => `${percent}%`}
                   />
                 )}
               </div>
 
               {/* 操作按钮 */}
-              <Space size={4} style={{ flexShrink: 0 }}>
+              <Space size={2} style={{ flexShrink: 0 }}>
                 {task.status === 'pending' && (
                   <Button
                     type="text"
@@ -297,7 +295,6 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
                     <Button
                       type="text"
                       size="small"
-                      danger
                       icon={<PauseOutlined />}
                       onClick={() => upload.pauseTask(task.id)}
                     />
@@ -330,7 +327,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
                 {task.status === 'failed' && (
                   <>
                     <Button
-                      type="text"
+                      type="link"
                       size="small"
                       onClick={() => upload.retryTask(task.id, parentId)}
                     >

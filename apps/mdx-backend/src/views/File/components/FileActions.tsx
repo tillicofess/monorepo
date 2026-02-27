@@ -22,8 +22,11 @@ export function FileActions() {
     <div
       style={{
         display: 'flex',
-        justifyContent: 'flex-start',
-        padding: '8px 0',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingBottom: 12,
+        borderBottom: '1px solid var(--ant-colorBorderSecondary)',
+        marginBottom: 8,
       }}
     >
       <Space>
@@ -37,12 +40,12 @@ export function FileActions() {
         <Button type="primary" icon={<Plus size={16} />} onClick={upload.openModal}>
           上传文件
         </Button>
-        {hasSelection && (
-          <Button danger icon={<Trash2 size={16} />} onClick={handleDelete}>
-            删除 ({selectedRowKeys.length})
-          </Button>
-        )}
       </Space>
+      {hasSelection && (
+        <Button danger icon={<Trash2 size={16} />} onClick={handleDelete}>
+          删除 ({selectedRowKeys.length})
+        </Button>
+      )}
     </div>
   );
 }
