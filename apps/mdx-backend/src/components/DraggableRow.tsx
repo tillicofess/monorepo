@@ -4,7 +4,7 @@ import { createContext, useMemo } from 'react';
 
 interface RowContextProps {
   setActivatorNodeRef?: (element: HTMLElement | null) => void;
-  listeners?: SyntheticListenerMap;
+  listeners?: SyntheticListenerMap | undefined;
 }
 
 export const RowContext = createContext<RowContextProps>({});

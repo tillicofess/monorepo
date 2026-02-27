@@ -65,7 +65,7 @@ const BlogList: React.FC = () => {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && hasMore) {
+        if (entries[0]?.isIntersecting && !loading && hasMore) {
           fetchArticles(page);
         }
       },
