@@ -1,4 +1,4 @@
-import { Button, Card, Typography, theme } from 'antd';
+import { Button, Card, Typography, theme, message } from 'antd';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
@@ -40,7 +40,7 @@ const ErrorLog: React.FC = () => {
       const { result, codeSnippet } = await findCodeBySourceMap(completeError);
       setSourceModalData({ result, codeSnippet });
     } catch (error) {
-      console.error('获取源码失败:', error);
+      message.error('获取源码信息错误');
     }
   };
 

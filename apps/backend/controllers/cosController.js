@@ -6,7 +6,7 @@ import crypto from 'crypto';
 // 配置腾讯云COS
 const cos = new COS({
   SecretId: process.env.COS_SECRET_ID || '',
-  SecretKey: process.env.COS_SECRET_KEY || ''
+  SecretKey: process.env.COS_SECRET_KEY || '',
 });
 
 // 计算文件的MD5哈希值
@@ -24,19 +24,22 @@ const calculateFileHash = (filePath) => {
 // 检查文件是否已存在于COS
 const checkFileExists = (bucket, region, key) => {
   return new Promise((resolve) => {
-    cos.headObject({
-      Bucket: bucket,
-      Region: region,
-      Key: key
-    }, (err) => {
-      if (err) {
-        // 文件不存在或其他错误，返回false
-        resolve(false);
-      } else {
-        // 文件存在，返回true
-        resolve(true);
-      }
-    });
+    cos.headObject(
+      {
+        Bucket: bucket,
+        Region: region,
+        Key: key,
+      },
+      (err) => {
+        if (err) {
+          // 文件不存在或其他错误，返回false
+          resolve(false);
+        } else {
+          // 文件存在，返回true
+          resolve(true);
+        }
+      },
+    );
   });
 };
 
@@ -72,22 +75,25 @@ export const uploadImage = async (req, res) => {
       return res.status(200).json({
         url: imageUrl,
         success: true,
-        message: '文件已存在，直接返回URL'
+        message: '文件已存在，直接返回URL',
       });
     }
 
     // 5. 上传文件到COS
     const uploadResult = await new Promise((resolve, reject) => {
-      cos.putObject({
-        Bucket: bucket,
-        Region: region,
-        Key: cosKey,
-        Body: fs.createReadStream(tempPath), // 读取临时文件
-        ContentType: mimetype // 设置文件MIME类型
-      }, (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
-      });
+      cos.putObject(
+        {
+          Bucket: bucket,
+          Region: region,
+          Key: cosKey,
+          Body: fs.createReadStream(tempPath), // 读取临时文件
+          ContentType: mimetype, // 设置文件MIME类型
+        },
+        (err, data) => {
+          if (err) reject(err);
+          else resolve(data);
+        },
+      );
     });
 
     // 5. 删除临时文件（清理资源）
@@ -99,19 +105,19 @@ export const uploadImage = async (req, res) => {
     res.status(200).json({
       url: imageUrl,
       success: true,
-      message: '文件上传成功'
+      message: '文件上传成功',
     });
   } catch (error) {
     // 8. 错误处理：确保临时文件被删除
     if (req.file && req.file.path) {
-      await fs.unlink(req.file.path).catch(() => { });
+      await fs.unlink(req.file.path).catch(() => {});
     }
 
     // 9. 返回错误响应
     res.status(500).json({
       error: '上传到COS失败',
       details: error.message,
-      success: false
+      success: false,
     });
   }
 };

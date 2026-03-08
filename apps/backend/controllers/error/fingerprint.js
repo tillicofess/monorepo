@@ -1,7 +1,9 @@
 import crypto from 'crypto';
 
 function normalize(val) {
-  return String(val || '').trim().toLowerCase();
+  return String(val || '')
+    .trim()
+    .toLowerCase();
 }
 
 export function createFingerprint(error) {
@@ -14,22 +16,16 @@ export function createFingerprint(error) {
         normalize(error.message),
         normalize(error.fileName),
         error.line,
-        error.column
+        error.column,
       ].join('|');
       break;
 
     case 'promise':
-      base = [
-        normalize(error.type),
-        normalize(error.message)
-      ].join('|');
+      base = [normalize(error.type), normalize(error.message)].join('|');
       break;
 
     case 'resource':
-      base = [
-        normalize(error.url),
-        normalize(error.tagName)
-      ].join('|');
+      base = [normalize(error.url), normalize(error.tagName)].join('|');
       break;
 
     default:

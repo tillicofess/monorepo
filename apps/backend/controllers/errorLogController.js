@@ -1,5 +1,11 @@
-import pool from "../config/db.js";
+import fse from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import pool from '../config/db.js';
 import { createFingerprint } from './error/fingerprint.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 创建日志
 export const createLog = async (req, res) => {
@@ -14,22 +20,19 @@ export const createLog = async (req, res) => {
 
     if (type === 'error') {
       await handleErrorLog(body);
-    }
-    else if (type === 'performance') {
+    } else if (type === 'performance') {
       subType === 'waterfall' ? await insertWaterfallLog(body) : await handlePerformanceLog(body);
-    }
-    else {
+    } else {
       return res.status(400).json({ success: false, message: 'Unknown log type' });
     }
 
     res.status(201).json({ success: true });
-
   } catch (err) {
-    console.error("❌ createLog error:", err);
+    console.error('❌ createLog error:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to save log',
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -50,9 +53,8 @@ export const getAllLogs = async (req, res) => {
       success: true,
       data: rows,
     });
-
   } catch (err) {
-    console.error("❌ getAllLogs error:", err);
+    console.error('❌ getAllLogs error:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch logs',
@@ -70,10 +72,9 @@ async function handleErrorLog(body) {
 
   const fingerprint = createFingerprint(error);
 
-  const [rows] = await pool.execute(
-    'SELECT id, count FROM error_logs WHERE fingerprint = ?',
-    [fingerprint]
-  );
+  const [rows] = await pool.execute('SELECT id, count FROM error_logs WHERE fingerprint = ?', [
+    fingerprint,
+  ]);
 
   if (rows.length > 0) {
     // 2. 已存在 → count +1
@@ -83,7 +84,7 @@ async function handleErrorLog(body) {
       SET count = count + 1, updated_at = NOW() 
       WHERE fingerprint = ?
       `,
-      [fingerprint]
+      [fingerprint],
     );
   } else {
     // 3. 新错误 → 插入
@@ -93,29 +94,14 @@ async function handleErrorLog(body) {
       (app_name, fingerprint, error, actions, time, version, count)
       VALUES (?, ?, ?, ?, ?, ?, 1)
       `,
-      [
-        appName,
-        fingerprint,
-        JSON.stringify(error),
-        JSON.stringify(actions || []),
-        time,
-        version
-      ]
+      [appName, fingerprint, JSON.stringify(error), JSON.stringify(actions || []), time, version],
     );
   }
 }
 
 // 处理性能日志
 async function handlePerformanceLog(body) {
-  const {
-    subType,
-    value,
-    url,
-    appName,
-    version,
-    effectiveType,
-    time
-  } = body;
+  const { subType, value, url, appName, version, effectiveType, time } = body;
 
   if (!subType || value == null || !url || !appName || !version || !time) {
     throw new Error('Missing required performance fields');
@@ -133,15 +119,7 @@ async function handlePerformanceLog(body) {
     (app_name, url, sub_type, value, version, effective_type, time)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  const params = [
-    appName,
-    url,
-    subType,
-    value,
-    version,
-    effectiveType || 'unknown',
-    time
-  ];
+  const params = [appName, url, subType, value, version, effectiveType || 'unknown', time];
 
   await pool.execute(sql, params);
 }
@@ -158,7 +136,7 @@ export const getAppNames = async (req, res) => {
 
     res.json({
       success: true,
-      data: rows.map(r => r.app_name)
+      data: rows.map((r) => r.app_name),
     });
   } catch (err) {
     console.error('❌ getAppNames error:', err);
@@ -184,7 +162,7 @@ export const getUrlsByApp = async (req, res) => {
 
     res.json({
       success: true,
-      data: rows.map(r => r.url)
+      data: rows.map((r) => r.url),
     });
   } catch (err) {
     console.error('❌ getUrlsByApp error:', err);
@@ -194,14 +172,7 @@ export const getUrlsByApp = async (req, res) => {
 
 // 插入瀑布图日志
 export async function insertWaterfallLog(body) {
-  const {
-    url,
-    appName,
-    version,
-    effectiveType,
-    time,
-    value
-  } = body;
+  const { url, appName, version, effectiveType, time, value } = body;
 
   if (!url || !appName || !version || !time || !value) {
     throw new Error('Missing required waterfall fields');
@@ -229,7 +200,7 @@ export async function insertWaterfallLog(body) {
     value.contentParsing,
     value.resourceLoading,
     value.totalTime,
-    time
+    time,
   ];
 
   await pool.execute(sql, params);
@@ -243,7 +214,7 @@ export const getPagePerformance = async (req, res) => {
     if (!appName || !url) {
       return res.status(400).json({
         success: false,
-        message: 'Missing appName or url'
+        message: 'Missing appName or url',
       });
     }
 
@@ -279,10 +250,59 @@ export const getPagePerformance = async (req, res) => {
 
     res.json({
       success: true,
-      data: rows
+      data,
     });
   } catch (err) {
-    console.error('❌ getPagePerformance error:', err);
+    console.error('❌ getWaterfallByAppAndUrl error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// 获取 Source Map 文件
+export const getSourceMap = async (req, res) => {
+  try {
+    const { appName, fileName, version } = req.query; // fileName 此时是类似 "0b40bc5dc3ae666e.js"
+    console.log(appName, fileName, version);
+
+    if (!appName || !fileName || !version) {
+      return res.status(400).json({ success: false, message: 'Missing parameters' });
+    }
+
+    // 1. 定位该版本的清单文件
+    const manifestPath = path.join(
+      __dirname,
+      '..',
+      'sourcemaps',
+      appName,
+      version,
+      'sourcemap-manifest.json',
+    );
+
+    if (!fse.existsSync(manifestPath)) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Manifest not found for this version' });
+    }
+
+    // 2. 读取清单并查找对应的真实 map 文件名
+    const manifest = fse.readJsonSync(manifestPath);
+    const realMapFileName = manifest[fileName]; // 通过 JS 名查到 Map 名
+
+    if (!realMapFileName) {
+      return res.status(404).json({ success: false, message: 'Map mapping not found in manifest' });
+    }
+
+    // 3. 读取真正的 map 文件
+    const mapFilePath = path.join(__dirname, '..', 'sourcemaps', appName, version, realMapFileName);
+
+    if (!fse.existsSync(mapFilePath)) {
+      return res.status(404).json({ success: false, message: 'Source map file not found' });
+    }
+
+    const sourceMapContent = fse.readFileSync(mapFilePath, 'utf-8');
+    res.json(JSON.parse(sourceMapContent));
+  } catch (err) {
+    console.error('❌ getSourceMap error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -295,7 +315,7 @@ export async function getWaterfallByAppAndUrl(req, res) {
     if (!appName || !url) {
       return res.status(400).json({
         success: false,
-        message: 'Missing appName or url'
+        message: 'Missing appName or url',
       });
     }
     const sql = `
@@ -314,7 +334,7 @@ export async function getWaterfallByAppAndUrl(req, res) {
       return res.json({
         code: 404,
         success: false,
-        message: 'No waterfall data found'
+        message: 'No waterfall data found',
       });
     }
 
@@ -333,7 +353,7 @@ export async function getWaterfallByAppAndUrl(req, res) {
 
     res.json({
       success: true,
-      data
+      data,
     });
   } catch (err) {
     console.error('❌ getWaterfallByAppAndUrl error:', err);

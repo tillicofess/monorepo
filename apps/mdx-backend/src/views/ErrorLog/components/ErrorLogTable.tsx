@@ -70,6 +70,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
       render: (_, record) => {
         const error = record.error;
         const version = record.version;
+        const appName = record.app_name;
         const hasSourceInfo =
           error?.fileName && error?.line !== undefined && error?.column !== undefined;
 
@@ -86,6 +87,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
                 fileName: error.fileName,
                 line: error.line,
                 column: error.column,
+                appName,
                 version,
               })
             }

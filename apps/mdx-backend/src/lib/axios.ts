@@ -9,8 +9,8 @@ import keycloak from '@/providers/auth/keycloak';
 import { getApiConfig } from '../config/env';
 
 const MAX_RETRY_LIMIT = 3; // 最大重试次数
-const RETRY_DELAY = 1000;  // 重试延迟（毫秒）
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const RETRY_DELAY = 1000; // 重试延迟（毫秒）
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 let refreshPromise: Promise<boolean> | null = null;
 
 // 获取当前环境的 API 配置
@@ -26,7 +26,6 @@ const instance: AxiosInstance = axios.create({
   },
 });
 
-
 // 请求拦截器
 instance.interceptors.request.use((config) => {
   if (keycloak.token) {
@@ -34,7 +33,6 @@ instance.interceptors.request.use((config) => {
   }
   return config;
 });
-
 
 const successHandler = (response: AxiosResponse) => {
   return response;
@@ -54,7 +52,8 @@ const errorHandler = async (error: AxiosError) => {
       if (!refreshPromise) {
         refreshPromise = new Promise((resolve, reject) => {
           // KeycloakPromise 转换为标准 Promise
-          keycloak.updateToken(30)
+          keycloak
+            .updateToken(30)
             .then((refreshed) => {
               // 判定标准：要么真的刷新了，要么本地 token 依然可用
               resolve(refreshed || (!!keycloak.token && !keycloak.isTokenExpired()));
@@ -81,7 +80,6 @@ const errorHandler = async (error: AxiosError) => {
       // 刷新逻辑执行了但没拿到有效 Token
       keycloak.clearToken();
       return Promise.reject(new Error('Token refresh failed: No valid token found'));
-
     } catch (refreshError) {
       // 刷新请求过程中报错（如 Refresh Token 也过期了）
       keycloak.clearToken();

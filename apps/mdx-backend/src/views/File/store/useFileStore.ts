@@ -216,9 +216,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
             upload: {
               ...state.upload,
               queue: state.upload.queue.map((t) =>
-                t.id === task.id
-                  ? { ...t, progress, status: status ?? t.status }
-                  : t,
+                t.id === task.id ? { ...t, progress, status: status ?? t.status } : t,
               ),
             },
           }));
@@ -231,10 +229,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
           const chunks = createChunks(file);
           const fileHash = await calculateFileHash(chunks);
 
-          const { shouldUpload, uploadedChunks } = await checkFileExist(
-            fileHash,
-            file.name,
-          );
+          const { shouldUpload, uploadedChunks } = await checkFileExist(fileHash, file.name);
 
           // 秒传
           if (!shouldUpload) {
@@ -291,17 +286,13 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
       const scheduleNext = () => {
         const { upload: current } = get();
 
-        const runningCount = current.queue.filter(
-          (t) => t.status === 'uploading',
-        ).length;
+        const runningCount = current.queue.filter((t) => t.status === 'uploading').length;
 
         if (runningCount >= current.maxConcurrent) return;
 
         const nextTask = current.queue.find((t) => t.status === 'pending');
         if (!nextTask) {
-          const stillUploading = current.queue.some(
-            (t) => t.status === 'uploading',
-          );
+          const stillUploading = current.queue.some((t) => t.status === 'uploading');
           if (!stillUploading) {
             onSuccess();
           }
@@ -352,7 +343,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
           ),
         },
       }));
-      await get().upload.startUpload(parentId, () => { });
+      await get().upload.startUpload(parentId, () => {});
     },
     // 取消任务
     cancelTask: (taskId: string) => {
@@ -386,7 +377,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
           ),
         },
       }));
-      await get().upload.startUpload(parentId, () => { });
+      await get().upload.startUpload(parentId, () => {});
     },
   },
   rename: {

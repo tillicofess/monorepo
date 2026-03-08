@@ -49,7 +49,7 @@
   "performanceLog": "Performance Log",
   "errorType": "Error Type",
   "logManagement": "Log Management",
-  "dashboard.overview" : "Overview",
+  "dashboard.overview": "Overview",
   "overview.timeRange": "Time Range",
   "overview.comparison": "Comparison"
 }

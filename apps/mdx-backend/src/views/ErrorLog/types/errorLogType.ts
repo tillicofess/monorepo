@@ -7,6 +7,7 @@ export interface ErrorType {
 
 export interface DataType {
   key: string;
+  app_name: string;
   error: ErrorType;
   time: string;
   actions: any[];
