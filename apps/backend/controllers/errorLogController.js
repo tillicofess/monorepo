@@ -250,7 +250,7 @@ export const getPagePerformance = async (req, res) => {
 
     res.json({
       success: true,
-      data,
+      data: rows,
     });
   } catch (err) {
     console.error('❌ getWaterfallByAppAndUrl error:', err);

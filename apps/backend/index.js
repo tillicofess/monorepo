@@ -1,9 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-// import articleRoutes from './routes/articleRoutes.js';
 import largeFileRoutes from './routes/largeFile.js';
-import cosRoutes from './routes/cosRoutes.js';
 import errorLogRoutes from './routes/errorLogRoutes.js';
 import pool from './config/db.js';
 // import { checkJwt } from './middleware/checkJwt.js';
@@ -47,9 +45,7 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// app.use('/articles', articleRoutes);
 app.use('/largeFile', largeFileRoutes);
-app.use('/cos', cosRoutes);
 app.use('/errorLogs', errorLogRoutes);
 
 // 测试数据库连接函数

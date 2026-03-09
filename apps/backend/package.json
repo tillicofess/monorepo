@@ -14,14 +14,13 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "typescript": "catalog:",
-    "cross-env": "^10.1.0"
+    "cross-env": "^10.1.0",
+    "typescript": "catalog:"
   },
   "dependencies": {
     "axios": "catalog:",
     "cookie-parser": "^1.4.7",
     "cors": "catalog:",
-    "cos-nodejs-sdk-v5": "^2.15.4",
     "crypto": "^1.0.1",
     "express": "catalog:",
     "express-oauth2-jwt-bearer": "^1.7.4",

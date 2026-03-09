@@ -1,4 +1,5 @@
 import sourceMap from 'source-map-js';
+import { http } from '@/lib/axios';
 
 function matchStr(str: string) {
   if (str.endsWith('.js')) return str.substring(str.lastIndexOf('/') + 1);
@@ -8,10 +9,10 @@ export function loadSourceMap(fileName: string, appName: string, version: string
   const file = matchStr(fileName);
   if (!file) return;
   return new Promise((resolve) => {
-    fetch(
-      `http://localhost:4000/errorLogs/getmap?fileName=${file}&appName=${appName}&version=${version}`,
+    http.get(
+      `/errorLogs/getmap?fileName=${file}&appName=${appName}&version=${version}`
     ).then((response) => {
-      resolve(response.json());
+      resolve(response.data);
     });
   });
 }
