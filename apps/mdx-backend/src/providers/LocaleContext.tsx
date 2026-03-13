@@ -47,7 +47,6 @@ const getThemeConfig = (mode: 'light' | 'dark'): ThemeConfig => {
       colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
       colorBgElevated: isDark ? '#262626' : '#ffffff',
       colorBgLayout: isDark ? '#141414' : '#f5f5f5',
-      colorBgSpotlight: isDark ? '#2a2a2a' : '#fafafa',
       colorText: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.88)',
       colorTextSecondary: isDark ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
       colorTextTertiary: isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
@@ -67,6 +66,7 @@ const getThemeConfig = (mode: 'light' | 'dark'): ThemeConfig => {
         darkSubMenuItemBg: 'transparent',
         darkItemSelectedBg: 'rgba(23, 125, 220, 0.2)',
         darkItemHoverBg: 'rgba(255, 255, 255, 0.05)',
+        darkPopupBg: '#1f1f1f',
       },
       Button: {
         primaryShadow: isDark ? '0 2px 0 #0d5aa7' : '0 2px 0 rgba(0, 0, 0, 0.03)',

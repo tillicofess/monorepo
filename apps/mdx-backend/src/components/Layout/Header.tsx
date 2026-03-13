@@ -1,5 +1,5 @@
-import { Badge, Button, Tooltip } from 'antd';
-import { Bell, Globe, Menu, Moon, Sun } from 'lucide-react';
+import { Button, Tooltip } from 'antd';
+import { Globe, Menu, Moon, Sun } from 'lucide-react';
 import { Logo } from './Logo';
 import { UserMenu } from './UserMenu';
 
@@ -20,7 +20,6 @@ export function Header({
   isMobile,
   lang,
   userName,
-  notificationCount = 0,
   onToggleMenu,
   onChangeLang,
   onChangeThemeMode,
@@ -58,25 +57,6 @@ export function Header({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Tooltip title="通知">
-          <Button
-            type="text"
-            size="middle"
-            icon={
-              <Badge count={notificationCount} size="small" offset={[-2, 2]}>
-                <Bell size={18} />
-              </Badge>
-            }
-            style={{
-              height: 40,
-              width: 40,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          />
-        </Tooltip>
 
         <Tooltip title={lang === 'en-US' ? '切换到中文' : 'Switch to English'}>
           <Button

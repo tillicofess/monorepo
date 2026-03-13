@@ -174,7 +174,6 @@ const AppLayout = () => {
             isMobile={isMobile}
             lang={lang}
             userName={user?.name}
-            notificationCount={3}
             onToggleMenu={toggleMenu}
             onChangeLang={changeLang}
             onChangeThemeMode={changeThemeMode}
