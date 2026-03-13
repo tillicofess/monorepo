@@ -25,7 +25,7 @@ const extractExt = (fileName) => path.extname(fileName);
  * @param {string} fileHash 文件 hash
  * @param {string} fileName 原始文件名（用于后缀）
  */
-export const checkFile = async (req, res, next) => {
+export const checkFile = async (req, res) => {
 	const { fileHash, fileName } = req.body;
 	const filePath = path.resolve(UPLOAD_DIR, fileHash + path.extname(fileName));
 
@@ -40,7 +40,7 @@ export const checkFile = async (req, res, next) => {
 		const files = await fse.readdir(chunkDir);
 		uploadedChunks = files
 			.map((file) => parseInt(file.split("-")[1], 10))
-			.filter((index) => !isNaN(index))
+			.filter((index) => !Number.isNaN(index))
 			.sort((a, b) => a - b);
 	}
 
@@ -57,7 +57,7 @@ export const checkFile = async (req, res, next) => {
  * 批量检查文件是否已存在
  * @param {Array} files - 文件数组 [{ fileHash, fileName }]
  */
-export const checkBatchFile = async (req, res, next) => {
+export const checkBatchFile = async (req, res) => {
 	const { files } = req.body;
 
 	if (!Array.isArray(files) || files.length === 0) {
@@ -155,7 +155,7 @@ export const mergeChunks = async (req, res) => {
 		// 1. 读取所有分片并按序号排序
 		const chunkFiles = await fse.readdir(chunkDir);
 		chunkFiles.sort(
-			(a, b) => parseInt(a.split("-")[1]) - parseInt(b.split("-")[1]),
+			(a, b) => parseInt(a.split("-")[1], 10) - parseInt(b.split("-")[1], 10),
 		);
 
 		// 2. 流式合并
@@ -202,7 +202,7 @@ export const mergeChunks = async (req, res) => {
 
 // 保存文件元数据到数据库
 const saveFileMetadata = async (
-	req,
+	_req,
 	res,
 	{ fileHash, fileName, fileSize, parentId, completeFilePath },
 ) => {

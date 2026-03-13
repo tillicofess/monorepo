@@ -39,7 +39,7 @@ const ErrorLog: React.FC = () => {
 		try {
 			const { result, codeSnippet } = await findCodeBySourceMap(completeError);
 			setSourceModalData({ result, codeSnippet });
-		} catch (error) {
+		} catch (_error) {
 			message.error("获取源码信息错误");
 		}
 	};

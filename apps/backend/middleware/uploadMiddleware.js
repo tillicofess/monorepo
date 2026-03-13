@@ -16,7 +16,7 @@ fse.ensureDirSync(TEMP_DIR);
 // 通用 Multer 存储配置
 export const createStorage = (filenameStrategy = null) => {
 	return multer.diskStorage({
-		destination: (req, file, cb) => {
+		destination: (_req, _file, cb) => {
 			cb(null, TEMP_DIR);
 		},
 		filename: (req, file, cb) => {
@@ -41,7 +41,7 @@ export const uploadMiddleware = createUploadMiddleware("chunk");
 
 export const cosUploadMiddleware = createUploadMiddleware(
 	"image",
-	(req, file, cb) => {
+	(_req, file, cb) => {
 		const ext = path.extname(file.originalname);
 		const filename = `${uuidv4()}${ext}`;
 		cb(null, filename);

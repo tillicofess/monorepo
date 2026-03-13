@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // 1. 定义源路径和目标路径
 const SRC_CHUNKS = path.join(process.cwd(), ".next/static/chunks");

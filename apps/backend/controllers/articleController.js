@@ -9,12 +9,12 @@ function extractFirstImageUrl(content) {
 		/<img.*?src=["'](https?:\/\/[^"']+|\/largeFile\/download\/[a-f0-9-]+)["'].*?>/i;
 
 	let match = content.match(markdownImageRegex);
-	if (match && match[1]) {
+	if (match?.[1]) {
 		return match[1];
 	}
 
 	match = content.match(htmlImageRegex);
-	if (match && match[1]) {
+	if (match?.[1]) {
 		return match[1];
 	}
 
@@ -131,8 +131,8 @@ export const publishArticle = async (req, res) => {
  */
 export const getBlogList = async (req, res) => {
 	// 获取分页参数，如果没有提供则使用默认值
-	const page = parseInt(req.query.page) || 1;
-	const pageSize = parseInt(req.query.pageSize) || 10; // 每页数量
+	const page = parseInt(req.query.page, 10) || 1;
+	const pageSize = parseInt(req.query.pageSize, 10) || 10; // 每页数量
 	const offset = (page - 1) * pageSize;
 
 	let connection;
@@ -330,7 +330,7 @@ export const deleteArticle = async (req, res) => {
  * @description 获取最新的6篇文章
  * @returns {object} 文章列表
  */
-export const getLatestArticles = async (req, res) => {
+export const getLatestArticles = async (_req, res) => {
 	let connection;
 	try {
 		connection = await pool.getConnection();

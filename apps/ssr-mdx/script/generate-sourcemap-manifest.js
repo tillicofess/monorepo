@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // 1. 定位到根目录构建产物的 chunks 文件夹
 const CHUNKS_DIR = path.join(process.cwd(), ".next/static/chunks");

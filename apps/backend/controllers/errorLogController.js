@@ -44,7 +44,7 @@ export const createLog = async (req, res) => {
 };
 
 // 获取全部日志
-export const getAllLogs = async (req, res) => {
+export const getAllLogs = async (_req, res) => {
 	try {
 		const sql = `
       SELECT *
@@ -147,7 +147,7 @@ async function handlePerformanceLog(body) {
 }
 
 // 获取所有应用名称
-export const getAppNames = async (req, res) => {
+export const getAppNames = async (_req, res) => {
 	try {
 		const sql = `
       SELECT DISTINCT app_name
