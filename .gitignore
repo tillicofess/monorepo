@@ -1,12 +1,41 @@
-node_modules/
+# ==========================================
+# ROOT .gitignore - Monorepo Common Rules
+# ==========================================
 
+# --- 1. Editor Directories and Files (Universal) ---
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.sublime-workspace
+*.sublime-project
+
+# --- 2. General Logs & Debug (Non-project specific) ---
+# 忽略所有根目录或子目录下通用的日志文件和文件夹
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- 3. Monorepo Dependencies Structure ---
+node_modules/
 pnpm-lock.yaml
 docs
-
 # packages
 packages/*/dist/
 packages/*/node_modules/
-
 # apps
 apps/*/node_modules/
 apps/*/dist/

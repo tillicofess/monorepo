@@ -1,118 +1,121 @@
-import { Button, Card, Typography, theme, message } from 'antd';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import type React from 'react';
-import { useState } from 'react';
-import { FormattedMessage } from 'react-intl';
-import useSWR from 'swr';
-import ErrorLogTable from '@/views/ErrorLog/components/ErrorLogTable';
-import SourceCodeModal from '@/views/ErrorLog/components/SourceCodeModal';
-import UserActionLogModal from '@/views/ErrorLog/components/UserActionLogModal';
-import { fetcher } from '@/lib/axios';
-import { findCodeBySourceMap } from '@/utils/map';
+import { Button, Card, Typography, theme, message } from "antd";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { FormattedMessage } from "react-intl";
+import useSWR from "swr";
+import ErrorLogTable from "@/views/ErrorLog/components/ErrorLogTable";
+import SourceCodeModal from "@/views/ErrorLog/components/SourceCodeModal";
+import UserActionLogModal from "@/views/ErrorLog/components/UserActionLogModal";
+import { fetcher } from "@/lib/axios";
+import { findCodeBySourceMap } from "@/utils/map";
 
 const { Title } = Typography;
 const { useToken } = theme;
 
 const ErrorLog: React.FC = () => {
-  const { token } = useToken();
-  const [sourceModalData, setSourceModalData] = useState<{
-    result: any;
-    codeSnippet: string;
-  } | null>(null);
-  const [actionModalData, setActionModalData] = useState<any[] | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+	const { token } = useToken();
+	const [sourceModalData, setSourceModalData] = useState<{
+		result: any;
+		codeSnippet: string;
+	} | null>(null);
+	const [actionModalData, setActionModalData] = useState<any[] | null>(null);
+	const [refreshing, setRefreshing] = useState(false);
 
-  const { data, isLoading, mutate } = useSWR('/errorLogs/all', fetcher);
+	const { data, isLoading, mutate } = useSWR("/errorLogs/all", fetcher);
 
-  // 刷新数据
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await mutate();
-    } finally {
-      setTimeout(() => setRefreshing(false), 200);
-    }
-  };
+	// 刷新数据
+	const handleRefresh = async () => {
+		setRefreshing(true);
+		try {
+			await mutate();
+		} finally {
+			setTimeout(() => setRefreshing(false), 200);
+		}
+	};
 
-  // 查看源码
-  const handleViewSourceCode = async (completeError: any) => {
-    try {
-      const { result, codeSnippet } = await findCodeBySourceMap(completeError);
-      setSourceModalData({ result, codeSnippet });
-    } catch (error) {
-      message.error('获取源码信息错误');
-    }
-  };
+	// 查看源码
+	const handleViewSourceCode = async (completeError: any) => {
+		try {
+			const { result, codeSnippet } = await findCodeBySourceMap(completeError);
+			setSourceModalData({ result, codeSnippet });
+		} catch (error) {
+			message.error("获取源码信息错误");
+		}
+	};
 
-  // 查看相关用户操作日志
-  const handleViewActions = (actions: any[]) => {
-    setActionModalData(actions);
-  };
+	// 查看相关用户操作日志
+	const handleViewActions = (actions: any[]) => {
+		setActionModalData(actions);
+	};
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: 0,
-        gap: 16,
-      }}
-    >
-      {/* 页面标题和操作按钮 */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <AlertTriangle style={{ color: '#EF4444' }} />
-          <FormattedMessage id="errorLogTitle" defaultMessage="错误日志" />
-        </Title>
-        <Button
-          type="primary"
-          icon={<RefreshCw size={16} className={refreshing ? 'spin' : ''} />}
-          onClick={handleRefresh}
-          loading={refreshing}
-        >
-          <FormattedMessage id="refreshData" defaultMessage="刷新数据" />
-        </Button>
-      </div>
+	return (
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				flex: 1,
+				minHeight: 0,
+				gap: 16,
+			}}
+		>
+			{/* 页面标题和操作按钮 */}
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					flexWrap: "wrap",
+					gap: 12,
+				}}
+			>
+				<Title
+					level={4}
+					style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}
+				>
+					<AlertTriangle style={{ color: "#EF4444" }} />
+					<FormattedMessage id="errorLogTitle" defaultMessage="错误日志" />
+				</Title>
+				<Button
+					type="primary"
+					icon={<RefreshCw size={16} className={refreshing ? "spin" : ""} />}
+					onClick={handleRefresh}
+					loading={refreshing}
+				>
+					<FormattedMessage id="refreshData" defaultMessage="刷新数据" />
+				</Button>
+			</div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: 12,
-          border: `1px solid ${token.colorBorder}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-        }}
-      >
-        <ErrorLogTable
-          data={data || []}
-          loading={isLoading}
-          onViewSourceCode={handleViewSourceCode}
-          onViewActions={handleViewActions}
-        />
-      </Card>
+			<Card
+				style={{
+					flex: 1,
+					display: "flex",
+					flexDirection: "column",
+					borderRadius: 12,
+					border: `1px solid ${token.colorBorder}`,
+					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+				}}
+			>
+				<ErrorLogTable
+					data={data || []}
+					loading={isLoading}
+					onViewSourceCode={handleViewSourceCode}
+					onViewActions={handleViewActions}
+				/>
+			</Card>
 
-      <SourceCodeModal
-        open={sourceModalData !== null}
-        onCancel={() => setSourceModalData(null)}
-        data={sourceModalData}
-      />
-      <UserActionLogModal
-        open={actionModalData !== null}
-        onCancel={() => setActionModalData(null)}
-        actions={actionModalData}
-      />
+			<SourceCodeModal
+				open={sourceModalData !== null}
+				onCancel={() => setSourceModalData(null)}
+				data={sourceModalData}
+			/>
+			<UserActionLogModal
+				open={actionModalData !== null}
+				onCancel={() => setActionModalData(null)}
+				actions={actionModalData}
+			/>
 
-      <style>{`
+			<style>{`
         .spin {
           animation: spin 1s linear infinite;
         }
@@ -121,8 +124,8 @@ const ErrorLog: React.FC = () => {
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 };
 
 export default ErrorLog;

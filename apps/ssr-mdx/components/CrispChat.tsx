@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import Script from 'next/script';
+import Script from "next/script";
 
 export default function CrispChat() {
-  const websiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
+	const websiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
 
-  if (!websiteId) {
-    return null;
-  }
+	if (!websiteId) {
+		return null;
+	}
 
-  return (
-    <Script id="chaport-chat" strategy="lazyOnload">
-      {`
+	return (
+		<Script id="chaport-chat" strategy="lazyOnload">
+			{`
     (function(w,d,v3){
       w.chaportConfig = {
         appId : '699ed3701d1ca94a1cb088a4',
@@ -34,6 +34,6 @@ export default function CrispChat() {
       ss.parentNode.insertBefore(s,ss)
     })(window, document);
   `}
-    </Script>
-  );
+		</Script>
+	);
 }

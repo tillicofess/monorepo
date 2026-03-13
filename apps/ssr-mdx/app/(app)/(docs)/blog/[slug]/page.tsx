@@ -1,70 +1,74 @@
-import { getTableOfContents } from 'fumadocs-core/content/toc';
-import { ArrowLeftIcon } from 'lucide-react';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Prose } from '@/components/ui/typography';
-import { CommentSection } from '@/features/blog/components/comment/comment-section';
-import { InlineTOC } from '@/features/blog/components/inline-toc';
-import { MDX } from '@/features/blog/components/mdx';
-import { Separator } from '@/features/portfolio/components/separator';
-import { getAllPosts, getPostBySlug } from '@/lib/mdx';
+import { getTableOfContents } from "fumadocs-core/content/toc";
+import { ArrowLeftIcon } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Prose } from "@/components/ui/typography";
+import { CommentSection } from "@/features/blog/components/comment/comment-section";
+import { InlineTOC } from "@/features/blog/components/inline-toc";
+import { MDX } from "@/features/blog/components/mdx";
+import { Separator } from "@/features/portfolio/components/separator";
+import { getAllPosts, getPostBySlug } from "@/lib/mdx";
 
 export function generateStaticParams() {
-  const posts = getAllPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+	const posts = getAllPosts();
+	return posts.map((post) => ({
+		slug: post.slug,
+	}));
 }
 
-export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const post = getPostBySlug(slug);
+export default async function BlogPost({
+	params,
+}: {
+	params: Promise<{ slug: string }>;
+}) {
+	const { slug } = await params;
+	const post = getPostBySlug(slug);
 
-  if (!post || !post.content) {
-    notFound();
-  }
+	if (!post || !post.content) {
+		notFound();
+	}
 
-  const toc = getTableOfContents(post.content);
+	const toc = getTableOfContents(post.content);
 
-  return (
-    <>
-      <div className="flex items-center justify-between p-2 pl-4">
-        <Button
-          className="h-7 gap-2 rounded-lg px-0 font-mono text-muted-foreground transition-[color] hover:text-foreground"
-          variant="link"
-          asChild
-        >
-          <Link href="/blog">
-            <ArrowLeftIcon />
-            Blog
-          </Link>
-        </Button>
-      </div>
+	return (
+		<>
+			<div className="flex items-center justify-between p-2 pl-4">
+				<Button
+					className="h-7 gap-2 rounded-lg px-0 font-mono text-muted-foreground transition-[color] hover:text-foreground"
+					variant="link"
+					asChild
+				>
+					<Link href="/blog">
+						<ArrowLeftIcon />
+						Blog
+					</Link>
+				</Button>
+			</div>
 
-      <div className="screen-line-before screen-line-after">
-        <Separator />
-      </div>
+			<div className="screen-line-before screen-line-after">
+				<Separator />
+			</div>
 
-      <Prose className="px-4">
-        <h1 className="screen-line-after text-3xl font-semibold tracking-tight">
-          {post.metadata.title}
-        </h1>
+			<Prose className="px-4">
+				<h1 className="screen-line-after text-3xl font-semibold tracking-tight">
+					{post.metadata.title}
+				</h1>
 
-        <p className="text-muted-foreground">{post.metadata.description}</p>
+				<p className="text-muted-foreground">{post.metadata.description}</p>
 
-        <InlineTOC items={toc} />
+				<InlineTOC items={toc} />
 
-        <div>
-          <MDX code={post.content} />
-        </div>
-      </Prose>
+				<div>
+					<MDX code={post.content} />
+				</div>
+			</Prose>
 
-      <div className="screen-line-before screen-line-after">
-        <Separator />
-      </div>
+			<div className="screen-line-before screen-line-after">
+				<Separator />
+			</div>
 
-      <CommentSection slug={slug} />
-    </>
-  );
+			<CommentSection slug={slug} />
+		</>
+	);
 }

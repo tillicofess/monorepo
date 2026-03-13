@@ -1,8 +1,11 @@
-import type { MonitorConfig } from './type';
+import type { MonitorConfig } from "./type";
 
-export const defaultConfig: Omit<MonitorConfig, 'appName' | 'version' | 'reportUrl'> = {
-  maxBreadcrumb: 20,
-  enableError: false,
-  enableBehavior: false,
-  enablePerformance: false,
+export const defaultConfig: Omit<
+	MonitorConfig,
+	"appName" | "version" | "reportUrl"
+> = {
+	maxBreadcrumb: 20,
+	enableError: false,
+	enableBehavior: false,
+	enablePerformance: false,
 };

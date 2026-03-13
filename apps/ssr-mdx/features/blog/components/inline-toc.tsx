@@ -1,53 +1,57 @@
-'use client';
+"use client";
 
-import type { TOCItemType } from 'fumadocs-core/toc';
-import { TextIcon } from 'lucide-react';
+import type { TOCItemType } from "fumadocs-core/toc";
+import { TextIcon } from "lucide-react";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 export function InlineTOC({
-  items,
-  className,
-  children,
-  ...props
+	items,
+	className,
+	children,
+	...props
 }: React.ComponentProps<typeof Collapsible> & {
-  items: TOCItemType[];
+	items: TOCItemType[];
 }) {
-  if (!items.length) {
-    return null;
-  }
+	if (!items.length) {
+		return null;
+	}
 
-  return (
-    <Collapsible
-      className={cn('not-prose rounded-xl bg-code font-sans mb-6', className)}
-      {...props}
-    >
-      <CollapsibleTrigger className="inline-flex w-full items-center gap-2 py-2.5 pr-2 pl-4 text-sm font-medium [&_svg]:size-4">
-        <TextIcon className="-translate-x-0.5" />
-        {children ?? 'On this page'}
-      </CollapsibleTrigger>
+	return (
+		<Collapsible
+			className={cn("not-prose rounded-xl bg-code font-sans mb-6", className)}
+			{...props}
+		>
+			<CollapsibleTrigger className="inline-flex w-full items-center gap-2 py-2.5 pr-2 pl-4 text-sm font-medium [&_svg]:size-4">
+				<TextIcon className="-translate-x-0.5" />
+				{children ?? "On this page"}
+			</CollapsibleTrigger>
 
-      <CollapsibleContent className="overflow-hidden duration-300 data-open:animate-collapsible-down data-closed:animate-collapsible-up">
-        <ul className="flex flex-col px-4 pb-2 text-sm text-muted-foreground">
-          {items.map((item) => (
-            <li
-              key={item.url}
-              className="flex py-1"
-              style={{
-                paddingInlineStart: 16 * Math.max(item.depth - 2, 0),
-              }}
-            >
-              <a
-                className="underline-offset-4 transition-colors hover:text-accent-foreground hover:underline"
-                href={item.url}
-              >
-                {item.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </CollapsibleContent>
-    </Collapsible>
-  );
+			<CollapsibleContent className="overflow-hidden duration-300 data-open:animate-collapsible-down data-closed:animate-collapsible-up">
+				<ul className="flex flex-col px-4 pb-2 text-sm text-muted-foreground">
+					{items.map((item) => (
+						<li
+							key={item.url}
+							className="flex py-1"
+							style={{
+								paddingInlineStart: 16 * Math.max(item.depth - 2, 0),
+							}}
+						>
+							<a
+								className="underline-offset-4 transition-colors hover:text-accent-foreground hover:underline"
+								href={item.url}
+							>
+								{item.title}
+							</a>
+						</li>
+					))}
+				</ul>
+			</CollapsibleContent>
+		</Collapsible>
+	);
 }

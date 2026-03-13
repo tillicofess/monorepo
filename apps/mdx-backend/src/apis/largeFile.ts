@@ -1,4 +1,4 @@
-import { http } from '@/lib/axios';
+import { http } from "@/lib/axios";
 
 /**
  * 获取文件列表
@@ -6,11 +6,11 @@ import { http } from '@/lib/axios';
  * @returns 文件列表
  */
 export const getFileList = (parentId: string | null) => {
-  return http.get('/largeFile/list', {
-    params: {
-      parentId,
-    },
-  });
+	return http.get("/largeFile/list", {
+		params: {
+			parentId,
+		},
+	});
 };
 
 /**
@@ -20,18 +20,18 @@ export const getFileList = (parentId: string | null) => {
  * @returns 创建结果
  */
 export const createFolder = (parentId: string | null, name: string) => {
-  return http.post(
-    '/largeFile/createFolder',
-    {
-      parentId,
-      name,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
+	return http.post(
+		"/largeFile/createFolder",
+		{
+			parentId,
+			name,
+		},
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+		},
+	);
 };
 
 /**
@@ -41,18 +41,18 @@ export const createFolder = (parentId: string | null, name: string) => {
  * @returns 重命名结果
  */
 export const renameFile = (id: string, name: string) => {
-  return http.post(
-    '/largeFile/rename',
-    {
-      id,
-      name,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
+	return http.post(
+		"/largeFile/rename",
+		{
+			id,
+			name,
+		},
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+		},
+	);
 };
 
 /**
@@ -61,11 +61,11 @@ export const renameFile = (id: string, name: string) => {
  * @returns 删除结果
  */
 export const deleteFile = (id: string) => {
-  return http.delete(`/largeFile/delete/${id}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+	return http.delete(`/largeFile/delete/${id}`, {
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
 };
 
 /**
@@ -74,19 +74,22 @@ export const deleteFile = (id: string) => {
  * @param newParentId 新父文件夹ID
  * @returns 移动结果
  */
-export const moveFileOrFolder = (draggedId: string, newParentId: string | null) => {
-  return http.post(
-    '/largeFile/move',
-    {
-      draggedId,
-      newParentId,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
+export const moveFileOrFolder = (
+	draggedId: string,
+	newParentId: string | null,
+) => {
+	return http.post(
+		"/largeFile/move",
+		{
+			draggedId,
+			newParentId,
+		},
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+		},
+	);
 };
 
 /**
@@ -95,8 +98,8 @@ export const moveFileOrFolder = (draggedId: string, newParentId: string | null) 
  * @returns 下载结果
  */
 export const downloadFile = (id: string) => {
-  const a = document.createElement('a');
-  a.href = `https://api.ticscreek.top/largeFile/download/${id}`;
-  a.download = id;
-  a.click();
+	const a = document.createElement("a");
+	a.href = `https://api.ticscreek.top/largeFile/download/${id}`;
+	a.download = id;
+	a.click();
 };
