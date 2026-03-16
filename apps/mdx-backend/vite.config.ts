@@ -1,12 +1,13 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // 远程 API 目标
 const UMAMI_WEBSITE = "https://umami.ticscreek.top";
 
 export default defineConfig({
-	plugins: [react()],
+	plugins: [react(), visualizer({ open: true }) as PluginOption],
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
@@ -30,6 +31,18 @@ export default defineConfig({
 		},
 	},
 	build: {
+		minify: "terser",
+
+		terserOptions: {
+			compress: {
+				drop_console: true,
+				drop_debugger: true,
+				pure_funcs: ["console.info", "console.warn"],
+			},
+			format: {
+				comments: false, // 移除所有注释
+			},
+		},
 		rollupOptions: {
 			input: {
 				main: "index.html",
@@ -38,21 +51,20 @@ export default defineConfig({
 				manualChunks(id) {
 					if (!id.includes("node_modules")) return;
 
-					if (id.includes("/react/") || id.includes("/react-dom/"))
-						return "react-vendor";
-					if (id.includes("antd")) return "antd";
-					if (id.includes("echarts")) return "echarts";
-					if (id.includes("@dnd-kit")) return "dnd";
-					if (id.includes("react-intl") || id.includes("@formatjs"))
-						return "intl";
-					if (id.includes("@casl")) return "casl";
 					if (
-						id.includes("axios") ||
-						id.includes("date-fns") ||
-						id.includes("swr") ||
-						id.includes("zustand")
+						id.includes("/react/") ||
+						id.includes("/react-dom/") ||
+						id.includes("/scheduler/")
 					) {
-						return "utils";
+						return "react-vendor";
+					}
+
+					if (id.includes("antd") || id.includes("@ant-design")) {
+						return "antd-vendor";
+					}
+
+					if (id.includes("echarts")) {
+						return "echarts-vendor";
 					}
 				},
 

@@ -5,6 +5,7 @@ chunkhash
 cmdk
 codesandbox
 duyi
+echart
 filehash
 formatjs
 fumadocs

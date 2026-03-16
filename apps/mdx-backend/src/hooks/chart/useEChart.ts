@@ -1,10 +1,10 @@
-import * as echarts from "echarts";
 import { useEffect, useRef } from "react";
+import echarts from "@/utils/echart";
 
 export const useEChart = (
 	containerRef: React.RefObject<HTMLDivElement | null>,
 ) => {
-	const chartRef = useRef<echarts.ECharts | null>(null);
+	const chartRef = useRef<ReturnType<typeof echarts.init> | null>(null);
 
 	useEffect(() => {
 		if (!containerRef.current) return;

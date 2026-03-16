@@ -1,9 +1,9 @@
-import * as echarts from "echarts";
 import { useEffect } from "react";
+import echarts from "@/utils/echart";
 
 const useChartResize = (
 	containerRef: React.RefObject<HTMLElement | null>,
-	chartRef: React.RefObject<echarts.ECharts | null>,
+	chartRef: React.RefObject<ReturnType<typeof echarts.init> | null>,
 ) => {
 	useEffect(() => {
 		if (!containerRef.current) return;
