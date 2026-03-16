@@ -1,12 +1,23 @@
 import { createBrowserRouter } from "react-router-dom";
-import AppLayout from "@/components/Layout.tsx";
-import ProtectedRoute from "@/components/ProtectedRoute.tsx";
-// import BlogPage from '@/views/Blog/Blog/BlogPage';
-// import Editor from '@/views/Blog/Editor/editor';
-import FileManager from "@/views/File";
-import Home from "@/views/Home.tsx";
-import ErrorLog from "@/views/ErrorLog";
-import PerformanceLog from "@/views/PerformanceLog";
+import AppLayout from "@/components/Layout";
+import ProtectedRoute from "@/components/ProtectedRoute";
+
+// 1. 抽取一个辅助函数来减少重复代码
+const lazyLoad = (importFn: any, role: string) => async () => {
+	const mod = await importFn();
+	const Component = mod.default;
+
+	// 返回经过权限包装的组件
+	return {
+		Component: role
+			? () => (
+					<ProtectedRoute requiredRoles={[role]}>
+						<Component />
+					</ProtectedRoute>
+				)
+			: Component,
+	};
+};
 
 export const router = createBrowserRouter([
 	{
@@ -15,39 +26,24 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				index: true,
-				element: <Home />,
+				// 首页也建议按需，除非它非常小
+				lazy: async () => ({
+					Component: (await import("@/views/Home")).default,
+				}),
 			},
 			{
 				path: "fileManagement",
-				element: <FileManager />,
+				lazy: async () => ({
+					Component: (await import("@/views/File")).default,
+				}),
 			},
-			// {
-			//   path: 'blog',
-			//   element: <BlogPage />,
-			// },
-			// {
-			//   path: 'editor',
-			//   element: <Editor />,
-			// },
-			// {
-			//   path: 'editor/:id',
-			//   element: <Editor />,
-			// },
 			{
 				path: "errorLog",
-				element: (
-					<ProtectedRoute requiredRoles={["user:default"]}>
-						<ErrorLog />
-					</ProtectedRoute>
-				),
+				lazy: lazyLoad(() => import("@/views/ErrorLog"), "user:default"),
 			},
 			{
 				path: "performanceLog",
-				element: (
-					<ProtectedRoute requiredRoles={["user:default"]}>
-						<PerformanceLog />
-					</ProtectedRoute>
-				),
+				lazy: lazyLoad(() => import("@/views/PerformanceLog"), "user:default"),
 			},
 		],
 	},

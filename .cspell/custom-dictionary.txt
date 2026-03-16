@@ -6,6 +6,7 @@ cmdk
 codesandbox
 duyi
 filehash
+formatjs
 fumadocs
 getmap
 gsap

@@ -27,25 +27,38 @@ export default defineConfig({
 				changeOrigin: true,
 				rewrite: (path) => path.replace(/^\/umami/, ""),
 			},
-			// "/api": {
-			//   target: REMOTE_TARGET,
-			//   changeOrigin: true,
-			//   secure: false,
-			//   rewrite: (path) => path.replace(/^\/api/, ''),
-			// },
 		},
 	},
 	build: {
 		rollupOptions: {
+			input: {
+				main: "index.html",
+			},
 			output: {
 				manualChunks(id) {
+					if (!id.includes("node_modules")) return;
+
+					if (id.includes("/react/") || id.includes("/react-dom/"))
+						return "react-vendor";
+					if (id.includes("antd")) return "antd";
+					if (id.includes("echarts")) return "echarts";
+					if (id.includes("@dnd-kit")) return "dnd";
+					if (id.includes("react-intl") || id.includes("@formatjs"))
+						return "intl";
+					if (id.includes("@casl")) return "casl";
 					if (
-						(id.includes("node_modules") && id.endsWith(".js")) ||
-						id.endsWith(".ts")
+						id.includes("axios") ||
+						id.includes("date-fns") ||
+						id.includes("swr") ||
+						id.includes("zustand")
 					) {
-						return "vendor";
+						return "utils";
 					}
 				},
+
+				entryFileNames: "entry/[name]-[hash].js",
+				chunkFileNames: "chunks/[name]-[hash].js",
+				assetFileNames: "assets/[name]-[hash].[ext]",
 			},
 		},
 	},
