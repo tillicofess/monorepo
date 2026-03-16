@@ -8,7 +8,6 @@ import ErrorLogTable from "@/views/ErrorLog/components/ErrorLogTable";
 import SourceCodeModal from "@/views/ErrorLog/components/SourceCodeModal";
 import UserActionLogModal from "@/views/ErrorLog/components/UserActionLogModal";
 import { fetcher } from "@/lib/axios";
-import { findCodeBySourceMap } from "@/utils/map";
 
 const { Title } = Typography;
 const { useToken } = theme;
@@ -37,6 +36,7 @@ const ErrorLog: React.FC = () => {
 	// 查看源码
 	const handleViewSourceCode = async (completeError: any) => {
 		try {
+			const { findCodeBySourceMap } = await import("@/utils/map");
 			const { result, codeSnippet } = await findCodeBySourceMap(completeError);
 			setSourceModalData({ result, codeSnippet });
 		} catch (_error) {
