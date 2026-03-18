@@ -1,5 +1,6 @@
 import { theme } from "antd";
 import { useEffect, useRef } from "react";
+import { useIntl } from "react-intl";
 import useChartResize from "@/hooks/chart/useChartResize.ts";
 import { useEChart } from "@/hooks/chart/useEChart.ts";
 import type { PageLoadTiming } from "@/views/PerformanceLog/types/performanceType";
@@ -18,19 +19,34 @@ const MetricChart = (props: PageLoadTiming) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useEChart(containerRef);
 	const { token } = theme.useToken();
+	const intl = useIntl();
 
 	useChartResize(containerRef, chartRef);
 
 	const buildOption = (data: PageLoadTiming) => {
-		// 1. 定义阶段顺序与展示名称
 		const stages = [
-			{ key: "dns_lookup", name: "DNS Lookup" },
-			{ key: "tcp_connection", name: "TCP Connection" },
-			{ key: "ssl_connection", name: "SSL" },
-			{ key: "ttfb", name: "TTFB" },
-			{ key: "content_transfer", name: "Content Transfer" },
-			{ key: "content_parsing", name: "DOM Parsing" },
-			{ key: "resource_loading", name: "Resource Loading" },
+			{ key: "dns_lookup", name: intl.formatMessage({ id: "dnsLookup" }) },
+			{
+				key: "tcp_connection",
+				name: intl.formatMessage({ id: "tcpConnection" }),
+			},
+			{
+				key: "ssl_connection",
+				name: intl.formatMessage({ id: "sslConnection" }),
+			},
+			{ key: "ttfb", name: intl.formatMessage({ id: "ttfb" }) },
+			{
+				key: "content_transfer",
+				name: intl.formatMessage({ id: "contentTransfer" }),
+			},
+			{
+				key: "content_parsing",
+				name: intl.formatMessage({ id: "domParsing" }),
+			},
+			{
+				key: "resource_loading",
+				name: intl.formatMessage({ id: "resourceLoading" }),
+			},
 		];
 
 		// 2. 计算阶梯偏移量 (Placeholder)
@@ -48,7 +64,7 @@ const MetricChart = (props: PageLoadTiming) => {
 
 		return {
 			title: {
-				text: "Navigation Timing Waterfall",
+				text: intl.formatMessage({ id: "navigationTimingWaterfall" }),
 				left: "center",
 				textStyle: { fontSize: 14, color: token.colorTextSecondary },
 			},
@@ -59,8 +75,9 @@ const MetricChart = (props: PageLoadTiming) => {
 				borderColor: token.colorBorder,
 				textStyle: { color: token.colorText },
 				formatter: (params: any) => {
-					const tar = params[1]; // 取第二个系列（实际数据）
-					return `${tar.name}<br/>Duration: <b>${tar.value}ms</b>`;
+					const tar = params[1];
+					const durationLabel = intl.formatMessage({ id: "duration" });
+					return `${tar.name}<br/>${durationLabel}: <b>${tar.value}ms</b>`;
 				},
 			},
 			grid: {
@@ -91,7 +108,7 @@ const MetricChart = (props: PageLoadTiming) => {
 					stack: "Total",
 					itemStyle: {
 						borderColor: "transparent",
-						color: "transparent", // 关键：设为透明
+						color: "transparent",
 					},
 					emphasis: {
 						itemStyle: { borderColor: "transparent", color: "transparent" },
@@ -99,7 +116,7 @@ const MetricChart = (props: PageLoadTiming) => {
 					data: placeholders,
 				},
 				{
-					name: "Duration",
+					name: intl.formatMessage({ id: "duration" }),
 					type: "bar",
 					stack: "Total",
 					label: {

@@ -1,13 +1,13 @@
-import { Button, Card, Typography, theme, message } from "antd";
+import { Button, Card, message, Typography, theme } from "antd";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import useSWR from "swr";
+import { fetcher } from "@/lib/axios";
 import ErrorLogTable from "@/views/ErrorLog/components/ErrorLogTable";
 import SourceCodeModal from "@/views/ErrorLog/components/SourceCodeModal";
 import UserActionLogModal from "@/views/ErrorLog/components/UserActionLogModal";
-import { fetcher } from "@/lib/axios";
 
 const { Title } = Typography;
 const { useToken } = theme;
@@ -40,7 +40,7 @@ const ErrorLog: React.FC = () => {
 			const { result, codeSnippet } = await findCodeBySourceMap(completeError);
 			setSourceModalData({ result, codeSnippet });
 		} catch (_error) {
-			message.error("获取源码信息错误");
+			message.error(<FormattedMessage id="getSourceCodeError" />);
 		}
 	};
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { initMonitor } from "@monorepo/monitor";
+import { useEffect } from "react";
 
 export default function MonitorInit() {
 	useEffect(() => {

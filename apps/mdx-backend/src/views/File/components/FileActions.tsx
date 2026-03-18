@@ -1,5 +1,6 @@
 import { Button, Space } from "antd";
 import { FolderPlus, Plus, Trash2 } from "lucide-react";
+import { FormattedMessage } from "react-intl";
 import { useAbility } from "@/providers/AbilityProvider";
 import { useFileStore } from "../store/useFileStore";
 
@@ -17,7 +18,7 @@ export function FileActions() {
 	const handleDelete = () => {
 		if (hasSelection) {
 			const ids = selectedRowKeys.map(String);
-			const names = ids.map(() => "选中项");
+			const names = ids.map(() => "selectedItems");
 			const isDirs = ids.map(() => false);
 			deleteState.openMultiple(ids, names, isDirs);
 		}
@@ -40,19 +41,19 @@ export function FileActions() {
 					onClick={createFolder.open}
 					disabled={!ability.can("create", "editor")}
 				>
-					新建文件夹
+					<FormattedMessage id="createFolder" />
 				</Button>
 				<Button
 					type="primary"
 					icon={<Plus size={16} />}
 					onClick={upload.openModal}
 				>
-					上传文件
+					<FormattedMessage id="uploadFiles" />
 				</Button>
 			</Space>
 			{hasSelection && (
 				<Button danger icon={<Trash2 size={16} />} onClick={handleDelete}>
-					删除 ({selectedRowKeys.length})
+					<FormattedMessage id="delete" /> ({selectedRowKeys.length})
 				</Button>
 			)}
 		</div>

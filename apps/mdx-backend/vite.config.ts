@@ -1,7 +1,7 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type PluginOption } from "vite";
 import { visualizer } from "rollup-plugin-visualizer";
+import { defineConfig, type PluginOption } from "vite";
 
 // 远程 API 目标
 const UMAMI_WEBSITE = "https://umami.ticscreek.top";

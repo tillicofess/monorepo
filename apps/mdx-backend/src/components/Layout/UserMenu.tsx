@@ -1,5 +1,6 @@
 import { Avatar, Button, Dropdown, type MenuProps, theme } from "antd";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+import { FormattedMessage } from "react-intl";
 
 interface UserMenuProps {
 	userName?: string;
@@ -10,24 +11,9 @@ export function UserMenu({ userName, onLogout }: UserMenuProps) {
 	const { token } = theme.useToken();
 	const userMenuItems: MenuProps["items"] = [
 		{
-			key: "profile",
-			icon: <User size={16} />,
-			label: "个人信息",
-			onClick: () => null,
-		},
-		{
-			key: "settings",
-			icon: <Settings size={16} />,
-			label: "设置",
-			onClick: () => null,
-		},
-		{
-			type: "divider",
-		},
-		{
 			key: "logout",
 			icon: <LogOut size={16} />,
-			label: "退出登录",
+			label: <FormattedMessage id="logout" defaultMessage="Logout" />,
 			onClick: onLogout,
 		},
 	];

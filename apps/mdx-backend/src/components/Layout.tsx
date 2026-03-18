@@ -10,8 +10,8 @@ const { Sider, Content, Header: AntHeader } = Layout;
 
 const AppLayout = () => {
 	const location = useLocation();
-	const { isAuthenticated, user, logout } = useAuth();
-	const { lang, themeMode, changeLang, changeThemeMode } = useLocale();
+	const { isAuthenticated } = useAuth();
+	const { themeMode } = useLocale();
 	const { token } = theme.useToken();
 	const [selectedKey, setSelectedKey] = useState<string[]>([]);
 	const [openKeys, setOpenKeys] = useState<string[]>(["sub2"]);
@@ -180,16 +180,7 @@ const AppLayout = () => {
 						transition: "all 0.2s ease",
 					}}
 				>
-					<Header
-						themeMode={themeMode}
-						isMobile={isMobile}
-						lang={lang}
-						userName={user?.name}
-						onToggleMenu={toggleMenu}
-						onChangeLang={changeLang}
-						onChangeThemeMode={changeThemeMode}
-						onLogout={logout}
-					/>
+					<Header isMobile={isMobile} onToggleMenu={toggleMenu} />
 				</AntHeader>
 				<Content
 					style={{

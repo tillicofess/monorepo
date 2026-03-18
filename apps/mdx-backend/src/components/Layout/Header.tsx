@@ -1,30 +1,23 @@
 import { Button, Tooltip } from "antd";
 import { Globe, Menu, Moon, Sun } from "lucide-react";
+import { useAuth } from "@/providers/auth/auth";
+import { useLocale } from "@/providers/LocaleContext";
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
 
 interface HeaderProps {
-	themeMode: "light" | "dark";
 	isMobile: boolean;
-	lang: "zh-CN" | "en-US";
-	userName?: string | undefined;
-	notificationCount?: number;
 	onToggleMenu: () => void;
-	onChangeLang: (lang: "zh-CN" | "en-US") => void;
-	onChangeThemeMode: (mode: "light" | "dark") => void;
-	onLogout: () => void;
 }
 
-export function Header({
-	themeMode,
-	isMobile,
-	lang,
-	userName,
-	onToggleMenu,
-	onChangeLang,
-	onChangeThemeMode,
-	onLogout,
-}: HeaderProps) {
+const themeLabels = {
+	"en-US": { light: "Switch to dark mode", dark: "Switch to light mode" },
+	"zh-CN": { light: "切换到深色模式", dark: "切换到浅色模式" },
+};
+
+export function Header({ isMobile, onToggleMenu }: HeaderProps) {
+	const { lang, themeMode, changeLang, changeThemeMode } = useLocale();
+	const { user, logout } = useAuth();
 	return (
 		<div
 			style={{
@@ -62,7 +55,7 @@ export function Header({
 						type="text"
 						size="middle"
 						icon={<Globe size={18} />}
-						onClick={() => onChangeLang(lang === "en-US" ? "zh-CN" : "en-US")}
+						onClick={() => changeLang(lang === "en-US" ? "zh-CN" : "en-US")}
 						style={{
 							height: 40,
 							width: 40,
@@ -74,11 +67,7 @@ export function Header({
 					/>
 				</Tooltip>
 
-				<Tooltip
-					title={
-						themeMode === "light" ? "切换到深色模式" : "Switch to light mode"
-					}
-				>
+				<Tooltip title={themeLabels[lang][themeMode]}>
 					<Button
 						type="text"
 						size="middle"
@@ -86,7 +75,7 @@ export function Header({
 							themeMode === "light" ? <Moon size={18} /> : <Sun size={18} />
 						}
 						onClick={() =>
-							onChangeThemeMode(themeMode === "light" ? "dark" : "light")
+							changeThemeMode(themeMode === "light" ? "dark" : "light")
 						}
 						style={{
 							height: 40,
@@ -99,7 +88,7 @@ export function Header({
 					/>
 				</Tooltip>
 
-				<UserMenu userName={userName ?? ""} onLogout={onLogout} />
+				<UserMenu userName={user?.name ?? ""} onLogout={logout} />
 			</div>
 		</div>
 	);

@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { Button, Modal, Progress, Space, Typography, theme } from "antd";
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useFileStore } from "../store/useFileStore";
 
 interface UploadModalProps {
@@ -77,7 +78,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 					level={4}
 					style={{ margin: 0, fontWeight: 600, color: token.colorText }}
 				>
-					上传文件
+					<FormattedMessage id="uploadFilesTitle" />
 				</Title>
 			}
 			open={upload.isModalOpen}
@@ -172,10 +173,14 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 								color: dragging ? token.colorPrimary : token.colorText,
 							}}
 						>
-							{dragging ? "释放以上传文件" : "拖拽文件到这里上传"}
+							{dragging ? (
+								<FormattedMessage id="releaseToUpload" />
+							) : (
+								<FormattedMessage id="dragFilesHere" />
+							)}
 						</Text>
 						<Text style={{ fontSize: 13, color: token.colorTextQuaternary }}>
-							或点击选择文件
+							<FormattedMessage id="clickToSelect" />
 						</Text>
 					</div>
 				</button>
@@ -206,7 +211,9 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 					}}
 				>
 					<UploadOutlined />
-					<Text style={{ fontSize: 13 }}>点击添加更多文件</Text>
+					<Text style={{ fontSize: 13 }}>
+						<FormattedMessage id="addMoreFiles" />
+					</Text>
 				</button>
 			)}
 
@@ -284,7 +291,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 									{formatSize(task.file.size)}
 									{task.status === "failed" && (
 										<Text type="danger" style={{ fontSize: 12, marginLeft: 6 }}>
-											上传失败
+											<FormattedMessage id="uploadFailed" />
 										</Text>
 									)}
 								</Text>
@@ -355,7 +362,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 											size="small"
 											onClick={() => upload.retryTask(task.id, parentId)}
 										>
-											重试
+											<FormattedMessage id="retry" />
 										</Button>
 										<Button
 											type="text"
@@ -397,7 +404,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 					icon={<UploadOutlined />}
 					disabled={!upload.queue.some((t) => t.status === "pending")}
 				>
-					开始上传
+					<FormattedMessage id="startUpload" />
 				</Button>
 			</div>
 		</Modal>

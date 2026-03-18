@@ -1,3 +1,4 @@
+import { FileSyncOutlined } from "@ant-design/icons";
 import {
 	DndContext,
 	type DragEndEvent,
@@ -7,8 +8,7 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
-import { FileSyncOutlined } from "@ant-design/icons";
-import { Card, Space, theme, Typography } from "antd";
+import { Card, Space, Typography, theme } from "antd";
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import useSWR from "swr";
@@ -110,7 +110,7 @@ const File: React.FC = () => {
 				style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}
 			>
 				<FileSyncOutlined style={{ color: "#1990FF" }} />
-				<FormattedMessage id="dashboard.overview" defaultMessage="文件管理" />
+				<FormattedMessage id="fileManagement" />
 			</Title>
 			<Card
 				style={{

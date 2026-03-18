@@ -84,8 +84,8 @@ export function FileTable({
 				);
 			},
 			filters: [
-				{ text: "Folders", value: 1 },
-				{ text: "Files", value: 0 },
+				{ text: <FormattedMessage id="folders" />, value: 1 },
+				{ text: <FormattedMessage id="files" />, value: 0 },
 			],
 			onFilter: (value, record) => record.isDir === value,
 		},
@@ -108,7 +108,7 @@ export function FileTable({
 			},
 		},
 		{
-			title: "Action",
+			title: <FormattedMessage id="action" />,
 			key: "action",
 			width: 240,
 			render: (record: FileItem) => (
@@ -118,7 +118,7 @@ export function FileTable({
 						size="small"
 						onClick={() => onRename(record.id, record.name)}
 					>
-						重命名
+						<FormattedMessage id="rename" />
 					</Button>
 					<Button
 						type="text"
@@ -127,7 +127,7 @@ export function FileTable({
 						onClick={() => onDelete(record.id, record.name, record.isDir)}
 						disabled={!ability.can("delete", "editor")}
 					>
-						删除
+						<FormattedMessage id="delete" />
 					</Button>
 					{!record.isDir && (
 						<Button
@@ -135,7 +135,7 @@ export function FileTable({
 							size="small"
 							onClick={() => downloadFile(record.id)}
 						>
-							下载
+							<FormattedMessage id="download" />
 						</Button>
 					)}
 				</Space>

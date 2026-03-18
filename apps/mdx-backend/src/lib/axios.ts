@@ -1,9 +1,9 @@
 import axios, {
 	type AxiosError,
 	type AxiosInstance,
-	type InternalAxiosRequestConfig,
 	type AxiosRequestConfig,
 	type AxiosResponse,
+	type InternalAxiosRequestConfig,
 } from "axios";
 import keycloak from "@/providers/auth/keycloak";
 import { getApiConfig } from "../config/env";

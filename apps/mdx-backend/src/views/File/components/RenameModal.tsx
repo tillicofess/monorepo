@@ -1,4 +1,5 @@
 import { Input, Modal } from "antd";
+import { useIntl } from "react-intl";
 import { useFileStore } from "../store/useFileStore";
 
 interface RenameModalProps {
@@ -6,11 +7,12 @@ interface RenameModalProps {
 }
 
 export function RenameModal({ onSuccess }: RenameModalProps) {
+	const intl = useIntl();
 	const { rename } = useFileStore();
 
 	return (
 		<Modal
-			title="重命名"
+			title={intl.formatMessage({ id: "renameTitle" })}
 			open={rename.isOpen}
 			onOk={() => rename.submit(onSuccess)}
 			confirmLoading={rename.loading}

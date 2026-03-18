@@ -1,5 +1,6 @@
 import { Modal } from "antd";
 import type React from "react";
+import { FormattedMessage } from "react-intl";
 
 interface Props {
 	open: boolean;
@@ -15,17 +16,23 @@ const SourceCodeModal: React.FC<Props> = ({ open, onCancel, data }) => {
 	return (
 		<Modal
 			open={open}
-			title="查看源码"
+			title={<FormattedMessage id="viewSourceCode" />}
 			footer={null}
 			onCancel={onCancel}
 			width={800}
 		>
 			<p>
-				<strong>文件:</strong> {data.result.source}
+				<strong>
+					<FormattedMessage id="file" />:
+				</strong>{" "}
+				{data.result.source}
 			</p>
 			<p>
-				<strong>位置:</strong> 第 {data.result.line} 行，第 {data.result.column}{" "}
-				列
+				<strong>
+					<FormattedMessage id="location" />:
+				</strong>{" "}
+				<FormattedMessage id="line" values={{ line: data.result.line }} />,{" "}
+				<FormattedMessage id="column" values={{ column: data.result.column }} />
 			</p>
 			<div
 				style={{

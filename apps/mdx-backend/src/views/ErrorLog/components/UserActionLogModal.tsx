@@ -1,6 +1,7 @@
 import { Modal, Tag } from "antd";
 import { ArrowRight } from "lucide-react";
 import type React from "react";
+import { FormattedMessage } from "react-intl";
 
 interface Props {
 	open: boolean;
@@ -14,7 +15,7 @@ const UserActionLogModal: React.FC<Props> = ({ open, onCancel, actions }) => {
 	return (
 		<Modal
 			open={open}
-			title="用户操作记录"
+			title={<FormattedMessage id="userActionLog" />}
 			footer={null}
 			onCancel={onCancel}
 			width={800}
@@ -62,21 +63,25 @@ const UserActionLogModal: React.FC<Props> = ({ open, onCancel, actions }) => {
 							>
 								{isClick && (
 									<>
-										标签: <strong>{action.data.tag}</strong> &nbsp; 文本:{" "}
-										<strong>{action.data.text}</strong> &nbsp; 选择器:{" "}
+										<FormattedMessage id="tag" />:{" "}
+										<strong>{action.data.tag}</strong> &nbsp;{" "}
+										<FormattedMessage id="text" />:{" "}
+										<strong>{action.data.text}</strong> &nbsp;{" "}
+										<FormattedMessage id="selector" />:{" "}
 										<strong>{action.data.selector}</strong>
 									</>
 								)}
 								{isRoute && (
 									<>
-										URL: <strong>{action.data.url}</strong>
+										<FormattedMessage id="url" />:{" "}
+										<strong>{action.data.url}</strong>
 									</>
 								)}
 							</div>
 
 							{/* 时间 */}
 							<div style={{ fontSize: 12, color: "#999" }}>
-								时间: {action.time}
+								<FormattedMessage id="time" />: {action.time}
 							</div>
 						</div>
 					);

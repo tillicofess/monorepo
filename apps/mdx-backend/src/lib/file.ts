@@ -1,6 +1,7 @@
 import SparkMD5 from "spark-md5";
 import { http } from "@/lib/axios";
 import { globalRequestPool } from "@/lib/requestPool";
+
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB 每个分片的大小
 /**
  * 创建文件分片 done

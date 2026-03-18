@@ -1,6 +1,7 @@
 import express from "express";
 // import { checkJwt } from '../middleware/checkJwt.js';
 import { checkPermissions } from "../middleware/checkPermissions.js";
+
 const router = express.Router();
 
 import * as articleController from "../controllers/articleController.js";

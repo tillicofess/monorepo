@@ -4,10 +4,10 @@ import Script from "next/script";
 import "@/styles/globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
 import CrispChat from "@/components/CrispChat";
+import MonitorInit from "@/components/monitor/monitor-init";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import MonitorInit from "@/components/monitor/monitor-init";
 
 const geist = localFont({
 	src: [

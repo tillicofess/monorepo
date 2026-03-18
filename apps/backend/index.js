@@ -1,9 +1,10 @@
-import express from "express";
-import cors from "cors";
 import cookieParser from "cookie-parser";
-import largeFileRoutes from "./routes/largeFile.js";
-import errorLogRoutes from "./routes/errorLogRoutes.js";
+import cors from "cors";
+import express from "express";
 import pool from "./config/db.js";
+import errorLogRoutes from "./routes/errorLogRoutes.js";
+import largeFileRoutes from "./routes/largeFile.js";
+
 // import { checkJwt } from './middleware/checkJwt.js';
 
 const app = express();

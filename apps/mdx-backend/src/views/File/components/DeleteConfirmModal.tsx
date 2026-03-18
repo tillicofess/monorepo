@@ -1,4 +1,5 @@
 import { Modal, Typography } from "antd";
+import { useIntl } from "react-intl";
 import { useFileStore } from "../store/useFileStore";
 
 interface DeleteConfirmModalProps {
@@ -6,6 +7,7 @@ interface DeleteConfirmModalProps {
 }
 
 export function DeleteConfirmModal({ onSuccess }: DeleteConfirmModalProps) {
+	const intl = useIntl();
 	const { delete: deleteState } = useFileStore();
 
 	const isMultiple = deleteState.multiple.ids.length > 0;
@@ -13,7 +15,7 @@ export function DeleteConfirmModal({ onSuccess }: DeleteConfirmModalProps) {
 
 	return (
 		<Modal
-			title="删除"
+			title={intl.formatMessage({ id: "deleteTitle" })}
 			open={deleteState.isOpen}
 			onOk={() => deleteState.submit(onSuccess)}
 			confirmLoading={deleteState.loading}
@@ -23,10 +25,11 @@ export function DeleteConfirmModal({ onSuccess }: DeleteConfirmModalProps) {
 		>
 			<Typography.Text>
 				{isMultiple
-					? `确认删除 ${count} 个选中项吗？此操作不可恢复。`
-					: `${deleteState.fileInfo.isDir ? "确认删除文件夹" : "确认删除文件"} "${
-							deleteState.fileInfo.name
-						}" 吗？此操作不可恢复。`}
+					? intl.formatMessage({ id: "confirmDeleteMultiple" }, { count })
+					: intl.formatMessage(
+							{ id: "confirmDelete" },
+							{ name: deleteState.fileInfo.name },
+						)}
 			</Typography.Text>
 		</Modal>
 	);

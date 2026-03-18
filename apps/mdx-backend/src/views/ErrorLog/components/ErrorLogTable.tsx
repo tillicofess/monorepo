@@ -4,8 +4,8 @@ import { Code, Play } from "lucide-react";
 import type React from "react";
 import { useCallback } from "react";
 import { FormattedMessage } from "react-intl";
-import type { DataType } from "@/views/ErrorLog/types/errorLogType";
 import { throttle } from "@/utils/throttle";
+import type { DataType } from "@/views/ErrorLog/types/errorLogType";
 
 interface ErrorLogTableProps {
 	data: DataType[];
@@ -94,7 +94,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 							})
 						}
 					>
-						源码
+						<FormattedMessage id="sourceCode" />
 					</Button>
 				);
 			},
@@ -115,7 +115,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 						icon={<Play size={14} />}
 						onClick={() => handleViewActions(actions)}
 					>
-						查看
+						<FormattedMessage id="view" />
 					</Button>
 				) : null,
 		},
@@ -137,7 +137,9 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			pagination={{
 				showSizeChanger: true,
 				showQuickJumper: true,
-				showTotal: (total) => `共 ${total} 条`,
+				showTotal: (total) => (
+					<FormattedMessage id="totalItems" values={{ total }} />
+				),
 				defaultPageSize: 10,
 				pageSizeOptions: ["10", "20", "50"],
 			}}

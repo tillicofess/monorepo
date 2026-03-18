@@ -8,6 +8,7 @@ import {
 	mergeRequest,
 	uploadFileChunks,
 } from "@/lib/file";
+import { formatMessage } from "@/lib/intl";
 
 export type UploadStatus =
 	| "pending"
@@ -134,12 +135,14 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			}));
 			try {
 				const res = await createFolder(parentId, cf.name.trim());
-				message.success(`文件夹 "${res.data.data.name}" 创建成功`);
+				message.success(
+					formatMessage("createFolderSuccess", { name: res.data.data.name }),
+				);
 				get().createFolder.close();
 				onSuccess();
 			} catch (error) {
-				console.error("创建文件夹失败:", error);
-				message.error("创建文件夹失败");
+				console.error("createFolderError:", error);
+				message.error(formatMessage("createFolderError"));
 			} finally {
 				set((state) => ({
 					createFolder: { ...state.createFolder, loading: false },
@@ -201,7 +204,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			const pendingTasks = up.queue.filter((t) => t.status === "pending");
 
 			if (pendingTasks.length === 0) {
-				message.warning("没有待上传的文件");
+				message.warning(formatMessage("noFilesToUpload"));
 				return;
 			}
 
@@ -255,7 +258,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					// 秒传
 					if (!shouldUpload) {
 						updateProgress(100, "completed");
-						message.success(`${file.name} 文件已存在`);
+						message.success(formatMessage("fileExists", { name: file.name }));
 						return;
 					}
 
@@ -295,9 +298,9 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 						return;
 					}
 
-					console.error("上传失败:", error);
+					console.error("uploadError:", error);
 					updateProgress(task.progress || 0, "failed");
-					message.error(`${task.file.name} 上传失败`);
+					message.error(formatMessage("uploadError", { name: task.file.name }));
 				}
 			};
 
@@ -440,12 +443,14 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			set((state) => ({ rename: { ...state.rename, loading: true } }));
 			try {
 				await renameFile(rn.fileName.id, rn.fileName.name);
-				message.success(`文件 "${rn.fileName.name}" 重命名成功`);
+				message.success(
+					formatMessage("renameSuccess", { name: rn.fileName.name }),
+				);
 				get().rename.close();
 				onSuccess();
 			} catch (error) {
-				console.error("重命名文件失败:", error);
-				message.error("重命名文件失败");
+				console.error("renameError:", error);
+				message.error(formatMessage("renameError"));
 			} finally {
 				set((state) => ({ rename: { ...state.rename, loading: false } }));
 			}
@@ -492,17 +497,17 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 
 				const count = idsToDelete.length;
 				if (count === 1) {
-					message.success(`删除成功`);
+					message.success(formatMessage("deleteSuccess"));
 				} else {
-					message.success(`成功删除 ${count} 个项目`);
+					message.success(formatMessage("deleteSuccessMultiple", { count }));
 				}
 
 				get().delete.close();
 				get().clearSelectedRowKeys();
 				onSuccess();
 			} catch (error) {
-				console.error("删除文件失败:", error);
-				message.error("删除文件失败");
+				console.error("deleteError:", error);
+				message.error(formatMessage("deleteError"));
 			} finally {
 				set((state) => ({ delete: { ...state.delete, loading: false } }));
 			}

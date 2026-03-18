@@ -11,10 +11,11 @@ import {
 import { Activity, BarChart3, Globe } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 import useSWR from "swr";
+import { fetcher } from "@/lib/axios";
 import BarChart from "@/views/PerformanceLog/components/performanceBar";
 import WaterfallBarChart from "@/views/PerformanceLog/components/waterfallBar";
-import { fetcher } from "@/lib/axios";
 import type {
 	PageLoadTiming,
 	PerformanceData,
@@ -73,7 +74,7 @@ const PerformanceLog: React.FC = () => {
 					style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}
 				>
 					<Activity style={{ color: "#10B981" }} />
-					性能日志
+					<FormattedMessage id="performanceLogTitle" />
 				</Title>
 			</div>
 
@@ -92,7 +93,7 @@ const PerformanceLog: React.FC = () => {
 							style={{ marginRight: 8, display: "block", marginBottom: 4 }}
 						>
 							<Globe size={14} style={{ marginRight: 4 }} />
-							项目：
+							<FormattedMessage id="project" />
 						</Text>
 						<Select
 							style={{ width: 200 }}
@@ -101,7 +102,7 @@ const PerformanceLog: React.FC = () => {
 								setSelectedApp(app);
 								setSelectedUrl("");
 							}}
-							placeholder="请选择项目"
+							placeholder={<FormattedMessage id="selectProject" />}
 						>
 							{appData?.map((app: string) => (
 								<Option key={app} value={app}>
@@ -116,13 +117,13 @@ const PerformanceLog: React.FC = () => {
 							style={{ marginRight: 8, display: "block", marginBottom: 4 }}
 						>
 							<BarChart3 size={14} style={{ marginRight: 4 }} />
-							路由：
+							<FormattedMessage id="route" />
 						</Text>
 						<Select
 							style={{ minWidth: 400 }}
 							value={selectedUrl}
 							onChange={setSelectedUrl}
-							placeholder="请选择路由"
+							placeholder={<FormattedMessage id="selectRoute" />}
 							disabled={!selectedApp}
 						>
 							{urls?.map((url: string) => (
@@ -142,7 +143,9 @@ const PerformanceLog: React.FC = () => {
 						title={
 							<Space>
 								<BarChart3 style={{ color: "#6366F1" }} />
-								<Text strong>页面加载瀑布图</Text>
+								<Text strong>
+									<FormattedMessage id="pageLoadWaterfall" />
+								</Text>
 							</Space>
 						}
 						style={{
@@ -164,7 +167,9 @@ const PerformanceLog: React.FC = () => {
 									borderRadius: 8,
 								}}
 							>
-								<Text type="secondary">暂无瀑布图数据</Text>
+								<Text type="secondary">
+									<FormattedMessage id="noWaterfallData" />
+								</Text>
 							</div>
 						)}
 					</Card>
@@ -197,13 +202,13 @@ const PerformanceLog: React.FC = () => {
 											<Row gutter={[8, 8]} style={{ marginTop: 16 }}>
 												<Col span={12}>
 													<Text type="secondary">
-														P75: {metric.p75}
+														<FormattedMessage id="p75" />: {metric.p75}
 														{metric.sub_type !== "cls" ? "ms" : ""}
 													</Text>
 												</Col>
 												<Col span={12}>
 													<Text type="secondary">
-														P90: {metric.p90}
+														<FormattedMessage id="p90" />: {metric.p90}
 														{metric.sub_type !== "cls" ? "ms" : ""}
 													</Text>
 												</Col>

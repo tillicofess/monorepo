@@ -12,7 +12,9 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**/*"]
+		"includes": [
+			"**/*"
+		]
 	},
 	"formatter": {
 		"enabled": true,
