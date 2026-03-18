@@ -3,6 +3,7 @@ export interface ErrorType {
 	fileName?: string;
 	line?: number;
 	column?: number;
+	category?: string;
 }
 
 export interface DataType {
@@ -13,4 +14,39 @@ export interface DataType {
 	actions: any[];
 	version: string;
 	count: number;
+}
+
+export interface SourceCodeModalData {
+	result: {
+		source: string;
+		line: number;
+		column: number;
+	};
+	codeSnippet: string;
+}
+
+export interface SourceCodeModalProps {
+	open: boolean;
+	onCancel: () => void;
+	data: SourceCodeModalData | null;
+}
+
+export interface UserActionLogModalProps {
+	open: boolean;
+	onCancel: () => void;
+	actions: any[] | null;
+}
+
+export interface ErrorLogTableProps {
+	data: DataType[];
+	loading: boolean;
+	onViewSourceCode: (completeError: {
+		message: string;
+		fileName?: string;
+		line?: number;
+		column?: number;
+		appName: string;
+		version: string;
+	}) => void;
+	onViewActions: (actions: any[]) => void;
 }

@@ -5,14 +5,10 @@ import type React from "react";
 import { useCallback } from "react";
 import { FormattedMessage } from "react-intl";
 import { throttle } from "@/utils/throttle";
-import type { DataType } from "@/views/ErrorLog/types/errorLogType";
-
-interface ErrorLogTableProps {
-	data: DataType[];
-	loading: boolean;
-	onViewSourceCode: (completeError: any) => void;
-	onViewActions: (actions: any[]) => void;
-}
+import type {
+	DataType,
+	ErrorLogTableProps,
+} from "@/views/ErrorLog/types/errorLogType";
 
 const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 	data,

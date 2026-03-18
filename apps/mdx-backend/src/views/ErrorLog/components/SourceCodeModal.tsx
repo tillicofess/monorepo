@@ -1,14 +1,13 @@
 import { Modal } from "antd";
 import type React from "react";
 import { FormattedMessage } from "react-intl";
+import type { SourceCodeModalProps } from "../types/errorLogType";
 
-interface Props {
-	open: boolean;
-	onCancel: () => void;
-	data: { result: any; codeSnippet: string } | null;
-}
-
-const SourceCodeModal: React.FC<Props> = ({ open, onCancel, data }) => {
+const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
+	open,
+	onCancel,
+	data,
+}) => {
 	if (!data) return null;
 
 	const startLine = data.result.line - 10;

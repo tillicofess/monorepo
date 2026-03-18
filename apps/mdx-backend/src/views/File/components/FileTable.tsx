@@ -14,18 +14,10 @@ import { TableFolderDroppable } from "@/components/DroppableNode.tsx";
 import { useAbility } from "@/providers/AbilityProvider";
 import { formatFileSize } from "@/utils/utils";
 import { useFileStore } from "../store/useFileStore";
-import type { FileItem } from "../types";
+import type { FileItem, FileTableProps } from "../types";
 
 type TableRowSelection<T extends object = object> =
 	TableProps<T>["rowSelection"];
-
-interface FileTableProps {
-	fileList: FileItem[] | undefined;
-	isLoading: boolean;
-	onEnterFolder: (record: FileItem) => void;
-	onRename: (id: string, name: string) => void;
-	onDelete: (id: string, name: string, isDir: boolean) => void;
-}
 
 const DragHandle: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const { setActivatorNodeRef, listeners } = useContext(RowContext);

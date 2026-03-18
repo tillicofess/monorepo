@@ -11,11 +11,7 @@ import { Button, Modal, Progress, Space, Typography, theme } from "antd";
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { useFileStore } from "../store/useFileStore";
-
-interface UploadModalProps {
-	parentId: string | null;
-	onSuccess: () => void;
-}
+import type { UploadModalProps } from "../types";
 
 const { Text, Title } = Typography;
 const { useToken } = theme;

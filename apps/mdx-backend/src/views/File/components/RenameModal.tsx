@@ -1,10 +1,7 @@
 import { Input, Modal } from "antd";
 import { useIntl } from "react-intl";
 import { useFileStore } from "../store/useFileStore";
-
-interface RenameModalProps {
-	onSuccess: () => void;
-}
+import type { RenameModalProps } from "../types";
 
 export function RenameModal({ onSuccess }: RenameModalProps) {
 	const intl = useIntl();

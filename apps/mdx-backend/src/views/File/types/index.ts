@@ -23,3 +23,35 @@ export interface DeleteFileState {
 	name: string;
 	isDir: boolean;
 }
+
+export interface DeleteMultipleState {
+	ids: string[];
+	names: string[];
+	isDirs: boolean[];
+}
+
+export interface UploadModalProps {
+	parentId: string | null;
+	onSuccess: () => void;
+}
+
+export interface CreateFolderModalProps {
+	parentId: string | null;
+	onSuccess: () => void;
+}
+
+export interface RenameModalProps {
+	onSuccess: () => void;
+}
+
+export interface DeleteConfirmModalProps {
+	onSuccess: () => void;
+}
+
+export interface FileTableProps {
+	fileList: FileItem[] | undefined;
+	isLoading: boolean;
+	onEnterFolder: (record: FileItem) => void;
+	onRename: (id: string, name: string) => void;
+	onDelete: (id: string, name: string, isDir: boolean) => void;
+}

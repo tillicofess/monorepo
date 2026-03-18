@@ -9,6 +9,11 @@ import {
 	uploadFileChunks,
 } from "@/lib/file";
 import { formatMessage } from "@/lib/intl";
+import type {
+	DeleteFileState,
+	DeleteMultipleState,
+	FileNameState,
+} from "../types";
 
 export type UploadStatus =
 	| "pending"
@@ -35,23 +40,6 @@ export interface UploadFile {
 	progress: number;
 	status: UploadStatus;
 	error?: string;
-}
-
-interface FileNameState {
-	id: string;
-	name: string;
-}
-
-interface DeleteFileState {
-	id: string;
-	name: string;
-	isDir: boolean;
-}
-
-interface DeleteMultipleState {
-	ids: string[];
-	names: string[];
-	isDirs: boolean[];
 }
 
 interface FileStoreState {

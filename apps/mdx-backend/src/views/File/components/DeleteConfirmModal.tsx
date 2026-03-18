@@ -1,10 +1,7 @@
 import { Modal, Typography } from "antd";
 import { useIntl } from "react-intl";
 import { useFileStore } from "../store/useFileStore";
-
-interface DeleteConfirmModalProps {
-	onSuccess: () => void;
-}
+import type { DeleteConfirmModalProps } from "../types";
 
 export function DeleteConfirmModal({ onSuccess }: DeleteConfirmModalProps) {
 	const intl = useIntl();

@@ -2,14 +2,13 @@ import { Modal, Tag } from "antd";
 import { ArrowRight } from "lucide-react";
 import type React from "react";
 import { FormattedMessage } from "react-intl";
+import type { UserActionLogModalProps } from "../types/errorLogType";
 
-interface Props {
-	open: boolean;
-	onCancel: () => void;
-	actions: any[] | null;
-}
-
-const UserActionLogModal: React.FC<Props> = ({ open, onCancel, actions }) => {
+const UserActionLogModal: React.FC<UserActionLogModalProps> = ({
+	open,
+	onCancel,
+	actions,
+}) => {
 	if (!actions) return null;
 
 	return (
