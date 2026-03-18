@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { useAuth } from "@/providers/auth/auth";
 import { useLocale } from "@/providers/LocaleContext";
-import { Header, Loading, Sidebar } from "./Layout/index";
+import { Header, Loading, Logo, Sidebar } from "./Layout/index";
 
 const { Sider, Content, Header: AntHeader } = Layout;
 
@@ -32,7 +32,7 @@ const AppLayout = () => {
 
 	useEffect(() => {
 		const checkMobile = () => {
-			setIsMobile(window.innerWidth < 768);
+			setIsMobile(window.innerWidth < 576);
 		};
 		checkMobile();
 		window.addEventListener("resize", checkMobile);
@@ -64,76 +64,60 @@ const AppLayout = () => {
 	return (
 		<Layout style={{ minHeight: "100vh", flexDirection: "row" }}>
 			{!isMobile && (
-				<>
-					<div
+				<Sider
+					trigger={null}
+					collapsible
+					collapsed={collapsed}
+					breakpoint="md"
+					onBreakpoint={(broken) => setCollapsed(broken)}
+					style={{
+						overflow: "auto",
+						flex: 1,
+						position: "fixed",
+						height: "calc(100% - 64px)",
+						left: "unset",
+						insetBlockStart: "64px",
+						borderRight: `1px solid ${token.colorBorder}`,
+						background: siderBg,
+						transition: "all 0.2s ease",
+					}}
+					theme={themeMode === "dark" ? "dark" : "light"}
+					width={240}
+				>
+					<div style={{ padding: "16px 12px", paddingTop: 24 }}>
+						<Sidebar
+							selectedKey={selectedKey}
+							openKeys={openKeys}
+							collapsed={collapsed}
+							themeMode={themeMode}
+							onOpenChange={handleOpenChange}
+							onMenuClick={handleMenuClick}
+						/>
+					</div>
+					<Button
+						type="text"
+						icon={
+							collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />
+						}
+						onClick={() => setCollapsed(!collapsed)}
 						style={{
-							width: collapsed ? "80px" : "240px",
-							overflow: "hidden",
-							flex: collapsed ? "0 0 80px" : "0 0 240px",
-							maxWidth: collapsed ? "80px" : "240px",
-							minWidth: collapsed ? "80px" : "240px",
-							transition: "all 0.2s ease",
+							fontSize: 14,
+							width: "calc(100% - 24px)",
+							height: 40,
+							position: "absolute",
+							bottom: 16,
+							left: 12,
+							borderRadius: 8,
+							display: "flex",
+							alignItems: "center",
+							justifyContent: collapsed ? "center" : "flex-start",
+							gap: 8,
+							paddingLeft: collapsed ? 0 : 12,
 						}}
-					/>
-					<Sider
-						trigger={null}
-						collapsible
-						collapsed={collapsed}
-						breakpoint="lg"
-						onBreakpoint={(broken) => setCollapsed(broken)}
-						style={{
-							overflow: "auto",
-							flex: 1,
-							position: "fixed",
-							height: "calc(100% - 64px)",
-							left: "unset",
-							insetBlockStart: "64px",
-							borderRight: `1px solid ${token.colorBorder}`,
-							background: siderBg,
-							transition: "all 0.2s ease",
-						}}
-						theme={themeMode === "dark" ? "dark" : "light"}
-						width={240}
 					>
-						<div style={{ padding: "16px 12px", paddingTop: 24 }}>
-							<Sidebar
-								selectedKey={selectedKey}
-								openKeys={openKeys}
-								collapsed={collapsed}
-								themeMode={themeMode}
-								onOpenChange={handleOpenChange}
-								onMenuClick={handleMenuClick}
-							/>
-						</div>
-						<Button
-							type="text"
-							icon={
-								collapsed ? (
-									<ChevronRight size={18} />
-								) : (
-									<ChevronLeft size={18} />
-								)
-							}
-							onClick={() => setCollapsed(!collapsed)}
-							style={{
-								fontSize: 14,
-								width: "calc(100% - 24px)",
-								height: 40,
-								position: "absolute",
-								bottom: 16,
-								left: 12,
-								borderRadius: 8,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: collapsed ? "center" : "flex-start",
-								gap: 8,
-								paddingLeft: collapsed ? 0 : 12,
-							}}
-						>
-							{!collapsed && "收起"}
-						</Button>
-					</Sider>
-				</>
+						{!collapsed && "收起"}
+					</Button>
+				</Sider>
 			)}
 
 			<Drawer
@@ -142,8 +126,14 @@ const AppLayout = () => {
 				onClose={() => setDrawerVisible(false)}
 				open={isMobile && drawerVisible}
 				width={280}
-				styles={{ body: { padding: 0 } }}
+				styles={{
+					header: { padding: 0 },
+					body: { padding: 0 },
+				}}
 			>
+				<div style={{ padding: "16px 12px", paddingTop: 24 }}>
+					<Logo collapsed={false} themeMode={themeMode} />
+				</div>
 				<Sidebar
 					selectedKey={selectedKey}
 					openKeys={openKeys}
@@ -154,7 +144,13 @@ const AppLayout = () => {
 				/>
 			</Drawer>
 
-			<Layout style={{ position: "relative" }}>
+			<Layout
+				style={{
+					position: "relative",
+					marginInlineStart: isMobile ? 0 : collapsed ? 80 : 240,
+					transition: "margin-inline-start 0.2s ease",
+				}}
+			>
 				<AntHeader
 					style={{
 						height: "64px",
@@ -187,8 +183,8 @@ const AppLayout = () => {
 						flex: 1,
 						display: "flex",
 						flexDirection: "column",
-						paddingBlock: isMobile ? 16 : 28,
-						paddingInline: isMobile ? 16 : 40,
+						paddingBlock: isMobile ? 12 : 28,
+						paddingInline: isMobile ? 12 : 40,
 						minHeight: 280,
 						background: token.colorBgLayout,
 						transition: "all 0.2s ease",

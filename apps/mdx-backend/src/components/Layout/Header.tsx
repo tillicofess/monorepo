@@ -23,12 +23,18 @@ export function Header({ isMobile, onToggleMenu }: HeaderProps) {
 			style={{
 				display: "flex",
 				justifyContent: "space-between",
-				marginInline: 20,
+				marginInline: isMobile ? 12 : 20,
 				alignItems: "center",
 				height: "100%",
 			}}
 		>
-			<div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					gap: isMobile ? 8 : 16,
+				}}
+			>
 				{isMobile && (
 					<Tooltip title="展开菜单">
 						<Button
@@ -46,7 +52,7 @@ export function Header({ isMobile, onToggleMenu }: HeaderProps) {
 						/>
 					</Tooltip>
 				)}
-				<Logo collapsed={false} themeMode={themeMode} />
+				{!isMobile && <Logo collapsed={false} themeMode={themeMode} />}
 			</div>
 
 			<div style={{ display: "flex", alignItems: "center", gap: 2 }}>
