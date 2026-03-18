@@ -11,6 +11,7 @@ formatjs
 fumadocs
 getmap
 gsap
+hokkaiink
 inited
 lintstagedrc
 mdxbackend

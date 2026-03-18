@@ -9,14 +9,16 @@ export function HeaderClient() {
 
 	const isHome = pathname === "/";
 	const isBlog = pathname === "/blog" || pathname?.startsWith("/blog/");
+	const isFriends =
+		pathname === "/friends" || pathname?.startsWith("/friends/");
 
 	return (
 		<nav className="hidden items-center gap-6 text-sm md:flex">
 			<Link
 				href="/"
 				className={cn(
-					"transition-colors hover:text-foreground",
-					isHome ? "text-foreground font-medium" : "text-foreground/60",
+					"transition-colors hover:text-foreground font-medium",
+					isHome ? "text-foreground" : "text-foreground/60",
 				)}
 			>
 				Home
@@ -24,11 +26,20 @@ export function HeaderClient() {
 			<Link
 				href="/blog"
 				className={cn(
-					"transition-colors hover:text-foreground",
-					isBlog ? "text-foreground font-medium" : "text-foreground/60",
+					"transition-colors hover:text-foreground font-medium",
+					isBlog ? "text-foreground" : "text-foreground/60",
 				)}
 			>
-				Articles
+				Blog
+			</Link>
+			<Link
+				href="/friends"
+				className={cn(
+					"transition-colors hover:text-foreground font-medium",
+					isFriends ? "text-foreground" : "text-foreground/60",
+				)}
+			>
+				Friends
 			</Link>
 		</nav>
 	);

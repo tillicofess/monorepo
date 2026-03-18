@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react";
 
 import { Index } from "@/__registry__/index";
 import { cn } from "@/lib/utils";
+import { CodeCollapsibleWrapper } from "./code-collapsible-wrapper";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Code as CodeInline } from "./ui/typography";
@@ -96,9 +97,15 @@ export function ComponentPreviewV2({
 			</div>
 
 			<div className="**:data-rehype-pretty-code-figure:m-0">
-				<div className="*:data-rehype-pretty-code-figure:rounded-t-none *:data-rehype-pretty-code-figure:border *:data-rehype-pretty-code-figure:border-t-0">
-					{Code}
-				</div>
+				{codeCollapsible ? (
+					<CodeCollapsibleWrapper className="my-0 rounded-t-none border border-t-0">
+						{Code}
+					</CodeCollapsibleWrapper>
+				) : (
+					<div className="*:data-rehype-pretty-code-figure:rounded-t-none *:data-rehype-pretty-code-figure:border *:data-rehype-pretty-code-figure:border-t-0">
+						{Code}
+					</div>
+				)}
 			</div>
 		</div>
 	);

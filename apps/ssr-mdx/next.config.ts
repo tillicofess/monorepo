@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
 	distDir: ".next",
 	productionBrowserSourceMaps: true,
 	images: {
+		qualities: [50, 75, 100],
 		remotePatterns: [
 			{
 				protocol: "https",
