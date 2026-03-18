@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#1e1b4b"/>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#312e81"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  
+  <text x="600" y="200" font-family="system-ui, sans-serif" font-size="56" font-weight="700" fill="white" text-anchor="middle">Dino Jump Loading</text>
+  <text x="600" y="270" font-family="system-ui, sans-serif" font-size="40" font-weight="600" fill="#c0aefe" text-anchor="middle">GSAP 像素风跳跳球动画</text>
+  
+  <rect x="350" y="340" width="500" height="160" rx="8" fill="white" fill-opacity="0.05"/>
+  
+  <g transform="translate(480, 380)">
+    <circle cx="50" cy="80" r="20" fill="white" stroke="black" stroke-width="3"/>
+    <rect x="0" y="100" width="200" height="12" fill="black"/>
+    <rect x="0" y="112" width="200" height="4" fill="white" stroke="black" stroke-width="1"/>
+  </g>
+  
+  <text x="600" y="560" font-family="monospace" font-size="28" fill="#4ade80" text-anchor="middle">gsap.to(ball, { y: -60, ease: "bounce.out" })</text>
+</svg>

@@ -6,6 +6,7 @@ import rehypeSlug from "rehype-slug";
 import codeImport from "remark-code-import";
 import remarkGfm from "remark-gfm";
 import { visit } from "unist-util-visit";
+import { ComponentPreviewV2 as ComponentPreview } from "@/components/component-preview-v2";
 import {
 	Table,
 	TableBody,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Code, Heading } from "@/components/ui/typography";
+import { rehypeComponent } from "@/lib/rehype-component";
 import { rehypeNpmCommand } from "@/lib/rehype-npm-command";
 import { cn } from "@/lib/utils";
 import type { NpmCommands } from "@/types/unist";
@@ -97,6 +99,7 @@ const components: MDXRemoteProps["components"] = {
 		);
 	},
 	code: Code,
+	ComponentPreview,
 	Tabs,
 	TabsList,
 	TabsTrigger,
@@ -113,6 +116,7 @@ const options: NonNullable<MDXRemoteProps["options"]> = {
 				{ target: "_blank", rel: "nofollow noopener noreferrer" },
 			],
 			rehypeSlug,
+			rehypeComponent,
 			() => (tree) => {
 				visit(tree, (node) => {
 					// is this process node.__rawString is not exist

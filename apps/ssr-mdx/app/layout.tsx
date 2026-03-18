@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import "@/styles/globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
-import CrispChat from "@/components/CrispChat";
+// import CrispChat from "@/components/CrispChat";
 import MonitorInit from "@/components/monitor/monitor-init";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
@@ -62,7 +62,7 @@ export default function RootLayout({
 					<AuthProvider>
 						<TooltipProvider>{children}</TooltipProvider>
 						<ScrollToTop />
-						<CrispChat />
+						{/* <CrispChat /> */}
 						<MonitorInit />
 						<Script
 							defer

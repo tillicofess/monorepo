@@ -13,6 +13,7 @@ getmap
 gsap
 inited
 lintstagedrc
+mdxbackend
 mdxeditor
 myrealm
 nums
