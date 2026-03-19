@@ -1,19 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { addComment } from "@/lib/actions";
+import type { Comment } from "@/features/blog/types/comment";
 
 interface Props {
 	slug: string;
+	onCommentCreated?: (comment: Comment) => void;
 }
 
-export function CommentForm({ slug }: Props) {
+export function CommentForm({ slug, onCommentCreated }: Props) {
 	const { login, isAuthenticated, userProfile } = useAuth();
-	const router = useRouter();
 	const [content, setContent] = useState("");
 	const [pending, setPending] = useState(false);
 
@@ -23,13 +22,25 @@ export function CommentForm({ slug }: Props) {
 
 		setPending(true);
 		try {
-			await addComment({
-				slug,
-				content,
-				author: userProfile?.username || "lain",
+			const response = await fetch(`/api/blog/${slug}/comments`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					slug,
+					content,
+					author: userProfile?.username || "lain",
+				}),
 			});
+
+			if (!response.ok) {
+				throw new Error("Failed to post comment");
+			}
+
+			const data = (await response.json()) as { comment: Comment };
 			setContent("");
-			router.refresh();
+			onCommentCreated?.(data.comment);
 		} catch (error) {
 			console.error("Failed to post comment", error);
 		} finally {

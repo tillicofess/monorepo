@@ -1,6 +1,3 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
 import type {
 	Comment,
 	CommentCreateInput,
@@ -28,8 +25,6 @@ export async function addComment(data: CommentCreateInput): Promise<Comment> {
 	if (!rows[0]) {
 		throw new Error("Failed to create comment");
 	}
-
-	revalidatePath(`/blog/${data.slug}`);
 
 	return rows[0];
 }

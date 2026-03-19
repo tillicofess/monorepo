@@ -4,6 +4,7 @@ chaport
 chunkhash
 cmdk
 codesandbox
+cursorrules
 duyi
 echart
 filehash
@@ -25,12 +26,16 @@ Requset
 sandpack
 Sandpack
 shiki
+shikijs
 sider
 ticscreek
 ticscreektop
+tillicofess
 totaltime
 ttfb
+turbopack
 UMAMI
 uuidv
 vaul
+worktree
 yoyo

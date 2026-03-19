@@ -1,194 +1,198 @@
-# AGENTS.md - 智能体编码指南
+# AGENTS.md
 
-本文档为在此代码库中运行的智能体编码代理提供编码指南。
+This file gives coding agents the repo-specific guidance they need to work safely and consistently in this monorepo.
 
-## 项目概览
+## Scope
 
-- **包管理器**: pnpm (v10.29.3+)
-- **Node.js**: >= 24.13.1
-- **TypeScript**: 5.9.3+
-- **Monorepo 结构**: pnpm 工作区 + catalogs，包含 `apps/*` 和 `packages/*`
+- Applies to the whole repository unless a deeper `AGENTS.md` overrides it.
+- `apps/ssr-mdx/AGENTS.md` already exists and is more specific for that app.
+- No Cursor rules were found in `.cursor/rules/` or `.cursorrules`.
+- No Copilot instructions were found in `.github/copilot-instructions.md`.
 
-### 应用 (apps/)
-- **@monorepo/ssr-mdx** - Next.js 16 SSR 应用 (MDX 文档站点)
-- **@monorepo/backend** - Express 后端服务
-- **@monorepo/mdx-backend** - 中台系统
+## Repository Snapshot
 
-### 包 (packages/)
-- **@monorepo/ui** - 共享 UI 组件
-- **@monorepo/components** - 共享业务组件
-- **@monorepo/utils** - 共享工具函数
-- **@monorepo/apis** - API 封装
-- **@monorepo/monitor** - 监控相关
+- Package manager: `pnpm`.
+- Runtime baseline: Node `>=24.13.1`.
+- Top-level language/tooling: TypeScript, Biome, Git hooks.
+- Monorepo areas: `apps/` and `packages/`.
+- Root package is ESM (`"type": "module"`).
 
-## 构建 / 代码检查 / 测试命令
+## Main Scripts
 
-### 安装依赖
+Run these from the repo root.
+
 ```bash
-pnpm install                    # 安装所有依赖
-pnpm install --frozen-lockfile  # 使用精确的 lockfile 安装
+pnpm format
+pnpm lint
+pnpm check
 ```
 
-### 类型检查
+- `pnpm format` formats `apps/` and `packages/` with Biome.
+- `pnpm lint` runs Biome lint with writes enabled.
+- `pnpm check` runs Biome check with writes enabled.
+
+## Package Commands
+
+### `apps/ssr-mdx`
+
 ```bash
-pnpm tsc        # 运行 TypeScript 编译器
-pnpm typecheck # tsc 的别名
+pnpm --filter @monorepo/ssr-mdx dev
+pnpm --filter @monorepo/ssr-mdx build
+pnpm --filter @monorepo/ssr-mdx start
+pnpm --filter @monorepo/ssr-mdx analyze
+pnpm --filter @monorepo/ssr-mdx analyze:turbo
 ```
 
-### 构建
+- This app uses Next.js App Router.
+- Playwright is installed, but there is no committed test suite yet.
+
+### `apps/mdx-backend`
+
 ```bash
-pnpm build                      # 构建所有包
-pnpm --filter <package> build   # 构建指定包
+pnpm --filter @monorepo/mdx-backend dev
+pnpm --filter @monorepo/mdx-backend build
+pnpm --filter @monorepo/mdx-backend preview
 ```
 
-### 测试
+- The build runs `tsc -b && vite build`.
+
+### `apps/backend`
+
 ```bash
-pnpm test             # 运行所有测试
-pnpm test:watch       # 监听模式运行测试
-pnpm test:coverage    # 运行带覆盖率的测试
-pnpm vitest run src/path/to/test.spec.ts  # 运行单个测试文件
-pnpm vitest run --grep "pattern"           # 运行匹配模式的测试
+pnpm --filter @monorepo/backend start:dev
+pnpm --filter @monorepo/backend start:prod
+pnpm --filter @monorepo/backend test
 ```
 
-### 代码检查与格式化（Biome + cspell）
+- The `test` script currently exits with an error because no tests are defined.
+
+### `packages/utils`
+
 ```bash
-pnpm lint          # 运行 linter 检查
-pnpm format        # 格式化代码（自动写入）
-pnpm format:check  # 检查格式化（不修改文件）
-pnpm check         # 综合检查（lint + 导入排序）
-pnpm check:fix     # 综合检查并自动修复
-pnpm spell         # 拼写检查
+pnpm --filter @monorepo/utils build
+pnpm --filter @monorepo/utils dev
+pnpm --filter @monorepo/utils typecheck
+pnpm --filter @monorepo/utils lint
+pnpm --filter @monorepo/utils lint:fix
 ```
 
-### 开发
+### `packages/monitor`
+
 ```bash
-pnpm dev                    # 启动 ssr-mdx 开发服务器
-pnpm dev --filter <app>     # 启动指定应用
-pnpm clean                  # 清理 node_modules 和构建产物
+pnpm --filter @monorepo/monitor build
+pnpm --filter @monorepo/monitor dev
+pnpm --filter @monorepo/monitor typecheck
+pnpm --filter @monorepo/monitor clean
 ```
 
-## 代码风格指南
+## Single Test Guidance
 
-### TypeScript
-- 使用严格模式 (`strict: true`)
-- 避免使用 `any` - 不确定时使用 `unknown`
-- 函数尽量使用显式返回类型
+- There is no shared test runner wired up at the repo root.
+- For Playwright tests in `apps/ssr-mdx`, run a single file with:
 
-### 导入顺序
-外部包 → 内部包 → 相对路径
-```typescript
-import { useState } from 'react'
-import { Button } from '@monorepo/components'
-import { formatDate } from '../utils/date'
-import { localHelper } from './helper'
-```
-
-### 命名规范
-- **文件**: 短横线命名 (`user-service.ts`) 或组件用帕斯卡命名 (`Button.tsx`)
-- **组件**: 帕斯卡命名 (`UserProfile`)
-- **函数/变量**: 驼峰命名 (`getUserData`)
-- **常量**: 全大写下划线命名 (`MAX_RETRY_COUNT`)
-- **接口/类型**: 帕斯卡命名 (`User`, `UserData`)
-
-### 格式化
-- 2 空格缩进，单引号，分号
-- 多行对象/数组使用尾随逗号
-- 最大行长度：100 字符
-- 使用 Biome 进行格式化
-
-### 错误处理
-```typescript
-try {
-  await riskyOperation()
-} catch (error) {
-  if (error instanceof SpecificErrorType) {
-    // 处理特定错误
-  } else if (error instanceof Error) {
-    console.error('操作失败:', error.message)
-  }
-  throw error
-}
-// 推荐使用 Result 类型: type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
-```
-
-### 异步编程
-- 使用 try/catch 处理 Promise 拒绝
-- 使用 `Promise.all()` 并行处理操作
-- 避免在循环中不必要的 `await`
-
-### React/Next.js 组件规范
-```typescript
-interface ButtonProps {
-  label: string
-  onClick: () => void
-  variant?: 'primary' | 'secondary'
-}
-export function Button({ label, onClick, variant = 'primary' }: ButtonProps) {
-  return <button onClick={onClick}>{label}</button>
-}
-function List<T>({ items, renderItem }: ListProps<T>) {
-  return items.map(renderItem)
-}
-```
-
-### 文件组织
-```
-apps/
-  ssr-mdx/src/
-    app/         # Next.js App Router 页面
-    components/ # 特性专用组件
-    lib/        # 工具函数
-    hooks/      # 自定义 React Hooks
-    content/    # MDX 内容
-  backend/      # Express 后端服务
-  mdx-backend/  # 中台系统
-packages/
-  ui/           # 共享 UI 组件
-  components/   # 共享业务组件
-  utils/        # 共享工具函数
-  apis/         # API 封装
-  monitor/      # 监控相关
-```
-
-### 测试规范
-- 测试文件放在源文件旁边 (`component.tsx` → `component.test.tsx`)
-- 使用描述性的测试名称
-- 遵循 AAA 模式：Arrange（准备）, Act（执行）, Assert（断言）
-- Mock 外部依赖
-- 测试成功和错误路径
-
-### Git 规范
-- 使用有意义的提交信息
-- 保持提交原子性和专注性
-- 提交前运行 lint 和 typecheck
-
-### 依赖管理
-- 将依赖添加到相应的工作区包
-- 使用 `pnpm add <package> --filter <package>` 添加到指定包
-- 使用工作区协议: `workspace:*`
-- 使用 catalogs 共享版本号: 在 `pnpm-workspace.yaml` 中定义 catalog，然后在 `package.json` 中使用 `catalog:` 引用
-
-## 环境变量
-- 永不提交密钥
-- 使用 `.env.local` 进行本地开发
-- 在 `.env.example` 中记录所需环境变量
-- 使用应用名称作为前缀: `NEXT_PUBLIC_*`, `BFF_*`
-
-## 常见任务
-
-### 添加新应用
-1. 在 `apps/` 创建目录
-2. 添加 `package.json` 和脚本
-3. 配置 tsconfig 继承根配置
-
-### 添加新包
-1. 在 `packages/` 创建目录
-2. 添加 `package.json`，名称为 `@monorepo/package-name`
-3. 配置 TypeScript 用于库构建
-4. 从 `index.ts` 导出公共 API
-
-### 跨包运行命令
 ```bash
-pnpm -r <command>                  # 在所有包中运行
-pnpm --filter <name> <command>    # 在指定包中运行
+pnpm exec playwright test tests/example.spec.ts
 ```
+
+- Run a single Playwright test by title with:
+
+```bash
+pnpm exec playwright test -g "test name"
+```
+
+- If you add a new package-specific test runner, prefer the narrowest command that targets one file or one test name.
+- If a package exposes its own `test` script later, use `pnpm --filter <pkg> test -- <args>` for focused runs.
+
+## Formatting Rules
+
+- Use Biome formatting conventions everywhere.
+- Indentation: tabs.
+- Line endings: LF.
+- Max line width: 80 columns when practical.
+- JavaScript/TypeScript strings: double quotes.
+- Semicolons: keep them.
+- Trailing commas: keep them where Biome applies them.
+- Let Biome organize imports rather than hand-editing order.
+
+## TypeScript Rules
+
+- Keep `strict`-style typing intact; do not relax compiler settings without a strong reason.
+- Prefer explicit types for public functions, props, and exported APIs when inference is not obvious.
+- Use `type` for unions, aliases, and most object shapes.
+- Use `interface` only when extension or declaration merging is useful.
+- Use `import type` or `import { type X }` for type-only imports.
+- Avoid `any`; if it is unavoidable, isolate it and explain why in code review notes.
+- Respect `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, and `noUncheckedSideEffectImports`.
+
+## Import Rules
+
+- Prefer absolute aliases when the package defines them:
+  - `apps/ssr-mdx`: `@/*`
+  - `apps/mdx-backend`: `@/*` -> `./src/*`
+- Keep imports grouped as:
+  1. Node/React/Next built-ins
+  2. External packages
+  3. Workspace aliases
+  4. Relative imports
+- Use relative imports only for nearby files inside the same feature area.
+- Do not leave unused imports; Biome should remove or sort them.
+
+## Naming Conventions
+
+- Components: PascalCase file names and exports, such as `Button.tsx`.
+- Hooks: camelCase with a `use` prefix, such as `useTheme`.
+- Utilities: camelCase, such as `formatDate` or `cn`.
+- Non-component files: kebab-case where practical.
+- Keep exported names descriptive and stable.
+
+## React And Next.js Rules
+
+- In `apps/ssr-mdx`, default to Server Components.
+- Add `'use client'` only when a component needs hooks, browser APIs, or event handlers.
+- Prefer function components and hooks over class components.
+- Use `next/navigation` utilities such as `notFound()` and route-level `error.tsx` where appropriate.
+- Keep client bundles small; move data shaping and heavy logic server-side when possible.
+
+## Tailwind And UI Rules
+
+- `apps/ssr-mdx` uses Tailwind CSS v4 and shadcn/ui with the `new-york` style.
+- Keep shared visual tokens in CSS variables and `app/globals.css`.
+- Use `cn()` for conditional class composition.
+- Prefer Radix primitives and shadcn/ui patterns for interactive components.
+- When adding new UI, match the existing design language instead of introducing a new one casually.
+
+## Backend And Service Rules
+
+- Keep Express handlers small and focused.
+- Validate inputs near the route boundary.
+- Return structured errors; do not expose secrets, tokens, or internal stack traces.
+- Prefer async/await with clear error propagation.
+- Handle env files carefully; never commit secrets from `.env` files.
+
+## Error Handling Rules
+
+- Use framework-native error boundaries in Next apps.
+- In API code, convert expected failures into explicit HTTP responses.
+- Reserve thrown exceptions for truly unexpected states.
+- Write error messages that are actionable but not sensitive.
+
+## File And Folder Guidance
+
+- Keep app code in `app/`, reusable UI in `components/`, helper code in `lib/`, and static assets in `public/`.
+- Keep MDX content in `content/` where the app expects it.
+- Keep package source under `src/` when the package already uses that layout.
+- Do not move files around unless the change clearly benefits maintainability.
+
+## Working Practices
+
+- Make the smallest change that solves the task.
+- Preserve unrelated user changes in a dirty worktree.
+- Prefer `apply_patch` for direct single-file edits.
+- Run the narrowest useful verification command after making changes.
+- If a package has no test suite, say so instead of inventing one.
+
+## When In Doubt
+
+- Read the nearest package `package.json`, `tsconfig.json`, and any deeper `AGENTS.md` first.
+- Follow existing repository conventions over generic preferences.
+- If you add new tooling, document the command here only if it is likely to matter for future agents.

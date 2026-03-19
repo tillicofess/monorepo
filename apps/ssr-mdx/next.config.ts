@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
 	output: "standalone",
 	distDir: ".next",
 	productionBrowserSourceMaps: true,
+	serverExternalPackages: ["shiki", "@shikijs/core", "rehype-pretty-code"],
 	images: {
 		qualities: [50, 75, 100],
 		remotePatterns: [
@@ -13,6 +14,12 @@ const nextConfig: NextConfig = {
 				hostname: "avatars.githubusercontent.com",
 				port: "",
 				pathname: "/u/**",
+			},
+			{
+				protocol: "https",
+				hostname: "raw.githubusercontent.com",
+				port: "",
+				pathname: "/tillicofess/Article-images/main/**",
 			},
 		],
 	},

@@ -1,6 +1,14 @@
 "use client";
 
-import { ExternalLink, FileText, Home, Moon, Search, Sun } from "lucide-react";
+import {
+	ExternalLink,
+	FileText,
+	Home,
+	Moon,
+	NotebookTabs,
+	Search,
+	Sun,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import * as React from "react";
@@ -73,6 +81,12 @@ export function CommandMenu({ posts }: CommandMenuProps) {
 						>
 							<FileText className="mr-2 h-4 w-4" />
 							Blog
+						</CommandItem>
+						<CommandItem
+							onSelect={() => runCommand(() => router.push("/friends"))}
+						>
+							<NotebookTabs className="mr-2 h-4 w-4" />
+							Friends
 						</CommandItem>
 					</CommandGroup>
 					<CommandSeparator />
