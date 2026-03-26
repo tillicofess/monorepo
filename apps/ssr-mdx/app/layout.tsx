@@ -4,7 +4,6 @@ import Script from "next/script";
 import "@/styles/globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
 // import CrispChat from "@/components/CrispChat";
-import MonitorInit from "@/components/monitor/monitor-init";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -63,7 +62,6 @@ export default function RootLayout({
 						<TooltipProvider>{children}</TooltipProvider>
 						<ScrollToTop />
 						{/* <CrispChat /> */}
-						<MonitorInit />
 						<Script
 							defer
 							src="https://umami.ticscreek.top/script.js"

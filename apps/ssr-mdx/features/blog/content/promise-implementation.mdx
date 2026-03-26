@@ -1,0 +1,300 @@
+---
+title: "手写 Promise：从原理到实现"
+date: 2026-03-19
+author: "Trae Assistant"
+image: https://raw.githubusercontent.com/tillicofess/Article-images/99faeb4af03795116eb3978d3af4177a4eb03189/promise-implementation.svg?token=A3FQKVA7XPQRIQ6732SEDDDJYO4LG
+---
+
+# 手写 Promise：从原理到实现
+
+Promise 是现代 JavaScript 异步编程的基础。理解它的内部实现，对于深入掌握异步编程至关重要。本文将基于手写的 `MyPromise` 实现，带你逐步解析 Promise 的核心机制。
+
+## 1. 整体架构
+
+我们的手写 Promise 包含以下几个核心部分：
+
+```javascript
+class MyPromise {
+    static PENDING = "pending";
+    static FULFILLED = "fulfilled";
+    static REJECTED = "rejected";
+
+    _state = MyPromise.PENDING;      // Promise 状态
+    _data = undefined;               // 成功时的值
+    _reason = undefined;             // 失败时的原因
+    _settledHandlers = [];          // 待执行的回调队列
+}
+```
+
+### 1.1 三种状态
+
+Promise 有且仅有三种状态：
+
+* **`PENDING`**：初始状态，可迁移到 `FULFILLED` 或 `REJECTED`
+* **`FULFILLED`**：成功状态，不可迁移
+* **`REJECTED`**：失败状态，不可迁移
+
+这种状态机设计确保了 Promise 状态的**不可逆性**。
+
+## 2. 构造函数与执行器
+
+```javascript
+constructor(executor) {
+    const resolve = (data) => {
+        resolvePromise(this, data);
+    }
+    const reject = (err) => {
+        rejectPromise(this, err);
+    }
+
+    try {
+        executor(resolve, reject);
+    } catch (err) {
+        reject(err);
+    }
+}
+```
+
+### 2.1 执行器捕获
+
+特别注意 `try...catch` 包装：如果执行器内部抛出同步错误，Promise 会自动变为 rejected 状态。这是 Promise 设计的一个重要特性：**同步错误不会穿透**。
+
+## 3. 核心：resolvePromise 函数
+
+这是 Promise/A+ 规范的核心实现，处理 Promise 的决议逻辑。
+
+### 3.1 循环检测
+
+```javascript
+function resolvePromise(prom, x) {
+    if (x === prom) {
+        return rejectPromise(prom, new TypeError("Chaining cycle detected"));
+    }
+    // ...
+}
+```
+
+防止以下情况导致的死循环：
+
+```javascript
+const p = new Promise((resolve, reject) => {
+    resolve(p);  // x === prom，抛出 TypeError
+});
+```
+
+### 3.2 Thenable 对象处理
+
+```javascript
+if (isObject(x) || isFunction(x)) {
+    let called = false; // 确保只调用一次
+    try {
+        let then = x.then;
+        if (typeof then === "function") {
+            then.call(
+                x,
+                (data) => {
+                    if (called) return;
+                    called = true;
+                    resolvePromise(prom, data); // 递归解析
+                },
+                (err) => {
+                    if (called) return;
+                    called = true;
+                    rejectPromise(prom, err);
+                }
+            );
+        }
+    }
+}
+```
+
+**关键点**：
+1. **`called` 标志**：防止 onFulfilled 或 onRejected 被多次调用
+2. **先取出 then**：`let then = x.then`，符合规范要求
+3. **递归解析**：当 x 是 thenable 时，继续调用 `resolvePromise`
+
+## 4. then 方法的递归解析（重点）
+
+这是 Promise 链式调用的核心所在。
+
+### 4.1 then 方法实现
+
+```javascript
+then(onFulfilled, onRejected) {
+    const prom = new MyPromise(() => {});  // 返回新 Promise
+    this._settledHandlers.push({
+        onFulfilled,
+        onRejected,
+        prom
+    });
+    // 如果当前状态已决，立即处理
+    flushHandlers(this);
+    return prom;
+}
+```
+
+**关键点**：每个 `then` 调用都会**创建新的 Promise**，并返回它，实现链式调用。
+
+### 4.2 回调处理：flushHandlers
+
+```javascript
+function flushHandlers(curPromise) {
+    if (curPromise._state === MyPromise.PENDING) return;
+    
+    queueMicrotask(() => {  // 使用微队列执行
+        while (handlers.length) {
+            const handler = handlers.shift();
+            const { onFulfilled, onRejected, prom } = handler;
+            
+            // 状态穿透：如果回调不是函数
+            if (!isFunction(onFulfilled) && curPromise._state === MyPromise.FULFILLED) {
+                resolvePromise(prom, curPromise._data);
+                continue;
+            }
+            
+            // 执行回调
+            let result;
+            try {
+                result = curPromise._state === MyPromise.FULFILLED ?
+                    onFulfilled(curPromise._data) : onRejected(curPromise._reason);
+            } catch (err) {
+                rejectPromise(prom, err);
+                continue;
+            }
+            
+            // 关键：用回调结果决议新 Promise
+            resolvePromise(prom, result);
+        }
+    });
+}
+```
+
+### 4.3 递归解析流程图
+
+```javascript
+Promise.resolve(10)
+    .then(value => value * 2)      // 返回 20
+    .then(value => console.log(value)) // 输出 20
+
+执行流程：
+
+Step 1: new MyPromise(resolve(10))
+        └─ 立即 resolve → FULFILLED → 20
+
+Step 2: p1.then(value => value * 2)
+        └─ p1 状态已决，flushHandlers 执行
+        └─ onFulfilled(10) = 20
+        └─ resolvePromise(p2, 20)
+        └─ p2 变为 FULFILLED，值 20
+
+Step 3: p2.then(console.log)
+        └─ p2 状态已决，flushHandlers 执行
+        └─ onFulfilled(20) = undefined (console.log 返回 undefined)
+        └─ resolvePromise(p3, undefined)
+```
+
+### 4.4 嵌套 Promise 的递归解析
+
+```javascript
+new MyPromise(resolve => resolve(10))
+    .then(value => {
+        return new MyPromise(resolve => resolve(value * 2));
+    })
+    .then(console.log); // 输出 20
+```
+
+**执行流程**：
+
+1. 第一个 `then` 的 `onFulfilled` 返回一个 Promise
+2. `resolvePromise(p2, 新Promise)` 被调用
+3. 因为返回值是 thenable，进入递归
+4. 递归调用 `resolvePromise(p2, 20)`（内层 Promise 的值）
+5. 最终 p2 变为 FULFILLED，值为 20
+
+```javascript
+// resolvePromise 内部递归示意
+function resolvePromise(prom, x) {
+    // ...检测 x === prom, thenable 等
+    
+    if (isObject(x) || isFunction(x)) {
+        let then = x.then;
+        if (typeof then === "function") {
+            // x 是 Promise 实例，调用它的 then
+            then.call(x,
+                (data) => resolvePromise(prom, data),  // 递归！
+                (err) => rejectPromise(prom, err)
+            );
+        }
+    }
+}
+```
+
+**递归终止条件**：
+* 返回值不是对象或函数（普通值）
+* 返回值的 `then` 抛出异常
+* Promise 链式循环检测失败
+
+## 5. 静态方法
+
+### 5.1 Promise.resolve
+
+```javascript
+static resolve(value) {
+    if (value instanceof MyPromise) {
+        return value;  // 已是 Promise，直接返回
+    }
+    return new MyPromise((resolve) => {
+        resolve(value);  // 通过 resolvePromise 处理
+    });
+}
+```
+
+### 5.2 Promise.race
+
+```javascript
+static race(promises) {
+    return new MyPromise((resolve, reject) => {
+        promises.forEach((promise) => {
+            MyPromise.resolve(promise).then(resolve, reject);
+        });
+    });
+}
+```
+
+谁先 settle，就以谁的状态决议新的 Promise。
+
+### 5.3 Promise.all
+
+```javascript
+static all(promises) {
+    return new MyPromise((resolve, reject) => {
+        const result = [];
+        let count = 0;
+        promises.forEach((promise, index) => {
+            MyPromise.resolve(promise).then(val => {
+                result[index] = val;
+                count++;
+                if (count === promises.length) {
+                    resolve(result);
+                }
+            }, reject);
+        });
+    });
+}
+```
+
+使用数组索引确保结果顺序与输入顺序一致。
+
+## 6. 总结
+
+手写 Promise 的核心要点：
+
+| 概念 | 实现 |
+|------|------|
+| 状态机 | `_state` 字段控制 PENDING/FULFILLED/REJECTED |
+| 链式调用 | 每个 `then` 返回新 Promise |
+| 递归解析 | `resolvePromise` 处理 thenable 对象时递归调用自身 |
+| 状态穿透 | 非函数回调直接传递前一个 Promise 的值/原因 |
+| 错误捕获 | 执行器和回调都在 try...catch 中执行 |
+
+理解了这个手写实现，你将对 Promise 的工作原理有更深刻的认识，面对复杂的异步场景也能游刃有余。

@@ -1,198 +1,204 @@
 # AGENTS.md
 
-This file gives coding agents the repo-specific guidance they need to work safely and consistently in this monorepo.
+本文档为在此代码库中运行的 AI 代理提供指导。
 
-## Scope
+## 项目概览
 
-- Applies to the whole repository unless a deeper `AGENTS.md` overrides it.
-- `apps/ssr-mdx/AGENTS.md` already exists and is more specific for that app.
-- No Cursor rules were found in `.cursor/rules/` or `.cursorrules`.
-- No Copilot instructions were found in `.github/copilot-instructions.md`.
+- **架构**: pnpm monorepo
+- **包管理器**: pnpm (必须使用，不要使用 npm/yarn)
+- **代码检查**: Biome
+- **语言**: TypeScript (严格模式)
+- **Node 版本**: >= 24.13.1
+- **pnpm 版本**: >= 10.29.3
 
-## Repository Snapshot
+## 项目结构
 
-- Package manager: `pnpm`.
-- Runtime baseline: Node `>=24.13.1`.
-- Top-level language/tooling: TypeScript, Biome, Git hooks.
-- Monorepo areas: `apps/` and `packages/`.
-- Root package is ESM (`"type": "module"`).
-
-## Main Scripts
-
-Run these from the repo root.
-
-```bash
-pnpm format
-pnpm lint
-pnpm check
+```
+├── apps/
+│   ├── ssr-mdx/        # Next.js 16 (App Router) + Tailwind CSS v4 + shadcn/ui
+│   ├── mdx-backend/    # Vite + React + Ant Design
+│   └── backend/       # Express.js
+├── packages/
+│   ├── utils/         # 通用工具函数 (tsup 构建)
+│   └── monitor/       # 前端监控 SDK (Rollup 构建)
+└── pnpm-workspace.yaml
 ```
 
-- `pnpm format` formats `apps/` and `packages/` with Biome.
-- `pnpm lint` runs Biome lint with writes enabled.
-- `pnpm check` runs Biome check with writes enabled.
+## 常用命令
 
-## Package Commands
-
-### `apps/ssr-mdx`
+### 根目录命令 (整个 monorepo)
 
 ```bash
-pnpm --filter @monorepo/ssr-mdx dev
-pnpm --filter @monorepo/ssr-mdx build
-pnpm --filter @monorepo/ssr-mdx start
-pnpm --filter @monorepo/ssr-mdx analyze
-pnpm --filter @monorepo/ssr-mdx analyze:turbo
+pnpm install              # 安装所有依赖
+pnpm format              # 运行 Biome 格式化
+pnpm lint                # 运行 Biome Lint 检查
+pnpm check               # 运行 Biome 完整检查 (格式化 + Lint + import 排序)
+pnpm commit              # 使用 cz-git 提交 git commit
 ```
 
-- This app uses Next.js App Router.
-- Playwright is installed, but there is no committed test suite yet.
-
-### `apps/mdx-backend`
+### apps/ssr-mdx (Next.js 前端)
 
 ```bash
-pnpm --filter @monorepo/mdx-backend dev
-pnpm --filter @monorepo/mdx-backend build
-pnpm --filter @monorepo/mdx-backend preview
+cd apps/ssr-mdx
+pnpm dev                 # 启动开发服务器 (http://localhost:3000)
+pnpm build               # 生产环境构建
+pnpm start               # 启动生产服务器
+pnpm analyze             # 分析包体积
+pnpm analyze:turbo        # 使用 Turbo 分析（实验性）
+
+# 测试 (使用 Playwright)
+npx playwright test                          # 运行所有测试
+npx playwright test tests/example.spec.ts   # 运行单个测试文件
+npx playwright test --ui                     # UI 模式
+npx playwright test --headed                 # 有头模式
+npx playwright test -g "测试名称"            # 按名称运行特定测试
 ```
 
-- The build runs `tsc -b && vite build`.
-
-### `apps/backend`
+### apps/mdx-backend (React + Vite)
 
 ```bash
-pnpm --filter @monorepo/backend start:dev
-pnpm --filter @monorepo/backend start:prod
-pnpm --filter @monorepo/backend test
+cd apps/mdx-backend
+pnpm dev               # 启动开发服务器
+pnpm build             # TypeScript 编译 + Vite 构建
+pnpm preview           # 预览构建结果
 ```
 
-- The `test` script currently exits with an error because no tests are defined.
-
-### `packages/utils`
+### apps/backend (Express)
 
 ```bash
-pnpm --filter @monorepo/utils build
-pnpm --filter @monorepo/utils dev
-pnpm --filter @monorepo/utils typecheck
-pnpm --filter @monorepo/utils lint
-pnpm --filter @monorepo/utils lint:fix
+cd apps/backend
+pnpm start:dev         # 开发环境启动 (读取 .env)
+pnpm start:prod        # 生产环境启动 (读取 .env.production)
 ```
 
-### `packages/monitor`
+### packages/utils
 
 ```bash
-pnpm --filter @monorepo/monitor build
-pnpm --filter @monorepo/monitor dev
-pnpm --filter @monorepo/monitor typecheck
-pnpm --filter @monorepo/monitor clean
+cd packages/utils
+pnpm build             # 构建为 cjs 和 esm 格式
+pnpm dev               # 监听模式构建
+pnpm typecheck         # TypeScript 类型检查
+pnpm lint              # Biome 检查
+pnpm lint:fix          # Biome 自动修复
 ```
 
-## Single Test Guidance
-
-- There is no shared test runner wired up at the repo root.
-- For Playwright tests in `apps/ssr-mdx`, run a single file with:
+### packages/monitor
 
 ```bash
-pnpm exec playwright test tests/example.spec.ts
+cd packages/monitor
+pnpm build             # Rollup 构建 (cjs + esm + umd)
+pnpm clean             # 清理 dist 目录
+pnpm dev               # 监听模式构建
+pnpm typecheck         # TypeScript 类型检查
 ```
 
-- Run a single Playwright test by title with:
+## 代码风格指南
+
+### Biome 配置
+
+项目使用 Biome 进行代码格式化和 Lint 检查，配置位于根目录 `biome.json`:
+- **缩进**: Tab (2 空格)
+- **行宽**: 80 字符
+- **引号**: 双引号 (JSX 使用双引号)
+- **分号**: 始终使用分号
+- **尾随逗号**: 所有多行结构
+
+保存文件时自动运行格式化 (VSCode 设置 `editor.codeActionsOnSave`):
+```bash
+pnpm check             # 完整检查 (格式化 + Lint + import 排序)
+```
+
+### TypeScript
+
+- 启用严格模式
+- 函数参数和返回值使用显式类型标注
+- 使用 `type` 定义联合类型/接口，使用 `interface` 定义可扩展对象
+- 使用 `import { type Foo }` 语法导入仅类型使用的导入
+
+### 导入顺序
+
+在 `apps/ssr-mdx` 中使用路径别名 `@/*`:
+```typescript
+// 顺序: React/Next -> 外部库 -> 路径别名 -> 相对导入
+import * as React from "react"
+import { useState } from "react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { SomeComponent } from "./some-component"
+```
+
+### 命名约定
+
+- **组件文件**: PascalCase (例如 `Button.tsx`, `ScrollToTop.tsx`)
+- **Hooks**: camelCase，以 `use` 开头 (例如 `useTheme`, `useMobileMenu`)
+- **工具函数**: camelCase (例如 `cn`, `formatDate`)
+- **非组件文件**: kebab-case (例如 `eslint.config.mjs`)
+
+### React 开发规范
+
+**apps/ssr-mdx (Next.js App Router)**:
+- 默认使用 Server Components
+- 仅在需要时添加 `'use client'` 指令
+- 使用 `next-themes` + `useTheme` hook 进行主题管理
+- 优先使用函数式组件和 hooks
+
+**apps/mdx-backend (React + Vite)**:
+- 使用 React Router 进行路由管理
+- 使用 Zustand 进行状态管理
+- 使用 Ant Design 组件库
+
+### 组件规范 (shadcn/ui)
+
+- UI 组件放在 `components/ui/`
+- 使用 `cn()` (tailwind-merge + clsx) 合并 className
+- 使用 `cva` (class-variance-authority) 实现变体组件
+- 优先使用 Radix UI 原语
+- 使用命名导出
+- 为多态组件使用 `data-slot` 属性
+
+### Tailwind CSS
+
+- 使用 Tailwind CSS v4 配合 CSS 变量
+- 使用 `cn()` 工具函数合并 Tailwind 类
+- 自定义样式放在 `app/globals.css`
+- 遵循 shadcn/ui "new-york" 风格
+
+### MDX (apps/ssr-mdx)
+
+- MDX 内容存放在 `content/` 目录
+- 使用 `next-mdx-remote` 渲染
+- 支持: remark-gfm, rehype-pretty-code, rehype-slug, rehype-autolink-headings
+
+### 错误处理
+
+- Next.js 使用 `error.tsx` 错误边界
+- 使用 `next/navigation` 的 `notFound()` 处理 404
+- 切勿在错误消息中暴露敏感信息
+- Express 后端使用 try-catch 中间件处理异步错误
+
+### Git 提交
 
 ```bash
-pnpm exec playwright test -g "test name"
+pnpm commit             # 使用 cz-git 交互式提交
 ```
 
-- If you add a new package-specific test runner, prefer the narrowest command that targets one file or one test name.
-- If a package exposes its own `test` script later, use `pnpm --filter <pkg> test -- <args>` for focused runs.
+提交规范遵循 `@commitlint/config-conventional`:
+- `feat:` 新功能
+- `fix:` Bug 修复
+- `docs:` 文档更新
+- `style:` 代码格式调整
+- `refactor:` 重构
+- `test:` 测试相关
+- `chore:` 构建/工具变动
 
-## Formatting Rules
+## 环境变量
 
-- Use Biome formatting conventions everywhere.
-- Indentation: tabs.
-- Line endings: LF.
-- Max line width: 80 columns when practical.
-- JavaScript/TypeScript strings: double quotes.
-- Semicolons: keep them.
-- Trailing commas: keep them where Biome applies them.
-- Let Biome organize imports rather than hand-editing order.
+- 本地环境变量放在 `.env` 文件
+- 切勿提交 secrets 到仓库
+- 使用 `.env.example` 记录必需的环境变量
 
-## TypeScript Rules
+## 注意事项
 
-- Keep `strict`-style typing intact; do not relax compiler settings without a strong reason.
-- Prefer explicit types for public functions, props, and exported APIs when inference is not obvious.
-- Use `type` for unions, aliases, and most object shapes.
-- Use `interface` only when extension or declaration merging is useful.
-- Use `import type` or `import { type X }` for type-only imports.
-- Avoid `any`; if it is unavoidable, isolate it and explain why in code review notes.
-- Respect `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, and `noUncheckedSideEffectImports`.
-
-## Import Rules
-
-- Prefer absolute aliases when the package defines them:
-  - `apps/ssr-mdx`: `@/*`
-  - `apps/mdx-backend`: `@/*` -> `./src/*`
-- Keep imports grouped as:
-  1. Node/React/Next built-ins
-  2. External packages
-  3. Workspace aliases
-  4. Relative imports
-- Use relative imports only for nearby files inside the same feature area.
-- Do not leave unused imports; Biome should remove or sort them.
-
-## Naming Conventions
-
-- Components: PascalCase file names and exports, such as `Button.tsx`.
-- Hooks: camelCase with a `use` prefix, such as `useTheme`.
-- Utilities: camelCase, such as `formatDate` or `cn`.
-- Non-component files: kebab-case where practical.
-- Keep exported names descriptive and stable.
-
-## React And Next.js Rules
-
-- In `apps/ssr-mdx`, default to Server Components.
-- Add `'use client'` only when a component needs hooks, browser APIs, or event handlers.
-- Prefer function components and hooks over class components.
-- Use `next/navigation` utilities such as `notFound()` and route-level `error.tsx` where appropriate.
-- Keep client bundles small; move data shaping and heavy logic server-side when possible.
-
-## Tailwind And UI Rules
-
-- `apps/ssr-mdx` uses Tailwind CSS v4 and shadcn/ui with the `new-york` style.
-- Keep shared visual tokens in CSS variables and `app/globals.css`.
-- Use `cn()` for conditional class composition.
-- Prefer Radix primitives and shadcn/ui patterns for interactive components.
-- When adding new UI, match the existing design language instead of introducing a new one casually.
-
-## Backend And Service Rules
-
-- Keep Express handlers small and focused.
-- Validate inputs near the route boundary.
-- Return structured errors; do not expose secrets, tokens, or internal stack traces.
-- Prefer async/await with clear error propagation.
-- Handle env files carefully; never commit secrets from `.env` files.
-
-## Error Handling Rules
-
-- Use framework-native error boundaries in Next apps.
-- In API code, convert expected failures into explicit HTTP responses.
-- Reserve thrown exceptions for truly unexpected states.
-- Write error messages that are actionable but not sensitive.
-
-## File And Folder Guidance
-
-- Keep app code in `app/`, reusable UI in `components/`, helper code in `lib/`, and static assets in `public/`.
-- Keep MDX content in `content/` where the app expects it.
-- Keep package source under `src/` when the package already uses that layout.
-- Do not move files around unless the change clearly benefits maintainability.
-
-## Working Practices
-
-- Make the smallest change that solves the task.
-- Preserve unrelated user changes in a dirty worktree.
-- Prefer `apply_patch` for direct single-file edits.
-- Run the narrowest useful verification command after making changes.
-- If a package has no test suite, say so instead of inventing one.
-
-## When In Doubt
-
-- Read the nearest package `package.json`, `tsconfig.json`, and any deeper `AGENTS.md` first.
-- Follow existing repository conventions over generic preferences.
-- If you add new tooling, document the command here only if it is likely to matter for future agents.
+- 所有变更提交前运行 `pnpm check` 确保代码质量
+- 使用 pnpm workspace 依赖管理，避免手动修改 node_modules
+- 使用 catalogs (pnpm-workspace.yaml) 管理共享依赖版本
