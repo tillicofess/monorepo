@@ -21,7 +21,7 @@ import { FileActions } from "./components/FileActions";
 import { FileTable } from "./components/FileTable";
 import { RenameModal } from "./components/RenameModal";
 import { UploadModal } from "./components/UploadModal";
-import { useFileStore } from "./store/useFileStore";
+import { useFileStore } from "./store/newUseFileStore";
 import type { BreadcrumbItem, FileItem } from "./types";
 
 const { Title } = Typography;

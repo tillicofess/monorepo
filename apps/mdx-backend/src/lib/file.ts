@@ -1,10 +1,11 @@
+import COS from "cos-js-sdk-v5";
 import SparkMD5 from "spark-md5";
-import { http } from "@/lib/axios";
-import { globalRequestPool } from "@/lib/requestPool";
+import { confirmCosUpload, getCosSts } from "@/apis/largeFile";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB 每个分片的大小
+
 /**
- * 创建文件分片 done
+ * 创建文件分片 (用于哈希计算抽样)
  * @param file 大文件
  * @returns 分片数组
  */
@@ -18,7 +19,7 @@ export const createChunks = (file: File) => {
 };
 
 /**
- * 大文件抽样计算文件哈希 done
+ * 大文件抽样计算文件哈希
  * @param chunks 文件分片数组
  * @returns 文件哈希
  */
@@ -49,88 +50,137 @@ export const calculateFileHash = async (chunks: Blob[]) => {
 	});
 };
 
-/**
- * 秒传检查 done
- * @param fileHash 文件哈希
- * @returns 秒传检查结果
- */
-export const checkFileExist = async (fileHash: string, fileName: string) => {
-	const res = await http.post(
-		"/largeFile/check",
-		{
-			fileHash,
-			fileName,
-		},
-		{
-			headers: {
-				"Content-Type": "application/json",
+export interface CosUploadOptions {
+	file: File;
+	parentId: string | null;
+	onProgress?: (progress: number) => void;
+}
+
+export interface CosUploadResult {
+	statusCode: number;
+	Location: string;
+	Bucket: string;
+	Key: string;
+	ETag: string;
+	fileId: string;
+}
+
+export const checkCosFileExists = (
+	cos: COS,
+	bucket: string,
+	region: string,
+	key: string,
+): Promise<boolean> => {
+	return new Promise((resolve) => {
+		cos.headObject(
+			{
+				Bucket: bucket,
+				Region: region,
+				Key: key,
 			},
-		},
-	);
-	return res.data.data;
+			(err) => {
+				if (err) {
+					if (err.statusCode === 404) {
+						resolve(false);
+					} else {
+						resolve(false);
+					}
+				} else {
+					resolve(true);
+				}
+			},
+		);
+	});
 };
 
-/**
- * 大文件分片上传 done
- */
-export const uploadFileChunks = async (
-	uploadChunks: {
-		fileHash: string;
-		chunkHash: string;
-		chunk: Blob;
-		size: number;
-	}[],
-	onProgress: (uploaded: number) => void,
-	signal: AbortSignal,
-) => {
-	let uploadedBytes = 0;
+export const calculateFullFileHash = async (file: File): Promise<string> => {
+	return new Promise<string>((resolve, reject) => {
+		const spark = new SparkMD5.ArrayBuffer();
+		const fileReader = new FileReader();
 
-	const tasks = uploadChunks.map((item) => {
-		return globalRequestPool.add(async () => {
-			if (signal.aborted) {
-				throw new Error("Upload aborted");
+		fileReader.readAsArrayBuffer(file);
+		fileReader.onload = (e) => {
+			if (e.target) {
+				spark.append(e.target.result as ArrayBuffer);
+				resolve(spark.end());
 			}
+		};
+		fileReader.onerror = () => {
+			reject(new Error("Failed to read file for hash calculation"));
+		};
+	});
+};
 
-			const formData = new FormData();
-			formData.append("filehash", item.fileHash);
-			formData.append("chunkhash", item.chunkHash);
-			formData.append("chunk", item.chunk);
+// 使用腾讯云 COS SDK 进行文件上传
+export const cosUpload = async ({
+	file,
+	parentId,
+	onProgress,
+}: CosUploadOptions): Promise<CosUploadResult> => {
+	const chunks = createChunks(file);
+	const fileHash = await calculateFileHash(chunks);
 
-			await http.post("/largeFile/upload", formData, {
-				headers: { "Content-Type": "multipart/form-data" },
-				signal,
-			});
+	const { data: stsData } = await getCosSts(
+		file.name,
+		parentId,
+		file.size,
+		fileHash,
+	);
 
-			uploadedBytes += item.size;
-			onProgress(uploadedBytes);
-		});
+	if (stsData.code !== 0) {
+		throw new Error(stsData.message || "获取上传凭证失败");
+	}
+
+	const { credentials, bucket, region, key, fileId } = stsData.data;
+	const { tmpSecretId, tmpSecretKey, sessionToken } = credentials;
+
+	const cos = new COS({
+		SecretId: tmpSecretId,
+		SecretKey: tmpSecretKey,
+		SecurityToken: sessionToken,
 	});
 
-	return Promise.all(tasks);
-};
+	const exists = await checkCosFileExists(cos, bucket, region, key);
 
-/**
- * 合并文件分片
- */
-export const mergeRequest = async (
-	fileHash: string,
-	fileName: string,
-	fileSize: number,
-	parentId: string | null,
-) => {
-	const res = await http.post(
-		"/largeFile/merge",
-		{
-			fileHash,
-			fileName,
-			fileSize,
-			parentId,
-		},
-		{
-			headers: {
-				"Content-Type": "application/json",
+	if (exists) {
+		await confirmCosUpload(fileId);
+		return {
+			statusCode: 200,
+			Location: `https://${bucket}.cos.${region}.myqcloud.com/${key}`,
+			Bucket: bucket,
+			Key: key,
+			ETag: "",
+			fileId,
+		};
+	}
+
+	return new Promise((resolve, reject) => {
+		cos.uploadFile(
+			{
+				Bucket: bucket,
+				Region: region,
+				Key: key,
+				Body: file,
+				onProgress: (progressData: { loaded: number; total: number }) => {
+					const progress = Math.floor(
+						(progressData.loaded / progressData.total) * 100,
+					);
+					onProgress?.(progress);
+				},
 			},
-		},
-	);
-	return res.data.data;
+			async (err, data) => {
+				if (err) {
+					reject(err);
+				} else {
+					try {
+						await confirmCosUpload(fileId);
+						resolve({ ...(data as unknown as CosUploadResult), fileId });
+					} catch (confirmErr) {
+						console.error("confirmCosUpload error:", confirmErr);
+						resolve({ ...(data as unknown as CosUploadResult), fileId });
+					}
+				}
+			},
+		);
+	});
 };

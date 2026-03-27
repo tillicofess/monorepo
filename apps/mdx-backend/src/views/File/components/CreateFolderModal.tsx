@@ -1,6 +1,6 @@
 import { Input, Modal } from "antd";
 import { useIntl } from "react-intl";
-import { useFileStore } from "../store/useFileStore";
+import { useFileStore } from "../store/newUseFileStore";
 import type { CreateFolderModalProps } from "../types";
 
 export function CreateFolderModal({

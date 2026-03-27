@@ -1,13 +1,7 @@
 import { message } from "antd";
 import { create } from "zustand";
 import { createFolder, deleteFile, renameFile } from "@/apis/index";
-import {
-	calculateFileHash,
-	checkFileExist,
-	createChunks,
-	mergeRequest,
-	uploadFileChunks,
-} from "@/lib/file";
+import { cosUpload } from "@/lib/file";
 import { formatMessage } from "@/lib/intl";
 import type {
 	DeleteFileState,
@@ -26,11 +20,9 @@ export type UploadStatus =
 export interface UploadTask {
 	id: string;
 	file: File;
-	fileHash?: string;
 	progress: number;
 	status: UploadStatus;
 	error?: string;
-	abortController: AbortController | null;
 }
 
 export interface UploadFile {
@@ -146,12 +138,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 		openModal: () =>
 			set((state) => ({ upload: { ...state.upload, isModalOpen: true } })),
 		closeModal: () => {
-			const { upload: up } = get();
-			up.queue.forEach((task) => {
-				if (task.abortController) {
-					task.abortController.abort();
-				}
-			});
 			set((state) => ({
 				upload: {
 					...state.upload,
@@ -168,7 +154,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 				file,
 				progress: 0,
 				status: "pending",
-				abortController: null,
 			}));
 			set((state) => ({
 				upload: {
@@ -200,8 +185,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			 * 单个任务执行
 			 */
 			const runTask = async (task: UploadTask) => {
-				const controller = new AbortController();
-
 				// 🔒 先立刻占位，防止重复调度
 				set((state) => ({
 					upload: {
@@ -211,7 +194,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 								? {
 										...t,
 										status: "uploading" as UploadStatus,
-										abortController: controller,
 									}
 								: t,
 						),
@@ -235,57 +217,16 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					const file = task.file;
 					updateProgress(0, "uploading");
 
-					const chunks = createChunks(file);
-					const fileHash = await calculateFileHash(chunks);
-
-					const { shouldUpload, uploadedChunks } = await checkFileExist(
-						fileHash,
-						file.name,
-					);
-
-					// 秒传
-					if (!shouldUpload) {
-						updateProgress(100, "completed");
-						message.success(formatMessage("fileExists", { name: file.name }));
-						return;
-					}
-
-					// 已上传字节
-					const uploadedBytes =
-						uploadedChunks?.reduce((total: number, index: number) => {
-							return total + (chunks[index]?.size ?? 0);
-						}, 0) || 0;
-
-					// 需要上传的分片
-					const uploadChunks = chunks
-						.map((chunk: Blob, index: number) => ({ chunk, index }))
-						.filter(({ index }) => !uploadedChunks?.includes(index));
-
-					const chunksWithSize = uploadChunks.map(({ chunk, index }) => ({
-						fileHash,
-						chunkHash: `${fileHash}-${index}`,
-						chunk,
-						size: chunk.size,
-					}));
-
-					await uploadFileChunks(
-						chunksWithSize,
-						(chunkUploaded: number) => {
-							const uploadedSoFar = uploadedBytes + chunkUploaded;
-							const progress = Math.floor((uploadedSoFar / file.size) * 100);
+					await cosUpload({
+						file,
+						parentId,
+						onProgress: (progress) => {
 							updateProgress(progress);
 						},
-						controller.signal,
-					);
-
-					await mergeRequest(fileHash, file.name, file.size, parentId);
+					});
 
 					updateProgress(100, "completed");
 				} catch (error) {
-					if (error instanceof Error && error.message === "Upload aborted") {
-						return;
-					}
-
 					console.error("uploadError:", error);
 					updateProgress(task.progress || 0, "failed");
 					message.error(formatMessage("uploadError", { name: task.file.name }));
@@ -334,12 +275,8 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 
 			init();
 		},
-		// 暂停任务
+		// 暂停任务 (COS 上传不支持暂停，只是标记状态)
 		pauseTask: (taskId: string) => {
-			const task = get().upload.queue.find((t) => t.id === taskId);
-			if (task?.abortController) {
-				task.abortController.abort();
-			}
 			set((state) => ({
 				upload: {
 					...state.upload,
@@ -348,7 +285,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 							? {
 									...t,
 									status: "paused" as UploadStatus,
-									abortController: null,
 								}
 							: t,
 					),
@@ -367,18 +303,12 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			}));
 			await get().upload.startUpload(parentId, () => {});
 		},
-		// 取消任务
+		// 取消任务 (COS 上传不支持取消，只是从队列移除)
 		cancelTask: (taskId: string) => {
-			const task = get().upload.queue.find((t) => t.id === taskId);
-			if (task?.abortController) {
-				task.abortController.abort();
-			}
 			set((state) => ({
 				upload: {
 					...state.upload,
-					queue: state.upload.queue
-						.map((t) => (t.id === taskId ? { ...t, abortController: null } : t))
-						.filter((t) => t.id !== taskId),
+					queue: state.upload.queue.filter((t) => t.id !== taskId),
 				},
 			}));
 		},
@@ -388,18 +318,17 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			const task = up.queue.find((t) => t.id === taskId);
 			if (!task) return;
 
-			const { error: _error, fileHash: _fileHash, ...taskWithoutError } = task;
-			const taskForRetry = {
+			const { error: _error, ...taskWithoutError } = task;
+			const taskForRetry: UploadTask = {
 				...taskWithoutError,
 				status: "pending" as UploadStatus,
 				progress: 0,
 			};
-			delete (taskForRetry as Record<string, unknown>).fileHash;
 			set((state) => ({
 				upload: {
 					...state.upload,
 					queue: state.upload.queue.map((t) =>
-						t.id === taskId ? (taskForRetry as UploadTask) : t,
+						t.id === taskId ? taskForRetry : t,
 					),
 				},
 			}));

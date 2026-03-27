@@ -1,4 +1,29 @@
 import { http } from "@/lib/axios";
+import type { FileItem } from "@/views/File/types";
+
+export interface CosStsResponse {
+	code: number;
+	message: string;
+	data: {
+		credentials: {
+			tmpSecretId: string;
+			tmpSecretKey: string;
+			sessionToken: string;
+		};
+		expiredTime: number;
+		startTime: number;
+		bucket: string;
+		region: string;
+		key: string;
+		fileId: string;
+	};
+}
+
+export interface ApiResponse<T> {
+	code: number;
+	message: string;
+	data: T;
+}
 
 /**
  * 获取文件列表
@@ -6,11 +31,39 @@ import { http } from "@/lib/axios";
  * @returns 文件列表
  */
 export const getFileList = (parentId: string | null) => {
-	return http.get("/largeFile/list", {
+	return http.get<ApiResponse<FileItem[]>>("/largeFile/list", {
 		params: {
 			parentId,
 		},
 	});
+};
+
+/**
+ * 获取 COS 临时上传凭证
+ * @param filename 文件名
+ * @param parentId 父文件夹ID
+ * @param fileSize 文件大小
+ * @param fileHash 文件哈希
+ * @returns COS 临时凭证
+ */
+export const getCosSts = (
+	filename: string,
+	parentId: string | null,
+	fileSize: number,
+	fileHash: string,
+) => {
+	return http.get<CosStsResponse>("/largeFile/sts/credentials", {
+		params: { filename, parentId, fileSize, fileHash },
+	});
+};
+
+/**
+ * 确认 COS 上传完成
+ * @param fileId 文件ID
+ * @returns 确认结果
+ */
+export const confirmCosUpload = (fileId: string) => {
+	return http.post("/largeFile/sts/confirm", { fileId });
 };
 
 /**

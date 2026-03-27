@@ -13,7 +13,7 @@ import { RowContext } from "@/components/DraggableRow.tsx";
 import { TableFolderDroppable } from "@/components/DroppableNode.tsx";
 import { useAbility } from "@/providers/AbilityProvider";
 import { formatFileSize } from "@/utils/utils";
-import { useFileStore } from "../store/useFileStore";
+import { useFileStore } from "../store/newUseFileStore";
 import type { FileItem, FileTableProps } from "../types";
 
 type TableRowSelection<T extends object = object> =

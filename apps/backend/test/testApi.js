@@ -1,12 +1,15 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:3001"; // 后端接口地址
+const BASE_URL = "http://localhost:4000";
 
-async function testGetArticle(slug) {
+async function testStsCredentials() {
 	try {
-		const res = await axios.get(`${BASE_URL}/articles/${slug}`);
-		console.log("✅ Article fetched successfully:");
+		const res = await axios.get(`${BASE_URL}/largeFile/sts/credentials`, {
+			params: { filename: "test.jpg" },
+		});
+		console.log("✅ STS Credentials fetched successfully:");
 		console.log(res.data);
+		return res.data;
 	} catch (error) {
 		if (error.response) {
 			console.error("❌ Server responded with error:", error.response.data);
@@ -17,8 +20,8 @@ async function testGetArticle(slug) {
 }
 
 async function test() {
-	console.log("=== Testing MDX Article API ===");
-	await testGetArticle("welcome");
+	console.log("\n=== Testing STS Credentials API ===");
+	await testStsCredentials();
 }
 
 test();

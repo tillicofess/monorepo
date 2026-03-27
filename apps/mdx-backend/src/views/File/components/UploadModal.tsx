@@ -10,7 +10,7 @@ import {
 import { Button, Modal, Progress, Space, Typography, theme } from "antd";
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { useFileStore } from "../store/useFileStore";
+import { useFileStore } from "../store/newUseFileStore";
 import type { UploadModalProps } from "../types";
 
 const { Text, Title } = Typography;

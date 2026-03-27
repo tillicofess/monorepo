@@ -6,6 +6,12 @@ export interface FileItem {
 	size: number;
 	uploadTime: string;
 	isDir: boolean;
+	cosKey?: string;
+	fileHash?: string;
+	fileType?: string;
+	parentId?: string | null;
+	createdAt?: string;
+	updatedAt?: string;
 }
 
 export interface BreadcrumbItem {

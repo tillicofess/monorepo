@@ -2,7 +2,7 @@ import { Button, Space } from "antd";
 import { FolderPlus, Plus, Trash2 } from "lucide-react";
 import { FormattedMessage } from "react-intl";
 import { useAbility } from "@/providers/AbilityProvider";
-import { useFileStore } from "../store/useFileStore";
+import { useFileStore } from "../store/newUseFileStore";
 
 export function FileActions() {
 	const ability = useAbility();
