@@ -41,10 +41,5 @@
 	},
 	"dependencies": {
 		"date-fns": "^4.1.0"
-	},
-	"pnpm": {
-		"overrides": {
-			"uuid": "^13.0.0"
-		}
 	}
 }

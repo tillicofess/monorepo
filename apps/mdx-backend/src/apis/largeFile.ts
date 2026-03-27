@@ -4,18 +4,32 @@ import type { FileItem } from "@/views/File/types";
 export interface CosStsResponse {
 	code: number;
 	message: string;
-	data: {
-		credentials: {
-			tmpSecretId: string;
-			tmpSecretKey: string;
-			sessionToken: string;
-		};
-		expiredTime: number;
-		startTime: number;
-		bucket: string;
-		region: string;
-		key: string;
-		fileId: string;
+	data: CosStsData;
+}
+
+export interface CosStsData {
+	credentials?: {
+		tmpSecretId: string;
+		tmpSecretKey: string;
+		sessionToken: string;
+	};
+	expiredTime?: number;
+	startTime?: number;
+	bucket?: string;
+	region?: string;
+	key?: string;
+	fileId?: string;
+	skipUpload?: boolean;
+	conflict?: boolean;
+	isSameHash?: boolean;
+	existingFile?: {
+		id: string;
+		name: string;
+		cosKey: string;
+		fileHash: string;
+		size: number;
+		fileType: string;
+		createdAt: string;
 	};
 }
 
@@ -44,6 +58,7 @@ export const getFileList = (parentId: string | null) => {
  * @param parentId 父文件夹ID
  * @param fileSize 文件大小
  * @param fileHash 文件哈希
+ * @param overwrite 是否覆盖同名文件
  * @returns COS 临时凭证
  */
 export const getCosSts = (
@@ -51,9 +66,10 @@ export const getCosSts = (
 	parentId: string | null,
 	fileSize: number,
 	fileHash: string,
+	overwrite?: boolean,
 ) => {
 	return http.get<CosStsResponse>("/largeFile/sts/credentials", {
-		params: { filename, parentId, fileSize, fileHash },
+		params: { filename, parentId, fileSize, fileHash, overwrite },
 	});
 };
 

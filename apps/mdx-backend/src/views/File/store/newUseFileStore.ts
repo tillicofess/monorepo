@@ -1,4 +1,4 @@
-import { message } from "antd";
+import { Modal, message } from "antd";
 import { create } from "zustand";
 import { createFolder, deleteFile, renameFile } from "@/apis/index";
 import { cosUpload } from "@/lib/file";
@@ -20,15 +20,6 @@ export type UploadStatus =
 export interface UploadTask {
 	id: string;
 	file: File;
-	progress: number;
-	status: UploadStatus;
-	error?: string;
-}
-
-export interface UploadFile {
-	id: string;
-	file: File;
-	fileHash?: string;
 	progress: number;
 	status: UploadStatus;
 	error?: string;
@@ -217,16 +208,49 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					const file = task.file;
 					updateProgress(0, "uploading");
 
-					await cosUpload({
+					const result = await cosUpload({
 						file,
 						parentId,
 						onProgress: (progress) => {
 							updateProgress(progress);
 						},
+						onConflict: (info) => {
+							return new Promise((resolve) => {
+								Modal.confirm({
+									title: formatMessage("overwriteConfirmTitle"),
+									content: info.isSameHash
+										? formatMessage("overwriteConfirmContentSameHash", {
+												existingName: info.existingFile?.name || "",
+											})
+										: formatMessage("overwriteConfirmContent", {
+												existingName: info.existingFile?.name || "",
+												newName: file.name,
+											}),
+									okText: formatMessage("confirm"),
+									cancelText: formatMessage("cancel"),
+									onOk: () => resolve(true),
+									onCancel: () => resolve(false),
+								});
+							});
+						},
 					});
 
 					updateProgress(100, "completed");
+
+					if (result.isInstantUpload) {
+						message.success(
+							formatMessage("instantUploadSuccess", { name: file.name }),
+						);
+					} else {
+						message.success(
+							formatMessage("uploadSuccess", { name: file.name }),
+						);
+					}
 				} catch (error) {
+					if (error instanceof Error && error.message === "用户取消覆盖") {
+						updateProgress(0, "pending");
+						return;
+					}
 					console.error("uploadError:", error);
 					updateProgress(task.progress || 0, "failed");
 					message.error(formatMessage("uploadError", { name: task.file.name }));
