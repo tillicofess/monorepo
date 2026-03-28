@@ -9,10 +9,10 @@ export const getFileList = async (req, res) => {
 
 		connection = await pool.getConnection();
 		const [rows] = await connection.execute(
-			`SELECT id, name, is_directory AS isDirectory, parent_id AS parentId, 
-			        cos_key AS cosKey, file_hash AS fileHash, status, size, 
+			`SELECT id, name, is_directory AS isDirectory, parent_id AS parentId,
+			        cos_key AS cosKey, file_hash AS fileHash, status, size,
 			        file_type AS fileType, created_at AS createdAt, updated_at AS updatedAt
-			 FROM files 
+			 FROM files
 			 WHERE parent_id ${targetParentId === null ? "IS NULL" : "= ?"} AND status != 2`,
 			targetParentId === null ? [] : [targetParentId],
 		);
@@ -148,7 +148,7 @@ export const deleteFile = async (req, res) => {
 		connection = await pool.getConnection();
 
 		const [rows] = await connection.execute(
-			"SELECT is_directory, cos_key FROM files WHERE id = ?",
+			"SELECT is_directory FROM files WHERE id = ?",
 			[id],
 		);
 
@@ -157,45 +157,12 @@ export const deleteFile = async (req, res) => {
 			return;
 		}
 
-		const file = rows[0];
-
-		if (file.is_directory === 0 && file.cos_key) {
-			const [refRows] = await connection.execute(
-				"SELECT COUNT(*) as count FROM files WHERE cos_key = ? AND status != 2",
-				[file.cos_key],
-			);
-			const refCount = refRows[0].count;
-
+		if (rows[0].is_directory === 1) {
+			await connection.execute("DELETE FROM files WHERE id = ?", [id]);
+		} else {
 			await connection.execute("UPDATE files SET status = 2 WHERE id = ?", [
 				id,
 			]);
-
-			if (refCount <= 1) {
-				const COS = (await import("cos-nodejs-sdk-v5")).default;
-				const cos = new COS({
-					SecretId: process.env.COS_SECRET_ID,
-					SecretKey: process.env.COS_SECRET_KEY,
-				});
-				await new Promise((resolve) => {
-					cos.deleteObject(
-						{
-							Bucket: process.env.COS_BUCKET,
-							Region: process.env.COS_REGION,
-							Key: file.cos_key,
-						},
-						(err) => {
-							if (err) {
-								console.error(`[COS Delete Failed] Key: ${file.cos_key}`, err);
-							} else {
-								console.log(`[COS Delete Success] Key: ${file.cos_key}`);
-							}
-							resolve();
-						},
-					);
-				});
-			}
-		} else {
-			await connection.execute("DELETE FROM files WHERE id = ?", [id]);
 		}
 
 		res.send({
@@ -251,7 +218,9 @@ export const moveFileOrFolder = async (req, res) => {
 		});
 	} catch (err) {
 		console.error("moveFileOrFolder error", err);
-		res.status(500).send({ code: 1, message: "移动失败", error: err.message });
+		res
+			.status(500)
+			.send({ code: 1, message: "移动文件或文件夹失败", error: err.message });
 	} finally {
 		if (connection) connection.release();
 	}

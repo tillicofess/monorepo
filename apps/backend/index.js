@@ -4,6 +4,7 @@ import express from "express";
 import pool from "./config/db.js";
 import errorLogRoutes from "./routes/errorLogRoutes.js";
 import largeFileRoutes from "./routes/largeFile.js";
+import { initCosCleanupScheduler } from "./scheduler/cosCleanupScheduler.js";
 
 // import { checkJwt } from './middleware/checkJwt.js';
 
@@ -66,6 +67,7 @@ async function testDatabaseConnection() {
 
 testDatabaseConnection()
 	.then(() => {
+		initCosCleanupScheduler();
 		app.listen(PORT, () => {
 			console.log(`Listening at http://localhost:${PORT}`);
 		});

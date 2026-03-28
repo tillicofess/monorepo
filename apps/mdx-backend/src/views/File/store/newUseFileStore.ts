@@ -208,7 +208,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					const file = task.file;
 					updateProgress(0, "uploading");
 
-					const result = await cosUpload({
+					await cosUpload({
 						file,
 						parentId,
 						onProgress: (progress) => {
@@ -237,15 +237,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 
 					updateProgress(100, "completed");
 
-					if (result.isInstantUpload) {
-						message.success(
-							formatMessage("instantUploadSuccess", { name: file.name }),
-						);
-					} else {
-						message.success(
-							formatMessage("uploadSuccess", { name: file.name }),
-						);
-					}
+					message.success(formatMessage("uploadSuccess", { name: file.name }));
 				} catch (error) {
 					if (error instanceof Error && error.message === "用户取消覆盖") {
 						updateProgress(0, "pending");
