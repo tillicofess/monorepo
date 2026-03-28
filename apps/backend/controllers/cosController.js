@@ -54,7 +54,7 @@ export const getCosSts = async (req, res) => {
 
 		const [existingRows] = await connection.execute(
 			`SELECT id, file_hash, cos_key FROM files
-			 WHERE name = ? AND parent_id ${targetParentId === null ? "IS NULL" : "= ?"} AND is_directory = 0 AND status != 2`,
+			 WHERE name = ? AND parent_id ${targetParentId === null ? "IS NULL" : "= ?"} AND is_directory = 0 AND status = 1`,
 			targetParentId === null ? [filename] : [filename, targetParentId],
 		);
 

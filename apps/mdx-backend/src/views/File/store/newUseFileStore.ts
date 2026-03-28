@@ -1,7 +1,12 @@
 import { Modal, message } from "antd";
 import { create } from "zustand";
 import { createFolder, deleteFile, renameFile } from "@/apis/index";
-import { cosUpload } from "@/lib/file";
+import {
+	cancelCosTask,
+	cosUpload,
+	pauseCosTask,
+	restartCosTask,
+} from "@/lib/file";
 import { formatMessage } from "@/lib/intl";
 import type {
 	DeleteFileState,
@@ -21,8 +26,10 @@ export interface UploadTask {
 	id: string;
 	file: File;
 	progress: number;
+	speed: number;
 	status: UploadStatus;
 	error?: string;
+	cosTaskId?: string;
 }
 
 interface FileStoreState {
@@ -124,7 +131,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 	upload: {
 		isModalOpen: false,
 		queue: [],
-		maxConcurrent: 3,
+		maxConcurrent: 1,
 		fileInputRef: { current: null },
 		openModal: () =>
 			set((state) => ({ upload: { ...state.upload, isModalOpen: true } })),
@@ -144,6 +151,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 				id: generateId(),
 				file,
 				progress: 0,
+				speed: 0,
 				status: "pending",
 			}));
 			set((state) => ({
@@ -191,13 +199,22 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					},
 				}));
 
-				const updateProgress = (progress: number, status?: UploadStatus) => {
+				const updateProgress = (
+					progress: number,
+					status?: UploadStatus,
+					speed?: number,
+				) => {
 					set((state) => ({
 						upload: {
 							...state.upload,
 							queue: state.upload.queue.map((t) =>
 								t.id === task.id
-									? { ...t, progress, status: status ?? t.status }
+									? {
+											...t,
+											progress,
+											speed: speed ?? t.speed,
+											status: status ?? t.status,
+										}
 									: t,
 							),
 						},
@@ -211,8 +228,8 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					await cosUpload({
 						file,
 						parentId,
-						onProgress: (progress) => {
-							updateProgress(progress);
+						onProgress: (progress, speed) => {
+							updateProgress(progress, undefined, speed);
 						},
 						onConflict: (info) => {
 							return new Promise((resolve) => {
@@ -233,6 +250,16 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 								});
 							});
 						},
+						onTaskReady: (cosTaskId) => {
+							set((state) => ({
+								upload: {
+									...state.upload,
+									queue: state.upload.queue.map((t) =>
+										t.id === task.id ? { ...t, cosTaskId } : t,
+									),
+								},
+							}));
+						},
 					});
 
 					updateProgress(100, "completed");
@@ -240,7 +267,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 					message.success(formatMessage("uploadSuccess", { name: file.name }));
 				} catch (error) {
 					if (error instanceof Error && error.message === "用户取消覆盖") {
-						updateProgress(0, "pending");
+						updateProgress(0, "cancelled");
 						return;
 					}
 					console.error("uploadError:", error);
@@ -291,8 +318,13 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 
 			init();
 		},
-		// 暂停任务 (COS 上传不支持暂停，只是标记状态)
+		// 暂停任务
 		pauseTask: (taskId: string) => {
+			const { upload: up } = get();
+			const task = up.queue.find((t) => t.id === taskId);
+			if (task?.cosTaskId) {
+				pauseCosTask(task.cosTaskId);
+			}
 			set((state) => ({
 				upload: {
 					...state.upload,
@@ -308,19 +340,28 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			}));
 		},
 		// 继续任务
-		resumeTask: async (taskId: string, parentId: string | null) => {
+		resumeTask: async (taskId: string, _parentId: string | null) => {
+			const { upload: up } = get();
+			const task = up.queue.find((t) => t.id === taskId);
+			if (task?.cosTaskId) {
+				restartCosTask(task.cosTaskId);
+			}
 			set((state) => ({
 				upload: {
 					...state.upload,
 					queue: state.upload.queue.map((t) =>
-						t.id === taskId ? { ...t, status: "pending" as UploadStatus } : t,
+						t.id === taskId ? { ...t, status: "uploading" as UploadStatus } : t,
 					),
 				},
 			}));
-			await get().upload.startUpload(parentId, () => {});
 		},
-		// 取消任务 (COS 上传不支持取消，只是从队列移除)
+		// 取消任务
 		cancelTask: (taskId: string) => {
+			const { upload: up } = get();
+			const task = up.queue.find((t) => t.id === taskId);
+			if (task?.cosTaskId) {
+				cancelCosTask(task.cosTaskId);
+			}
 			set((state) => ({
 				upload: {
 					...state.upload,
@@ -334,11 +375,16 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			const task = up.queue.find((t) => t.id === taskId);
 			if (!task) return;
 
+			if (task.cosTaskId) {
+				cancelCosTask(task.cosTaskId);
+			}
+
 			const { error: _error, ...taskWithoutError } = task;
 			const taskForRetry: UploadTask = {
 				...taskWithoutError,
 				status: "pending" as UploadStatus,
 				progress: 0,
+				speed: 0,
 			};
 			set((state) => ({
 				upload: {

@@ -13,7 +13,7 @@ export const getFileList = async (req, res) => {
 			        cos_key AS cosKey, file_hash AS fileHash, status, size,
 			        file_type AS fileType, created_at AS createdAt, updated_at AS updatedAt
 			 FROM files
-			 WHERE parent_id ${targetParentId === null ? "IS NULL" : "= ?"} AND status != 2`,
+			 WHERE parent_id ${targetParentId === null ? "IS NULL" : "= ?"} AND status = 1`,
 			targetParentId === null ? [] : [targetParentId],
 		);
 

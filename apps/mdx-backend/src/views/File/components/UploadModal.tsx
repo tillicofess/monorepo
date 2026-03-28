@@ -24,6 +24,13 @@ const formatSize = (bytes: number) => {
 	return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 };
 
+const formatSpeed = (bytesPerSecond: number) => {
+	if (bytesPerSecond < 1024) return `${bytesPerSecond} B/s`;
+	if (bytesPerSecond < 1024 * 1024)
+		return `${(bytesPerSecond / 1024).toFixed(1)} KB/s`;
+	return `${(bytesPerSecond / (1024 * 1024)).toFixed(1)} MB/s`;
+};
+
 const getStatusColor = (status: string) => {
 	switch (status) {
 		case "completed":
@@ -285,6 +292,11 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 									style={{ fontSize: 12, color: token.colorTextQuaternary }}
 								>
 									{formatSize(task.file.size)}
+									{task.status === "uploading" && task.speed > 0 && (
+										<Text style={{ fontSize: 12, marginLeft: 6 }}>
+											{formatSpeed(task.speed)}
+										</Text>
+									)}
 									{task.status === "failed" && (
 										<Text type="danger" style={{ fontSize: 12, marginLeft: 6 }}>
 											<FormattedMessage id="uploadFailed" />
@@ -308,7 +320,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 
 							{/* 操作按钮 */}
 							<Space size={2} style={{ flexShrink: 0 }}>
-								{task.status === "pending" && (
+								{(task.status === "pending" || task.status === "cancelled") && (
 									<Button
 										type="text"
 										size="small"

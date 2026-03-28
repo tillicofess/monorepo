@@ -94,10 +94,36 @@ async function cleanupDeletedRecords() {
 	}
 }
 
+async function cleanupStaleUploadingRecords() {
+	let connection;
+	try {
+		console.log("[DB Cleanup] Starting stale uploading records cleanup...");
+		connection = await pool.getConnection();
+
+		const [result] = await connection.execute(`
+			DELETE FROM files
+			WHERE status = 0 AND created_at < NOW() - INTERVAL 2 DAY
+		`);
+
+		if (result.affectedRows > 0) {
+			console.log(
+				`[DB Cleanup] Deleted ${result.affectedRows} stale uploading records.`,
+			);
+		} else {
+			console.log("[DB Cleanup] No stale uploading records to clean up.");
+		}
+	} catch (err) {
+		console.error("[DB Cleanup] Error:", err);
+	} finally {
+		if (connection) connection.release();
+	}
+}
+
 async function runCleanup() {
 	console.log("[Scheduler] Running daily COS and records cleanup...");
 	await cleanupOrphanedCosObjects();
 	await cleanupDeletedRecords();
+	await cleanupStaleUploadingRecords();
 	console.log("[Scheduler] Cleanup completed.");
 }
 
