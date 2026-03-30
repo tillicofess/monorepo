@@ -27,3 +27,5 @@ catalogs:
     qs: ^6.14.0
     jose: ^6.1.0
     zustand: ^5.0.0
+
+injectWorkspacePackages: true

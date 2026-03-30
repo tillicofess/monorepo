@@ -31,7 +31,6 @@ lerna-debug.log*
 
 # --- 3. Monorepo Dependencies Structure ---
 node_modules/
-pnpm-lock.yaml
 docs
 # packages
 packages/*/dist/
