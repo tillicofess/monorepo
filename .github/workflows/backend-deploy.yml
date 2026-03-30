@@ -38,3 +38,20 @@ jobs:
           # 开启缓存加速
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}      # 45.207.220.32
+          username: ${{ secrets.SSH_USER }}  # root
+          key: ${{ secrets.SSH_KEY }}        # id_rsa 的内容
+          port: 22                           # 如果不是22请修改
+          script: |
+            cd /opt/node
+            # 登录并拉取最新镜像
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker compose pull backend
+            # 启动
+            docker compose up -d backend
+            # 清理
+            docker image prune -f
