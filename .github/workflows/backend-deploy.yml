@@ -14,8 +14,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9 # 确保支持 catalog: 特性
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
