@@ -17,7 +17,7 @@ const allowList = [
 	"https://backend.ticscreek.top",
 	"https://ticscreek.top",
 	"http://localhost:5173",
-	"http://localhost:3000"
+	"http://localhost:3000",
 ];
 
 app.use(

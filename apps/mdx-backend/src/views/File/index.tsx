@@ -112,7 +112,7 @@ const File: React.FC = () => {
 					alignItems: "center",
 					flexWrap: "wrap",
 					gap: 12,
-					height: 32
+					height: 32,
 				}}
 			>
 				<Title

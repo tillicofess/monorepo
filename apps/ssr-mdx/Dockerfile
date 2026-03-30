@@ -10,16 +10,15 @@ COPY . .
 # 安装依赖
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
+# 先构建所有被依赖的 package，确保 ssr-mdx 的依赖都被正确构建
+RUN pnpm --filter "ssr-mdx^..." build
+
+# 构建 ssr-mdx 应用，生成 standalone 输出
 RUN pnpm --filter=ssr-mdx build
 
 # --- Stage 2: Runner ---
 FROM node:24-slim AS runner
 WORKDIR /app
-
-ENV NODE_ENV=production
-# Next.js standalone 默认监听 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
 COPY --from=build /usr/src/app/apps/ssr-mdx/.next/standalone ./
 
