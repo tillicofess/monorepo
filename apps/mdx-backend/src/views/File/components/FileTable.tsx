@@ -1,8 +1,4 @@
-import {
-	FileOutlined,
-	FolderOpenOutlined,
-	HolderOutlined,
-} from "@ant-design/icons";
+import { FolderOpenOutlined, HolderOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
 import { Button, Space, Table } from "antd";
 import { useContext } from "react";
@@ -13,6 +9,7 @@ import { RowContext } from "@/components/DraggableRow.tsx";
 import { TableFolderDroppable } from "@/components/DroppableNode.tsx";
 import { useAbility } from "@/providers/AbilityProvider";
 import { formatFileSize } from "@/utils/utils";
+import { getFileIcon } from "../data/fileIcon";
 import { useFileStore } from "../store/newUseFileStore";
 import type { FileItem, FileTableProps } from "../types";
 
@@ -62,7 +59,7 @@ export function FileTable({
 						{isDir ? (
 							<FolderOpenOutlined style={{ color: "#6366F1" }} />
 						) : (
-							<FileOutlined />
+							getFileIcon(record.fileType)
 						)}
 
 						{text}

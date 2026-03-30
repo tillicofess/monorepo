@@ -19,6 +19,7 @@ mdxbackend
 mdxeditor
 mybucket
 myrealm
+noextension
 nums
 pkce
 qcloud

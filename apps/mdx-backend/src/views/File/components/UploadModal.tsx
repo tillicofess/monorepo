@@ -2,7 +2,6 @@ import {
 	CheckCircleOutlined,
 	CloseCircleOutlined,
 	DeleteOutlined,
-	FileOutlined,
 	PauseOutlined,
 	PlayCircleOutlined,
 	UploadOutlined,
@@ -10,6 +9,7 @@ import {
 import { Button, Modal, Progress, Space, Typography, theme } from "antd";
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
+import { getFileExtension, getFileIcon } from "../data/fileIcon";
 import { useFileStore } from "../store/newUseFileStore";
 import type { UploadModalProps } from "../types";
 
@@ -269,9 +269,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 										style={{ fontSize: 16, color: getStatusColor(task.status) }}
 									/>
 								) : (
-									<FileOutlined
-										style={{ fontSize: 16, color: token.colorTextQuaternary }}
-									/>
+									getFileIcon(getFileExtension(task.file.name))
 								)}
 							</div>
 

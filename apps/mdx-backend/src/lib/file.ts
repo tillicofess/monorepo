@@ -1,6 +1,7 @@
 import COS from "cos-js-sdk-v5";
 import SparkMD5 from "spark-md5";
-import { type CosStsData, confirmCosUpload, getCosSts } from "@/apis/largeFile";
+import { confirmCosUpload, getCosSts } from "@/apis/largeFile";
+import type { CosStsData } from "@/types/apiTypes";
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 

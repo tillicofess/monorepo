@@ -157,13 +157,33 @@ export const deleteFile = async (req, res) => {
 			return;
 		}
 
-		if (rows[0].is_directory === 1) {
-			await connection.execute("DELETE FROM files WHERE id = ?", [id]);
-		} else {
+		const markAsDeleted = async (targetId) => {
+			const [itemRows] = await connection.execute(
+				"SELECT is_directory FROM files WHERE id = ?",
+				[targetId],
+			);
+
+			if (itemRows.length === 0) return;
+
+			const item = itemRows[0];
+
+			if (item.is_directory === 1) {
+				const [children] = await connection.execute(
+					"SELECT id FROM files WHERE parent_id = ?",
+					[targetId],
+				);
+
+				for (const child of children) {
+					await markAsDeleted(child.id);
+				}
+			}
+
 			await connection.execute("UPDATE files SET status = 2 WHERE id = ?", [
-				id,
+				targetId,
 			]);
-		}
+		};
+
+		await markAsDeleted(id);
 
 		res.send({
 			code: 0,

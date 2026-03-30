@@ -1,43 +1,8 @@
 import { http } from "@/lib/axios";
+import type { ApiResponse, CosStsResponse } from "@/types/apiTypes";
 import type { FileItem } from "@/views/File/types";
 
-export interface CosStsResponse {
-	code: number;
-	message: string;
-	data: CosStsData;
-}
-
-export interface CosStsData {
-	credentials?: {
-		tmpSecretId: string;
-		tmpSecretKey: string;
-		sessionToken: string;
-	};
-	expiredTime?: number;
-	startTime?: number;
-	bucket?: string;
-	region?: string;
-	key?: string;
-	fileId?: string;
-	skipUpload?: boolean;
-	conflict?: boolean;
-	isSameHash?: boolean;
-	existingFile?: {
-		id: string;
-		name: string;
-		cosKey: string;
-		fileHash: string;
-		size: number;
-		fileType: string;
-		createdAt: string;
-	};
-}
-
-export interface ApiResponse<T> {
-	code: number;
-	message: string;
-	data: T;
-}
+export type { ApiResponse, CosStsData, CosStsResponse } from "@/types/apiTypes";
 
 /**
  * 获取文件列表
