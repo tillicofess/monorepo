@@ -1,0 +1,50 @@
+name: SSR-MDX (Next.js) CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/ssr-mdx/**'          # 后端代码变动
+      - 'packages/**'               # 共享包变动（Monorepo 依赖）
+      - 'pnpm-lock.yaml'            # 依赖版本变动
+      - 'pnpm-workspace.yaml'       # 工作区定义变动
+      - 'package.json'              # 根目录配置（如 catalog 或 inject 设置）
+      - '.github/workflows/ssr-mdx-deploy.yml' # CI 脚本自身变动
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+    
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/ssr-mdx/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ssr-mdx:latest
+            ${{ secrets.DOCKER_USERNAME }}/ssr-mdx:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/node
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker compose pull ssr-mdx
+            docker compose up -d ssr-mdx
+            docker image prune -f
