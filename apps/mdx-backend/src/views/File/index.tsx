@@ -105,22 +105,32 @@ const File: React.FC = () => {
 				gap: 16,
 			}}
 		>
-			<Title
-				level={4}
-				style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					flexWrap: "wrap",
+					gap: 12,
+					height: 32
+				}}
 			>
-				<FileSyncOutlined style={{ color: "#1990FF" }} />
-				<FormattedMessage id="fileManagement" />
-			</Title>
+				<Title
+					level={4}
+					style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}
+				>
+					<FileSyncOutlined style={{ color: "#1990FF" }} />
+					<FormattedMessage id="fileManagement" />
+				</Title>
+			</div>
 			<Card
 				style={{
 					flex: 1,
 					display: "flex",
 					flexDirection: "column",
 					borderRadius: 12,
-					border: `1px solid ${token.colorBorderSecondary}`,
-					boxShadow: "none",
-					background: token.colorBgContainer,
+					border: `1px solid ${token.colorBorder}`,
+					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 				}}
 				styles={{ body: { padding: 20 } }}
 			>

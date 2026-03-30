@@ -12,25 +12,9 @@ import type {
 	DeleteFileState,
 	DeleteMultipleState,
 	FileNameState,
+	UploadStatus,
+	UploadTask,
 } from "../types";
-
-export type UploadStatus =
-	| "pending"
-	| "uploading"
-	| "completed"
-	| "failed"
-	| "cancelled"
-	| "paused";
-
-export interface UploadTask {
-	id: string;
-	file: File;
-	progress: number;
-	speed: number;
-	status: UploadStatus;
-	error?: string;
-	cosTaskId?: string;
-}
 
 interface FileStoreState {
 	selectedRowKeys: React.Key[];
@@ -172,8 +156,9 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 		},
 		// 开始上传
 		startUpload: async (parentId: string | null, onSuccess: () => void) => {
-			const { upload: up } = get();
-			const pendingTasks = up.queue.filter((t) => t.status === "pending");
+			const { upload } = get();
+			// 1. 获取所有待上传任务
+			const pendingTasks = upload.queue.filter((t) => t.status === "pending");
 
 			if (pendingTasks.length === 0) {
 				message.warning(formatMessage("noFilesToUpload"));
@@ -181,57 +166,33 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 			}
 
 			/**
-			 * 单个任务执行
+			 * 更新单个任务状态的辅助函数
 			 */
-			const runTask = async (task: UploadTask) => {
-				// 🔒 先立刻占位，防止重复调度
+			const updateTask = (taskId: string, payload: Partial<UploadTask>) => {
 				set((state) => ({
 					upload: {
 						...state.upload,
 						queue: state.upload.queue.map((t) =>
-							t.id === task.id
-								? {
-										...t,
-										status: "uploading" as UploadStatus,
-									}
-								: t,
+							t.id === taskId ? { ...t, ...payload } : t,
 						),
 					},
 				}));
+			};
 
-				const updateProgress = (
-					progress: number,
-					status?: UploadStatus,
-					speed?: number,
-				) => {
-					set((state) => ({
-						upload: {
-							...state.upload,
-							queue: state.upload.queue.map((t) =>
-								t.id === task.id
-									? {
-											...t,
-											progress,
-											speed: speed ?? t.speed,
-											status: status ?? t.status,
-										}
-									: t,
-							),
-						},
-					}));
-				};
-
+			/**
+			 * 执行单个上传逻辑
+			 */
+			const runTask = async (task: UploadTask) => {
 				try {
-					const file = task.file;
-					updateProgress(0, "uploading");
+					updateTask(task.id, { status: "uploading", progress: 0 });
 
 					await cosUpload({
-						file,
+						file: task.file,
 						parentId,
 						onProgress: (progress, speed) => {
-							updateProgress(progress, undefined, speed);
+							updateTask(task.id, { progress, speed });
 						},
-						onConflict: (info) => {
+						onConflict: async (info) => {
 							return new Promise((resolve) => {
 								Modal.confirm({
 									title: formatMessage("overwriteConfirmTitle"),
@@ -241,82 +202,57 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 											})
 										: formatMessage("overwriteConfirmContent", {
 												existingName: info.existingFile?.name || "",
-												newName: file.name,
+												newName: task.file.name,
 											}),
-									okText: formatMessage("confirm"),
-									cancelText: formatMessage("cancel"),
 									onOk: () => resolve(true),
 									onCancel: () => resolve(false),
 								});
 							});
 						},
-						onTaskReady: (cosTaskId) => {
-							set((state) => ({
-								upload: {
-									...state.upload,
-									queue: state.upload.queue.map((t) =>
-										t.id === task.id ? { ...t, cosTaskId } : t,
-									),
-								},
-							}));
-						},
+						onTaskReady: (cosTaskId) => updateTask(task.id, { cosTaskId }),
 					});
 
-					updateProgress(100, "completed");
-
-					message.success(formatMessage("uploadSuccess", { name: file.name }));
-				} catch (error) {
-					if (error instanceof Error && error.message === "用户取消覆盖") {
-						updateProgress(0, "cancelled");
-						return;
-					}
-					console.error("uploadError:", error);
-					updateProgress(task.progress || 0, "failed");
-					message.error(formatMessage("uploadError", { name: task.file.name }));
-				}
-			};
-
-			/**
-			 * 单次拉取一个任务执行
-			 */
-			const scheduleNext = () => {
-				const { upload: current } = get();
-
-				const runningCount = current.queue.filter(
-					(t) => t.status === "uploading",
-				).length;
-
-				if (runningCount >= current.maxConcurrent) return;
-
-				const nextTask = current.queue.find((t) => t.status === "pending");
-				if (!nextTask) {
-					const stillUploading = current.queue.some(
-						(t) => t.status === "uploading",
+					updateTask(task.id, { status: "completed", progress: 100 });
+					message.success(
+						formatMessage("uploadSuccess", { name: task.file.name }),
 					);
-					if (!stillUploading) {
-						onSuccess();
-					}
-					return;
-				}
+				} catch (error: any) {
+					const isCancel =
+						error?.message === "用户取消覆盖" || error?.name === "AbortError";
+					updateTask(task.id, {
+						status: isCancel ? "cancelled" : "failed",
+						progress: isCancel ? 0 : task.progress,
+					});
 
-				runTask(nextTask).finally(() => {
-					scheduleNext(); // 只触发一次
-				});
+					if (!isCancel) {
+						console.error("Upload error:", error);
+						message.error(
+							formatMessage("uploadError", { name: task.file.name }),
+						);
+					}
+				}
 			};
 
 			/**
-			 * 初始化并发启动
+			 * 顺序执行器 (严格一个接一个)
 			 */
-			const init = () => {
-				const { upload: current } = get();
-				const max = current.maxConcurrent;
+			const executeSequentially = async () => {
+				// 重新获取最新的 queue 以免闭包引用旧数据
+				const tasksToProcess = get().upload.queue.filter(
+					(t) => t.status === "pending",
+				);
 
-				for (let i = 0; i < max; i++) {
-					scheduleNext();
+				for (const task of tasksToProcess) {
+					await runTask(task);
+					// 可以在这里插入一小段延迟，防止 UI 过于频繁闪烁
 				}
+
+				// 所有任务尝试完毕后触发
+				onSuccess();
 			};
 
-			init();
+			// 启动顺序上传
+			executeSequentially();
 		},
 		// 暂停任务
 		pauseTask: (taskId: string) => {

@@ -76,8 +76,8 @@ const OverviewCard: React.FC<{ data: OverviewData; loading: boolean }> = ({
 						<Card
 							style={{
 								borderRadius: 12,
-								border: `1px solid ${token.colorBorderSecondary}`,
-								boxShadow: token.boxShadow,
+								border: `1px solid ${token.colorBorder}`,
+								boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 							}}
 							styles={{ body: { padding: 20 } }}
 						>

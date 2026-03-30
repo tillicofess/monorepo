@@ -1,5 +1,5 @@
 import type { TableProps } from "antd";
-import { Button, Table } from "antd";
+import { Button, Table, Tooltip } from "antd";
 import { Code, Play } from "lucide-react";
 import type React from "react";
 import { useCallback } from "react";
@@ -35,12 +35,33 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			title: <FormattedMessage id="projectName" defaultMessage="项目名称" />,
 			dataIndex: "app_name",
 			key: "app_name",
+			width: 150,
 		},
 		{
 			title: <FormattedMessage id="errorMessage" defaultMessage="错误信息" />,
 			dataIndex: "error",
 			key: "error",
-			render: (text) => <span>{text?.message}</span>,
+			minWidth: 300,
+			render: (text) => {
+				const message = text?.message || "";
+				return (
+					<Tooltip title={message} placement="topLeft">
+						<div
+							style={{
+								display: "-webkit-box",
+								WebkitLineClamp: 2,
+								WebkitBoxOrient: "vertical",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								wordBreak: "break-word",
+								cursor: "pointer",
+							}}
+						>
+							{message}
+						</div>
+					</Tooltip>
+				);
+			},
 		},
 		{
 			title: <FormattedMessage id="errorType" defaultMessage="错误类型" />,
