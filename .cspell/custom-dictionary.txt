@@ -31,6 +31,7 @@ rehype
 Requset
 sandpack
 Sandpack
+seaweedfs
 shiki
 shikijs
 sider

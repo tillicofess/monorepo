@@ -1,11 +1,20 @@
 import express from "express";
+import multer from "multer";
+
+const upload = multer();
 
 // import { checkJwt } from '../middleware/checkJwt.js';
 const router = express.Router();
 
 import * as errorLogController from "../controllers/errorLogController.js";
+import * as seaweedfsController from "../controllers/seaweedfsController.js";
 
 router.post("/create", errorLogController.createLog);
+router.post(
+	"/sourcemap/upload",
+	upload.single("map"),
+	seaweedfsController.uploadSourceMap,
+);
 router.get("/all", errorLogController.getAllLogs);
 router.get("/appNames", errorLogController.getAppNames);
 router.get("/urls/:appName", errorLogController.getUrlsByApp);
