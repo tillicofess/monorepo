@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-const MONITOR_API = "http://localhost:4000/errorLogs/sourcemap/upload";
+const MONITOR_API = "https://api.ticscreek.top/errorLogs/sourcemap/upload";
 
 const getInjectionCode = (debugId) => {
 	return `;!function(){try{var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{};e._monitorDebugIds=e._monitorDebugIds||{};e._monitorDebugIds[(new e.Error).stack]="${debugId}"}catch(e){}}();\n`;

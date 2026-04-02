@@ -1,20 +1,29 @@
+# --- Stage 1: Build ---
 FROM node:24-slim AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
 RUN corepack enable
 
 WORKDIR /usr/src/app
-# 拷贝全量代码处理 Monorepo 依赖
 COPY . .
 
-# 安装依赖
+# 1. 安装依赖
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# 先构建所有被依赖的 package，确保 ssr-mdx 的依赖都被正确构建
+# 2. 构建依赖项及应用
 RUN pnpm --filter "ssr-mdx^..." build
-
-# 构建 ssr-mdx 应用，生成 standalone 输出
 RUN pnpm --filter=ssr-mdx build
+
+# 3. 运行 SourceMap 处理脚本
+ARG GITHUB_SHA
+ENV GITHUB_SHA=$GITHUB_SHA
+RUN node ./packages/sourcemap-cli/index.js ./apps/ssr-mdx/.next/static
+
+# 3. 在该阶段处理静态资源拷贝
+RUN cp -r apps/ssr-mdx/.next/static apps/ssr-mdx/.next/standalone/apps/ssr-mdx/.next/ && \
+    mkdir -p apps/ssr-mdx/.next/standalone/apps/ssr-mdx/public && \
+    cp -r apps/ssr-mdx/public/* apps/ssr-mdx/.next/standalone/apps/ssr-mdx/public/
 
 # --- Stage 2: Runner ---
 FROM node:24-slim AS runner
