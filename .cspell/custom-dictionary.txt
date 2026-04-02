@@ -20,6 +20,7 @@ inited
 lintstagedrc
 mdxbackend
 mdxeditor
+Microtask
 mybucket
 myrealm
 noextension
@@ -39,6 +40,7 @@ ticscreek
 ticscreektop
 tillicofess
 totaltime
+Trae
 ttfb
 turbopack
 UMAMI

@@ -8,17 +8,17 @@ export default function MonitorTestPage() {
 	const imgRef = useRef<HTMLImageElement>(null);
 
 	const handleJsError = () => {
-		throw new Error("Boom! Something went wrong");
+		throw new Error("Critical: Division by zero detected");
 	};
 
 	const handlePromiseReject = () => {
-		Promise.reject(new Error("Oops! Promise got rejected"));
+		Promise.reject(new Error("Unhandled: Network timeout at step 3"));
 	};
 
 	const handleAsyncError = () => {
 		setTimeout(() => {
-			throw new Error("Kaboom! Async error here");
-		}, 0);
+			throw new Error("Exception: Null pointer in production");
+		}, 100);
 	};
 
 	const handleFetchError = async () => {
@@ -41,77 +41,109 @@ export default function MonitorTestPage() {
 
 	return (
 		<div className="container mx-auto py-12 max-w-2xl">
-			<h1 className="text-3xl font-bold mb-8">🎯 Monitor SDK Debug Station</h1>
+			<h1 className="text-4xl font-bold mb-8 text-center">
+				<span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+					Monitor Debug Console
+				</span>
+			</h1>
 
-			<div className="space-y-6">
-				<Card className="border-red-500/50">
+			<div className="grid gap-6">
+				<Card className="bg-red-50 dark:bg-red-950/20 border-red-300">
 					<CardHeader>
-						<CardTitle className="text-red-600">💥 JS Runtime Error</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-muted-foreground mb-4">
-							Throw a synchronous error caught by window.onerror
-						</p>
-						<Button onClick={handleJsError} variant="destructive">
-							💣 Boom
-						</Button>
-					</CardContent>
-				</Card>
-
-				<Card className="border-orange-500/50">
-					<CardHeader>
-						<CardTitle className="text-orange-600">
-							⚠️ Promise Rejection
+						<CardTitle className="text-red-600 flex items-center gap-2">
+							<span className="text-2xl">🔥</span> Critical JS Error
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-muted-foreground mb-4">
-							Unhandled promise rejection caught by unhandledrejection
+						<p className="text-sm text-muted-foreground mb-4">
+							Synchronous error captured by global error handler
 						</p>
-						<Button onClick={handlePromiseReject} variant="destructive">
-							🚫 Reject
+						<Button
+							onClick={handleJsError}
+							variant="destructive"
+							className="w-full"
+						>
+							Trigger Fatal Error
 						</Button>
 					</CardContent>
 				</Card>
 
-				<Card className="border-yellow-500/50">
+				<Card className="bg-orange-50 dark:bg-orange-950/20 border-orange-300">
 					<CardHeader>
-						<CardTitle className="text-yellow-600">⏰ Async Error</CardTitle>
+						<CardTitle className="text-orange-600 flex items-center gap-2">
+							<span className="text-2xl">⚡</span> Promise Exception
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-muted-foreground mb-4">
-							Error inside setTimeout caught by window.onerror
+						<p className="text-sm text-muted-foreground mb-4">
+							Unhandled rejection in promise chain
 						</p>
-						<Button onClick={handleAsyncError} variant="destructive">
-							⏳ Delayed Boom
+						<Button
+							onClick={handlePromiseReject}
+							variant="destructive"
+							className="w-full"
+						>
+							Fire Promise Error
 						</Button>
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="bg-yellow-50 dark:bg-yellow-950/20 border-yellow-300">
 					<CardHeader>
-						<CardTitle>📡 Fetch Failure</CardTitle>
+						<CardTitle className="text-yellow-600 flex items-center gap-2">
+							<span className="text-2xl">⏱️</span> Delayed Exception
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-muted-foreground mb-4">
-							Fetch request failure (needs manual catch)
+						<p className="text-sm text-muted-foreground mb-4">
+							Async error thrown after 100ms delay
 						</p>
-						<Button onClick={handleFetchError} variant="outline">
-							📤 Send Bad Request
+						<Button
+							onClick={handleAsyncError}
+							variant="destructive"
+							className="w-full"
+						>
+							Fire Async Error
 						</Button>
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-300">
 					<CardHeader>
-						<CardTitle>🖼️ Resource Load Failure</CardTitle>
+						<CardTitle className="text-blue-600 flex items-center gap-2">
+							<span className="text-2xl">🌐</span> HTTP Error
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-muted-foreground mb-4">
-							Image load failure caught at event capture phase
+						<p className="text-sm text-muted-foreground mb-4">
+							Failed network request with no error boundary
 						</p>
-						<Button onClick={handleResourceError} variant="outline">
-							🔄 Reload Bad Image
+						<Button
+							onClick={handleFetchError}
+							variant="secondary"
+							className="w-full"
+						>
+							Execute Failed Request
+						</Button>
+					</CardContent>
+				</Card>
+
+				<Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-300">
+					<CardHeader>
+						<CardTitle className="text-purple-600 flex items-center gap-2">
+							<span className="text-2xl">🖼️</span> Asset Error
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className="text-sm text-muted-foreground mb-4">
+							Broken resource load captured at capture phase
+						</p>
+						<Button
+							onClick={handleResourceError}
+							variant="secondary"
+							className="w-full"
+						>
+							Load Missing Asset
 						</Button>
 						<img
 							ref={imgRef}
