@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -6,6 +6,10 @@ const MONITOR_API = "https://api.ticscreek.top/errorLogs/sourcemap/upload";
 
 const getInjectionCode = (debugId) => {
 	return `;!function(){try{var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{};e._monitorDebugIds=e._monitorDebugIds||{};e._monitorDebugIds[(new e.Error).stack]="${debugId}"}catch(e){}}();\n`;
+};
+
+const generateDebugId = (content) => {
+	return createHash("md5").update(content).digest("hex");
 };
 
 async function processSourceMaps() {
@@ -40,7 +44,7 @@ async function processSourceMaps() {
 					const mapPath = path.join(dir, mapFileName);
 
 					if (fs.existsSync(mapPath)) {
-						const debugId = randomUUID();
+						const debugId = generateDebugId(jsContent);
 						// 1. 注入 JS 头部
 						fs.writeFileSync(
 							fullPath,

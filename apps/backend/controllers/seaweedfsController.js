@@ -5,18 +5,16 @@ import pool from "../config/db.js";
 export const uploadSourceMap = async (req, res) => {
 	try {
 		// 打印 CI 传过来的参数
-		console.log("--- 收到 SourceMap 上传请求 ---");
 		const { debugId, releaseId, uploadId, fileName } = req.body;
 		const fileBuffer = req.file.buffer;
 
 		// 1. 转发给 SeaweedFS Filer (内部地址)
 		const seaweedBaseUrl = process.env.SEAWEEDFS_FILER_URL;
-		const seaweedPath = `/sourcemaps/${releaseId}/${uploadId}/${fileName}`;
+		const seaweedPath = `/sourcemaps/${debugId}.map`;
 
 		await axios.put(`${seaweedBaseUrl}${seaweedPath}`, fileBuffer, {
 			headers: { "Content-Type": "application/octet-stream" },
 		});
-		console.log(`✅ SeaweedFS 存储成功: ${seaweedPath}`);
 
 		// 2. 写入 MySQL 数据库
 		const sql = `
@@ -36,7 +34,6 @@ export const uploadSourceMap = async (req, res) => {
 			fileName,
 			seaweedPath,
 		]);
-		console.log(`✅ 数据库记录成功: ${debugId}`);
 
 		res.status(200).json({ success: true, message: "SourceMap Sync Done" });
 	} catch (error) {
