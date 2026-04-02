@@ -20,6 +20,6 @@ router.get("/appNames", errorLogController.getAppNames);
 router.get("/urls/:appName", errorLogController.getUrlsByApp);
 router.get("/pagePerformance", errorLogController.getPagePerformance);
 router.get("/waterfall", errorLogController.getWaterfallByAppAndUrl);
-router.get("/getmap", errorLogController.getSourceMap);
+router.get("/getOriginalCode", seaweedfsController.getOriginalCode);
 
 export default router;

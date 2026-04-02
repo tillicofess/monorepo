@@ -4,20 +4,20 @@ import type React from "react";
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import useSWR from "swr";
+import { findCodeBySourceMap } from "@/apis/errorLogs";
 import { fetcher } from "@/lib/axios";
 import ErrorLogTable from "@/views/ErrorLog/components/ErrorLogTable";
 import SourceCodeModal from "@/views/ErrorLog/components/SourceCodeModal";
 import UserActionLogModal from "@/views/ErrorLog/components/UserActionLogModal";
+import type { SourceCodeModalData } from "@/views/ErrorLog/types/errorLogType";
 
 const { Title } = Typography;
 const { useToken } = theme;
 
 const ErrorLog: React.FC = () => {
 	const { token } = useToken();
-	const [sourceModalData, setSourceModalData] = useState<{
-		result: any;
-		codeSnippet: string;
-	} | null>(null);
+	const [sourceModalData, setSourceModalData] =
+		useState<SourceCodeModalData | null>(null);
 	const [actionModalData, setActionModalData] = useState<any[] | null>(null);
 	const [refreshing, setRefreshing] = useState(false);
 
@@ -34,10 +34,9 @@ const ErrorLog: React.FC = () => {
 	};
 
 	// 查看源码
-	const handleViewSourceCode = async (completeError: any) => {
+	const handleViewSourceCode = async (errorPayload: any) => {
 		try {
-			const { findCodeBySourceMap } = await import("@/utils/map");
-			const { result, codeSnippet } = await findCodeBySourceMap(completeError);
+			const { result, codeSnippet } = await findCodeBySourceMap(errorPayload);
 			setSourceModalData({ result, codeSnippet });
 		} catch (_error) {
 			message.error(<FormattedMessage id="getSourceCodeError" />);

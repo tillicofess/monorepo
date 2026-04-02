@@ -4,6 +4,7 @@ export interface ErrorType {
 	line?: number;
 	column?: number;
 	category?: string;
+	debug_id?: string;
 }
 
 export interface DataType {
@@ -21,8 +22,13 @@ export interface SourceCodeModalData {
 		source: string;
 		line: number;
 		column: number;
+		name: string;
 	};
-	codeSnippet: string;
+	codeSnippet: {
+		line: number;
+		content: string;
+		isErrorLine: boolean;
+	}[];
 }
 
 export interface SourceCodeModalProps {

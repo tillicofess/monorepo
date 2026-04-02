@@ -86,12 +86,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			align: "center",
 			render: (_, record) => {
 				const error = record.error;
-				const version = record.version;
-				const appName = record.app_name;
-				const hasSourceInfo =
-					error?.fileName &&
-					error?.line !== undefined &&
-					error?.column !== undefined;
+				const hasSourceInfo = error?.debug_id;
 
 				if (!hasSourceInfo) return null;
 
@@ -102,12 +97,9 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 						icon={<Code size={14} />}
 						onClick={() =>
 							handleViewSourceCode({
-								message: error.message,
-								fileName: error.fileName,
+								debug_id: error.debug_id,
 								line: error.line,
 								column: error.column,
-								appName,
-								version,
 							})
 						}
 					>

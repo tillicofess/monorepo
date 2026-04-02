@@ -8,4 +8,5 @@ export interface MonitorError {
 	column?: number;
 	url?: string;
 	tagName?: string;
+	debug_id?: string;
 }

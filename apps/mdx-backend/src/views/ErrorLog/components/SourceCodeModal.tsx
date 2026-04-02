@@ -10,8 +10,6 @@ const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
 }) => {
 	if (!data) return null;
 
-	const startLine = data.result.line - 10;
-
 	return (
 		<Modal
 			open={open}
@@ -19,48 +17,71 @@ const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
 			footer={null}
 			onCancel={onCancel}
 			width={800}
+			centered
 		>
-			<p>
-				<strong>
-					<FormattedMessage id="file" />:
-				</strong>{" "}
-				{data.result.source}
-			</p>
-			<p>
-				<strong>
-					<FormattedMessage id="location" />:
-				</strong>{" "}
-				<FormattedMessage id="line" values={{ line: data.result.line }} />,{" "}
-				<FormattedMessage id="column" values={{ column: data.result.column }} />
-			</p>
+			<div style={{ marginBottom: 16 }}>
+				<p style={{ marginBottom: 4 }}>
+					<strong>
+						<FormattedMessage id="file" />:
+					</strong>{" "}
+					<code style={{ color: "#c41d7f" }}>{data.result.source}</code>
+				</p>
+				<p style={{ marginBottom: 0 }}>
+					<strong>
+						<FormattedMessage id="location" />:
+					</strong>{" "}
+					<FormattedMessage id="line" values={{ line: data.result.line }} />,{" "}
+					<FormattedMessage
+						id="column"
+						values={{ column: data.result.column }}
+					/>
+				</p>
+			</div>
+
 			<div
 				style={{
-					background: "#f6f6f6",
-					padding: "10px",
+					background: "#1e1e1e", // 改为深色主题更像编辑器
+					color: "#d4d4d4",
+					padding: "12px",
 					overflowX: "auto",
-					fontFamily: "monospace",
-					fontSize: "14px",
+					fontFamily: "'Fira Code', 'Courier New', monospace",
+					fontSize: "13px",
 					lineHeight: "1.6",
+					borderRadius: "8px",
+					border: "1px solid #333",
 				}}
 			>
-				{data.codeSnippet.split("\n").map((line, i) => {
-					const currentLine = startLine + i;
-					const isError = currentLine === data.result.line;
+				{/* 注意：这里 data.codeSnippet 已经是一个数组了 */}
+				{data.codeSnippet.map((item: any, i: number) => {
+					const isError = item.isErrorLine;
 					return (
 						<div
 							key={i}
 							style={{
-								backgroundColor: isError ? "#ffecec" : undefined,
-								color: isError ? "#d32f2f" : undefined,
-								fontWeight: isError ? "bold" : undefined,
-								padding: "2px 6px",
-								borderRadius: "4px",
+								backgroundColor: isError
+									? "rgba(255, 77, 79, 0.2)"
+									: "transparent",
+								display: "flex",
+								padding: "0 4px",
+								borderLeft: isError
+									? "3px solid #ff4d4f"
+									: "3px solid transparent",
 							}}
 						>
-							<span style={{ color: "#999", marginRight: 10 }}>
-								{String(currentLine).padStart(4, " ")}:
+							<span
+								style={{
+									color: isError ? "#ff7875" : "#858585",
+									width: "40px",
+									textAlign: "right",
+									marginRight: "16px",
+									userSelect: "none",
+								}}
+							>
+								{item.line}
 							</span>
-							{line}
+							<pre style={{ margin: 0, whiteSpace: "pre" }}>
+								{item.content || " "}
+							</pre>
 						</div>
 					);
 				})}
