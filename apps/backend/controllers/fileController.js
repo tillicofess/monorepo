@@ -10,7 +10,7 @@ export const getFileList = async (req, res) => {
 		connection = await pool.getConnection();
 		const [rows] = await connection.execute(
 			`SELECT id, name, is_directory AS isDirectory, parent_id AS parentId,
-			        cos_key AS cosKey, file_hash AS fileHash, status, size,
+			        file_hash AS fileHash, status, size,
 			        file_type AS fileType, created_at AS createdAt, updated_at AS updatedAt
 			 FROM files
 			 WHERE parent_id ${targetParentId === null ? "IS NULL" : "= ?"} AND status = 1`,
@@ -22,7 +22,6 @@ export const getFileList = async (req, res) => {
 			name: row.name,
 			isDir: row.isDirectory === 1,
 			size: row.size,
-			cosKey: row.cosKey,
 			fileHash: row.fileHash,
 			fileType: row.fileType,
 			parentId: row.parentId,

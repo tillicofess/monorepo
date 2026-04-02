@@ -48,6 +48,17 @@ export const confirmCosUpload = (fileId: string) => {
 };
 
 /**
+ * 获取 COS 临时下载凭证
+ * @param fileId 文件ID
+ * @returns COS 临时下载凭证
+ */
+export const getCosDownloadSts = (fileId: string) => {
+	return http.get<CosStsResponse>("/largeFile/sts/download/credentials", {
+		params: { fileId },
+	});
+};
+
+/**
  * 创建文件夹
  * @param parentId 父文件夹ID
  * @param name 文件夹名称
@@ -128,12 +139,46 @@ export const moveFileOrFolder = (
 
 /**
  * 下载文件
- * @param id 文件ID
- * @returns 下载结果
+ * @param fileId 文件ID
  */
-export const downloadFile = (id: string) => {
-	const a = document.createElement("a");
-	a.href = `https://api.ticscreek.top/largeFile/download/${id}`;
-	a.download = id;
-	a.click();
+export const downloadFile = async (fileId: string) => {
+	const { data: stsResponse } = await getCosDownloadSts(fileId);
+
+	if (stsResponse.code !== 0 || !stsResponse.data?.credentials) {
+		throw new Error(stsResponse.message || "获取下载凭证失败");
+	}
+
+	const { credentials, bucket, region, key } = stsResponse.data;
+
+	if (!credentials || !bucket || !region || !key) {
+		throw new Error("服务端返回的配置参数不完整");
+	}
+
+	const COS = (await import("cos-js-sdk-v5")).default;
+
+	const cos = new COS({
+		SecretId: credentials.tmpSecretId,
+		SecretKey: credentials.tmpSecretKey,
+		SecurityToken: credentials.sessionToken,
+	});
+
+	cos.getObjectUrl(
+		{
+			Bucket: bucket,
+			Region: region,
+			Key: key,
+			Sign: true,
+		},
+		(err, data) => {
+			if (err) {
+				console.error("获取下载链接失败:", err);
+				return;
+			}
+			const downloadUrl =
+				data.Url +
+				(data.Url.indexOf("?") > -1 ? "&" : "?") +
+				"response-content-disposition=attachment";
+			window.open(downloadUrl);
+		},
+	);
 };

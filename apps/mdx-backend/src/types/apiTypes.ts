@@ -58,4 +58,6 @@ export interface CosStsData {
 		fileType: string;
 		createdAt: string;
 	};
+	/** 文件名（下载凭证返回） */
+	fileName?: string;
 }

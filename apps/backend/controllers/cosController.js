@@ -22,6 +22,11 @@ const config = {
 	],
 };
 
+const downloadConfig = {
+	...config,
+	allowActions: ["name/cos:GetObject"],
+};
+
 const generateCosKey = (fileHash, ext) => {
 	return `file/${fileHash}${ext || ""}`;
 };
@@ -192,6 +197,97 @@ export const confirmCosUpload = async (req, res) => {
 			.send({ code: 1, message: "确认上传失败", error: err.message });
 	} finally {
 		if (connection) connection.release();
+	}
+};
+
+export const getCosDownloadSts = async (req, res) => {
+	try {
+		const { fileId } = req.query;
+
+		if (!fileId) {
+			res.status(400).send({ code: 1, message: "请传入文件ID" });
+			return;
+		}
+
+		const connection = await pool.getConnection();
+		try {
+			const [rows] = await connection.execute(
+				"SELECT id, cos_key, name FROM files WHERE id = ? AND is_directory = 0 AND status = 1",
+				[fileId],
+			);
+
+			if (rows.length === 0) {
+				res.status(404).send({ code: 1, message: "文件不存在或未上传完成" });
+				return;
+			}
+
+			const file = rows[0];
+			const AppId = downloadConfig.bucket.substr(
+				downloadConfig.bucket.lastIndexOf("-") + 1,
+			);
+			const resource =
+				"qcs::cos:" +
+				downloadConfig.region +
+				":uid/" +
+				AppId +
+				":" +
+				downloadConfig.bucket +
+				"/" +
+				file.cos_key;
+
+			const policy = {
+				version: "2.0",
+				statement: [
+					{
+						action: downloadConfig.allowActions,
+						effect: "allow",
+						resource: [resource],
+					},
+				],
+			};
+
+			const startTime = Math.round(Date.now() / 1000);
+
+			const tempKeys = await new Promise((resolve, reject) => {
+				STS.getCredential(
+					{
+						secretId: downloadConfig.secretId,
+						secretKey: downloadConfig.secretKey,
+						region: downloadConfig.region,
+						durationSeconds: downloadConfig.durationSeconds,
+						policy: policy,
+					},
+					(err, data) => {
+						if (err) {
+							reject(err);
+						} else {
+							data.startTime = startTime;
+							resolve(data);
+						}
+					},
+				);
+			});
+
+			res.send({
+				code: 0,
+				message: "success",
+				data: {
+					...tempKeys,
+					bucket: downloadConfig.bucket,
+					region: downloadConfig.region,
+					key: file.cos_key,
+					fileName: file.name,
+					fileId: file.id,
+				},
+			});
+		} finally {
+			connection.release();
+		}
+	} catch (err) {
+		console.error("download sts error", err);
+		res
+			.status(500)
+			.send({ code: 1, message: "获取下载凭证失败", error: err.message });
 	}
 };
 

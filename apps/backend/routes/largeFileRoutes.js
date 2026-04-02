@@ -1,5 +1,9 @@
 import express from "express";
-import { confirmCosUpload, getCosSts } from "../controllers/cosController.js";
+import {
+	confirmCosUpload,
+	getCosDownloadSts,
+	getCosSts,
+} from "../controllers/cosController.js";
 import {
 	createFolder,
 	deleteFile,
@@ -13,6 +17,7 @@ import { authorize } from "../middleware/authorize.js";
 const router = express.Router();
 
 router.get("/sts/credentials", getCosSts);
+router.get("/sts/download/credentials", getCosDownloadSts);
 router.post(
 	"/sts/confirm",
 	authenticate,
