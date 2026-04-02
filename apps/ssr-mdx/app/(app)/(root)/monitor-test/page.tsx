@@ -8,16 +8,16 @@ export default function MonitorTestPage() {
 	const imgRef = useRef<HTMLImageElement>(null);
 
 	const handleJsError = () => {
-		throw new Error("JS Runtime Error");
+		throw new Error("Boom! Something went wrong");
 	};
 
 	const handlePromiseReject = () => {
-		Promise.reject(new Error("Promise Rejection Error"));
+		Promise.reject(new Error("Oops! Promise got rejected"));
 	};
 
 	const handleAsyncError = () => {
 		setTimeout(() => {
-			throw new Error("Async Error (setTimeout)");
+			throw new Error("Kaboom! Async error here");
 		}, 0);
 	};
 
@@ -41,75 +41,77 @@ export default function MonitorTestPage() {
 
 	return (
 		<div className="container mx-auto py-12 max-w-2xl">
-			<h1 className="text-3xl font-bold mb-8">Monitor SDK 测试页面</h1>
+			<h1 className="text-3xl font-bold mb-8">🎯 Monitor SDK Debug Station</h1>
 
 			<div className="space-y-6">
-				<Card>
+				<Card className="border-red-500/50">
 					<CardHeader>
-						<CardTitle>JS 运行时错误</CardTitle>
+						<CardTitle className="text-red-600">💥 JS Runtime Error</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<p className="text-muted-foreground mb-4">
-							触发同步 JavaScript 错误，会被 window.onerror 捕获
+							Throw a synchronous error caught by window.onerror
 						</p>
 						<Button onClick={handleJsError} variant="destructive">
-							触发 JS 错误
+							💣 Boom
 						</Button>
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="border-orange-500/50">
 					<CardHeader>
-						<CardTitle>Promise 拒绝</CardTitle>
+						<CardTitle className="text-orange-600">
+							⚠️ Promise Rejection
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<p className="text-muted-foreground mb-4">
-							触发未被捕获的 Promise 拒绝，会被 unhandledrejection 捕获
+							Unhandled promise rejection caught by unhandledrejection
 						</p>
 						<Button onClick={handlePromiseReject} variant="destructive">
-							触发 Promise 拒绝
+							🚫 Reject
 						</Button>
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="border-yellow-500/50">
 					<CardHeader>
-						<CardTitle>异步错误</CardTitle>
+						<CardTitle className="text-yellow-600">⏰ Async Error</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<p className="text-muted-foreground mb-4">
-							触发 setTimeout 中的错误，会被 window.onerror 捕获
+							Error inside setTimeout caught by window.onerror
 						</p>
 						<Button onClick={handleAsyncError} variant="destructive">
-							触发异步错误
+							⏳ Delayed Boom
 						</Button>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Fetch 请求失败</CardTitle>
+						<CardTitle>📡 Fetch Failure</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<p className="text-muted-foreground mb-4">
-							触发 fetch 请求失败（需要手动捕获）
+							Fetch request failure (needs manual catch)
 						</p>
 						<Button onClick={handleFetchError} variant="outline">
-							触发 Fetch 错误
+							📤 Send Bad Request
 						</Button>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader>
-						<CardTitle>资源加载失败</CardTitle>
+						<CardTitle>🖼️ Resource Load Failure</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<p className="text-muted-foreground mb-4">
-							触发图片等资源加载失败，会被事件捕获阶段的 error 监听器捕获
+							Image load failure caught at event capture phase
 						</p>
 						<Button onClick={handleResourceError} variant="outline">
-							重新加载无效资源
+							🔄 Reload Bad Image
 						</Button>
 						<img
 							ref={imgRef}
