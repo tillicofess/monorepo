@@ -30,6 +30,7 @@ jobs:
           context: .
           file: ./apps/ssr-mdx/Dockerfile
           push: true
+          build-args: GITHUB_SHA=${{ github.sha }}
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/ssr-mdx:latest
             ${{ secrets.DOCKER_USERNAME }}/ssr-mdx:${{ github.ref_name }}
