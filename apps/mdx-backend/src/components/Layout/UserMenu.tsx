@@ -1,5 +1,5 @@
-import { Avatar, Button, Dropdown, type MenuProps, theme } from "antd";
-import { LogOut, User } from "lucide-react";
+import { Dropdown, type MenuProps, theme } from "antd";
+import { ChevronDown, LogOut, User } from "lucide-react";
 import { FormattedMessage } from "react-intl";
 
 interface UserMenuProps {
@@ -9,6 +9,8 @@ interface UserMenuProps {
 
 export function UserMenu({ userName, onLogout }: UserMenuProps) {
 	const { token } = theme.useToken();
+
+	// 对应图2的多个菜单选项
 	const userMenuItems: MenuProps["items"] = [
 		{
 			key: "logout",
@@ -20,43 +22,57 @@ export function UserMenu({ userName, onLogout }: UserMenuProps) {
 
 	return (
 		<Dropdown
-			menu={{ items: userMenuItems }}
-			placement="bottomRight"
-			arrow={{ pointAtCenter: true }}
+			menu={{
+				items: userMenuItems,
+			}}
+			styles={{
+				root: {
+					border: `1px solid ${token.colorBorderSecondary}`,
+					borderColor: `${token.colorBorderSecondary}`,
+					borderRadius: 6,
+				},
+			}}
+			trigger={["click"]}
+			placement="bottom"
 		>
-			<Button
-				type="text"
+			<div
 				style={{
 					cursor: "pointer",
-					padding: "4px 12px 4px 4px",
-					borderRadius: 10,
+					padding: "8px 12px",
+					borderRadius: 6, // 图2圆角较小
+					border: `1px solid ${token.colorBorderSecondary}`,
 					display: "flex",
 					alignItems: "center",
-					gap: 8,
+					justifyContent: "space-between",
+					background: token.colorBgContainer,
 					transition: "all 0.2s ease",
-					marginLeft: 8,
+					width: "100%", // 占据侧边栏宽度
 				}}
 			>
-				<Avatar
-					size={32}
-					style={{
-						backgroundColor: token.colorPrimary,
-						border: `2px solid ${token.colorPrimaryBg}`,
-					}}
-					icon={<User size={16} />}
-				/>
-				<span
-					style={{
-						fontWeight: 500,
-						maxWidth: 100,
-						overflow: "hidden",
-						textOverflow: "ellipsis",
-						whiteSpace: "nowrap",
-					}}
-				>
-					{userName}
-				</span>
-			</Button>
+				<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+					<User
+						size={18}
+						strokeWidth={1.5}
+						style={{ color: token.colorTextTertiary }}
+					/>
+					<span
+						style={{
+							fontWeight: 400, // 图2字体较细
+							fontSize: 14,
+							color: token.colorText,
+							maxWidth: 120,
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
+						}}
+					>
+						{userName || "User"}
+					</span>
+				</div>
+
+				{/* 右侧下箭头 */}
+				<ChevronDown size={14} style={{ color: token.colorTextTertiary }} />
+			</div>
 		</Dropdown>
 	);
 }

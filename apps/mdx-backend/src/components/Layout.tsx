@@ -1,23 +1,31 @@
-import { Button, Drawer, Layout, theme } from "antd";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Layout as AntLayout, Button, theme } from "antd";
+import { Globe, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { useAuth } from "@/providers/auth/auth";
 import { useLocale } from "@/providers/LocaleContext";
-import { Header, Loading, Logo, Sidebar } from "./Layout/index";
+import { Loading, Logo, Sidebar, UserMenu } from "./Layout/index";
 
-const { Sider, Content, Header: AntHeader } = Layout;
+const { Sider, Content } = AntLayout;
 
 const AppLayout = () => {
 	const location = useLocation();
-	const { isAuthenticated } = useAuth();
-	const { themeMode } = useLocale();
+	const { isAuthenticated, user, logout } = useAuth();
 	const { token } = theme.useToken();
 	const [selectedKey, setSelectedKey] = useState<string[]>([]);
 	const [openKeys, setOpenKeys] = useState<string[]>(["sub2"]);
-	const [collapsed, setCollapsed] = useState(false);
-	const [drawerVisible, setDrawerVisible] = useState(false);
-	const [isMobile, setIsMobile] = useState(false);
+	const [collapsed] = useState(false);
+	const [isSmallScreen, setIsSmallScreen] = useState(false);
+	const { lang, themeMode, changeLang, changeThemeMode } = useLocale();
+
+	useEffect(() => {
+		const checkScreen = () => {
+			setIsSmallScreen(window.innerWidth < 1280);
+		};
+		checkScreen();
+		window.addEventListener("resize", checkScreen);
+		return () => window.removeEventListener("resize", checkScreen);
+	}, []);
 
 	useEffect(() => {
 		const path = location.pathname;
@@ -30,169 +38,103 @@ const AppLayout = () => {
 		}
 	}, [location]);
 
-	useEffect(() => {
-		const checkMobile = () => {
-			setIsMobile(window.innerWidth < 576);
-		};
-		checkMobile();
-		window.addEventListener("resize", checkMobile);
-		return () => window.removeEventListener("resize", checkMobile);
-	}, []);
-
 	const handleOpenChange = (keys: string[]) => {
 		setOpenKeys(keys);
 	};
-
-	const handleMenuClick = () => {
-		if (isMobile) setDrawerVisible(false);
-	};
-
-	const toggleMenu = () => {
-		if (isMobile) {
-			setDrawerVisible(!drawerVisible);
-		} else {
-			setCollapsed(!collapsed);
-		}
-	};
-
-	const siderBg = token.colorBgContainer;
 
 	if (!isAuthenticated) {
 		return <Loading background={token.colorBgLayout} />;
 	}
 
 	return (
-		<Layout style={{ minHeight: "100vh", flexDirection: "row" }}>
-			{!isMobile && (
-				<Sider
-					trigger={null}
-					collapsible
-					collapsed={collapsed}
-					breakpoint="md"
-					onBreakpoint={(broken) => setCollapsed(broken)}
-					style={{
-						overflow: "auto",
-						flex: 1,
-						position: "fixed",
-						height: "calc(100% - 64px)",
-						left: "unset",
-						insetBlockStart: "64px",
-						borderRight: `1px solid ${token.colorBorder}`,
-						background: siderBg,
-						transition: "all 0.2s ease",
-					}}
-					theme={themeMode === "dark" ? "dark" : "light"}
-					width={240}
+		<AntLayout style={{ minHeight: "100vh" }}>
+			<Sider
+				trigger={null}
+				collapsible
+				collapsed={collapsed}
+				style={{
+					overflow: "auto",
+					height: "100vh",
+					position: "fixed",
+					left: 0,
+					top: 0,
+					bottom: 0,
+					borderRight: `1px solid ${token.colorBorderSecondary}`,
+					background: token.colorBgContainer,
+				}}
+				theme={themeMode === "dark" ? "dark" : "light"}
+				width={256}
+				hidden={isSmallScreen}
+			>
+				<div
+					style={{ display: "flex", flexDirection: "column", height: "100%" }}
 				>
-					<div style={{ padding: "16px 12px", paddingTop: 24 }}>
+					{/* 1. 顶部 Logo 区域 */}
+					<div style={{ padding: "20px 10px 20px 10px" }}>
+						<Logo collapsed={collapsed} themeMode={themeMode} />
+					</div>
+
+					{/* 2. 用户选择器 */}
+					<div style={{ padding: "0 16px 16px 16px" }}>
+						<UserMenu userName={user?.name ?? "admin"} onLogout={logout} />
+					</div>
+
+					{/* 3. 导航菜单区域 */}
+					<div style={{ flex: 1, overflow: "auto", padding: "0 8px" }}>
 						<Sidebar
 							selectedKey={selectedKey}
 							openKeys={openKeys}
 							collapsed={collapsed}
 							themeMode={themeMode}
 							onOpenChange={handleOpenChange}
-							onMenuClick={handleMenuClick}
+							onMenuClick={() => {}}
 						/>
 					</div>
-					<Button
-						type="text"
-						icon={
-							collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />
-						}
-						onClick={() => setCollapsed(!collapsed)}
+
+					{/* 4. 底部工具栏 (仅保留切换按钮) */}
+					<div
 						style={{
-							fontSize: 14,
-							width: "calc(100% - 24px)",
-							height: 40,
-							position: "absolute",
-							bottom: 16,
-							left: 12,
-							borderRadius: 8,
+							padding: "16px",
 							display: "flex",
 							alignItems: "center",
-							justifyContent: collapsed ? "center" : "flex-start",
-							gap: 8,
-							paddingLeft: collapsed ? 0 : 12,
+							gap: "16px",
 						}}
 					>
-						{!collapsed && "收起"}
-					</Button>
-				</Sider>
-			)}
-
-			<Drawer
-				title={null}
-				placement="left"
-				onClose={() => setDrawerVisible(false)}
-				open={isMobile && drawerVisible}
-				styles={{
-					header: { padding: 0 },
-					body: { padding: 0, width: 280 },
-				}}
-			>
-				<div style={{ padding: "16px 12px", paddingTop: 24 }}>
-					<Logo collapsed={false} themeMode={themeMode} />
+						<Button
+							type="text"
+							icon={
+								<Globe size={18} style={{ color: token.colorTextTertiary }} />
+							}
+							onClick={() => changeLang(lang === "en-US" ? "zh-CN" : "en-US")}
+						/>
+						<Button
+							type="text"
+							icon={
+								themeMode === "light" ? (
+									<Sun size={18} style={{ color: token.colorTextTertiary }} />
+								) : (
+									<Moon size={18} style={{ color: token.colorTextTertiary }} />
+								)
+							}
+							onClick={() =>
+								changeThemeMode(themeMode === "light" ? "dark" : "light")
+							}
+						/>
+					</div>
 				</div>
-				<Sidebar
-					selectedKey={selectedKey}
-					openKeys={openKeys}
-					collapsed={collapsed}
-					themeMode={themeMode}
-					onOpenChange={handleOpenChange}
-					onMenuClick={handleMenuClick}
-				/>
-			</Drawer>
+			</Sider>
 
-			<Layout
+			<AntLayout
 				style={{
-					position: "relative",
-					marginInlineStart: isMobile ? 0 : collapsed ? 80 : 240,
-					transition: "margin-inline-start 0.2s ease",
+					marginInlineStart: isSmallScreen ? 0 : collapsed ? 80 : 256,
+					background: token.colorBgLayout,
 				}}
 			>
-				<AntHeader
-					style={{
-						height: "64px",
-						lineHeight: "64px",
-						backgroundColor: "transparent",
-						zIndex: 19,
-					}}
-				/>
-				<AntHeader
-					style={{
-						background: token.colorBgContainer,
-						zIndex: 100,
-						position: "fixed",
-						insetBlockStart: 0,
-						insetInlineStart: 0,
-						width: "100%",
-						borderBottom: `1px solid ${token.colorBorder}`,
-						padding: 0,
-						boxShadow:
-							themeMode === "light"
-								? `0 1px 4px ${token.colorBorderSecondary}`
-								: "none",
-						transition: "all 0.2s ease",
-					}}
-				>
-					<Header isMobile={isMobile} onToggleMenu={toggleMenu} />
-				</AntHeader>
-				<Content
-					style={{
-						flex: 1,
-						display: "flex",
-						flexDirection: "column",
-						paddingBlock: isMobile ? 12 : 28,
-						paddingInline: isMobile ? 12 : 40,
-						minHeight: 280,
-						background: token.colorBgLayout,
-						transition: "all 0.2s ease",
-					}}
-				>
+				<Content>
 					<Outlet />
 				</Content>
-			</Layout>
-		</Layout>
+			</AntLayout>
+		</AntLayout>
 	);
 };
 

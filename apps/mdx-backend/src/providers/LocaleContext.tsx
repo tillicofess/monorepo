@@ -58,7 +58,7 @@ const getThemeConfig = (mode: "light" | "dark"): ThemeConfig => {
 				? "rgba(255, 255, 255, 0.25)"
 				: "rgba(0, 0, 0, 0.25)",
 			colorBorder: isDark ? "#434343" : "#d9d9d9",
-			colorBorderSecondary: isDark ? "#303030" : "#f0f0f0",
+			colorBorderSecondary: isDark ? "#3a3a3a" : "#d9d9d9",
 		},
 		components: {
 			Layout: {
@@ -73,6 +73,12 @@ const getThemeConfig = (mode: "light" | "dark"): ThemeConfig => {
 				darkItemSelectedBg: "rgba(23, 125, 220, 0.2)",
 				darkItemHoverBg: "rgba(255, 255, 255, 0.05)",
 				darkPopupBg: "#1f1f1f",
+				subMenuItemSelectedColor: "#1F1F1F",
+				itemHoverBg: "#f0f0f0",
+				itemActiveBg: "#f0f0f0",
+				itemSelectedBg: "#f0f0f0",
+				itemSelectedColor: "#1F1F1F",
+				iconMarginInlineEnd: 18,
 			},
 			Button: {
 				primaryShadow: isDark
