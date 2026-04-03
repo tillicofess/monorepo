@@ -20,7 +20,7 @@ export function Loading({ background }: LoadingProps) {
 				background: bg,
 			}}
 		>
-			<Space direction="vertical" align="center">
+			<Space orientation="vertical" align="center">
 				<div
 					className="loading-spinner"
 					style={{

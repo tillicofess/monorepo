@@ -138,7 +138,7 @@ const PerformanceLog: React.FC = () => {
 			</Card>
 
 			{selectedApp && selectedUrl ? (
-				<Space direction="vertical" size="middle" style={{ display: "flex" }}>
+				<Space orientation="vertical" size="middle" style={{ display: "flex" }}>
 					{/* 瀑布图 */}
 					<Card
 						title={

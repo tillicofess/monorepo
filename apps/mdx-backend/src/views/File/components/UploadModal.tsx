@@ -87,13 +87,12 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 			open={upload.isModalOpen}
 			onCancel={upload.closeModal}
 			closable
-			maskClosable={false}
+			mask={{ closable: false }}
 			keyboard={false}
 			footer={null}
 			width={800}
 			styles={{
-				body: { padding: "20px 24px" },
-				content: { minHeight: 480, maxHeight: 600 },
+				body: { padding: "20px 24px", minHeight: 480, maxHeight: 600 },
 				header: { padding: "16px 24px", marginBottom: 0 },
 			}}
 		>
@@ -310,7 +309,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 										percent={task.progress}
 										size="small"
 										strokeColor={token.colorPrimary}
-										trailColor={token.colorFillSecondary}
+										railColor={token.colorFillSecondary}
 										format={(percent) => `${percent}%`}
 									/>
 								)}

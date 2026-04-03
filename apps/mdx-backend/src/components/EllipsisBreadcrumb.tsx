@@ -1,4 +1,4 @@
-import { Button, Dropdown, Menu, theme } from "antd";
+import { Button, Dropdown, theme } from "antd";
 import React from "react";
 import { FolderDroppable } from "@/components/DroppableNode.tsx";
 
@@ -83,11 +83,9 @@ export default function EllipsisBreadcrumb({
 			),
 		}));
 
-		const menu = <Menu items={dropdownMenuItems} />;
-
 		return (
 			<div style={{ display: "flex", alignItems: "center" }}>
-				<Dropdown overlay={menu}>
+				<Dropdown menu={{ items: dropdownMenuItems }}>
 					<span style={{ cursor: "pointer", marginRight: "8px" }}>···</span>
 				</Dropdown>
 				<span style={{ color: token.colorTextQuaternary }}>/</span>

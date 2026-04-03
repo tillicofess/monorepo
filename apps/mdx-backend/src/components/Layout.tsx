@@ -125,10 +125,9 @@ const AppLayout = () => {
 				placement="left"
 				onClose={() => setDrawerVisible(false)}
 				open={isMobile && drawerVisible}
-				width={280}
 				styles={{
 					header: { padding: 0 },
-					body: { padding: 0 },
+					body: { padding: 0, width: 280 },
 				}}
 			>
 				<div style={{ padding: "16px 12px", paddingTop: 24 }}>

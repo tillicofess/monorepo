@@ -140,7 +140,7 @@ const File: React.FC = () => {
 					sensors={sensors}
 					collisionDetection={pointerWithin}
 				>
-					<Space direction="vertical" size="middle" style={{ width: "100%" }}>
+					<Space orientation="vertical" size="middle" style={{ width: "100%" }}>
 						<EllipsisBreadcrumb
 							items={currentPath}
 							onItemClick={handleBreadcrumbClick}

@@ -33,6 +33,7 @@ Requset
 sandpack
 Sandpack
 seaweedfs
+Segoe
 shiki
 shikijs
 sider
