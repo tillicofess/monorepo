@@ -41,7 +41,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			title: <FormattedMessage id="errorMessage" defaultMessage="错误信息" />,
 			dataIndex: "error",
 			key: "error",
-			minWidth: 300,
+			width: 300,
 			render: (text) => {
 				const message = text?.message || "";
 				return (
@@ -67,17 +67,20 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			title: <FormattedMessage id="errorType" defaultMessage="错误类型" />,
 			dataIndex: "error",
 			key: "sub_type",
+			width: 120,
 			render: (text) => <span>{text?.category}</span>,
 		},
 		{
 			title: <FormattedMessage id="errorTime" defaultMessage="错误时间" />,
 			dataIndex: "time",
 			key: "time",
+			width: 180,
 		},
 		{
 			title: <FormattedMessage id="version" defaultMessage="版本" />,
 			dataIndex: "version",
 			key: "version",
+			width: 100,
 		},
 		{
 			title: <FormattedMessage id="viewSourceCode" defaultMessage="源码" />,
@@ -143,6 +146,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			dataSource={data}
 			loading={loading}
 			style={{ borderRadius: "8px", overflow: "hidden" }}
+			scroll={{ x: "max-content" }}
 			pagination={{
 				showSizeChanger: true,
 				showQuickJumper: true,

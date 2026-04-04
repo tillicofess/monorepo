@@ -30,9 +30,7 @@ export function FileActions() {
 				display: "flex",
 				justifyContent: "space-between",
 				alignItems: "center",
-				paddingBottom: 12,
 				borderBottom: "1px solid var(--ant-colorBorderSecondary)",
-				marginBottom: 8,
 			}}
 		>
 			<Space>

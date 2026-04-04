@@ -60,7 +60,7 @@ const AppLayout = () => {
 					style={{
 						display: "flex",
 						flexDirection: "column",
-						margin: "32px 24px 0",
+						margin: isSmallScreen ? "16px 12px 0" : "32px 24px 0",
 						gap: 24,
 					}}
 				>

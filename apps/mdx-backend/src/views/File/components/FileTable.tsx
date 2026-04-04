@@ -45,7 +45,7 @@ export function FileTable({
 			title: <FormattedMessage id="fileName" defaultMessage="File Name" />,
 			dataIndex: "name",
 			key: "name",
-			minWidth: 240,
+			width: 240,
 			ellipsis: true,
 			render: (text: string, record: FileItem) => {
 				const isDir = record.isDir;
@@ -140,7 +140,7 @@ export function FileTable({
 	return (
 		<Table
 			size="small"
-			scroll={{ y: 520 }}
+			scroll={{ x: "max-content", y: 520 }}
 			rowKey={(record) => record.id}
 			columns={columns}
 			loading={isLoading}
