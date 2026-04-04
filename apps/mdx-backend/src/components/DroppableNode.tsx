@@ -36,7 +36,7 @@ export const FolderDroppable = ({ folder, children }: DroppableProps) => {
 						: "2px solid transparent",
 					backgroundColor: isOver ? token.colorPrimaryBg : "transparent",
 					transition: "all 0.1s ease",
-					borderRadius: 6,
+					borderRadius: 8,
 					pointerEvents: "none", // ⭐ 不影响点击，只给 DnD 用
 				}}
 			/>
@@ -77,7 +77,7 @@ export const TableFolderDroppable = ({ folder, children }: DroppableProps) => {
 						: "2px solid transparent",
 					backgroundColor: isOver ? token.colorPrimaryBg : "transparent",
 					transition: "all 0.1s ease",
-					borderRadius: 6,
+					borderRadius: 8,
 					pointerEvents: "none", // ⭐ 不影响点击，只给 DnD 用
 				}}
 			/>

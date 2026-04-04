@@ -75,7 +75,7 @@ const OverviewCard: React.FC<{ data: OverviewData; loading: boolean }> = ({
 					<Col xs={24} sm={12} xl={6} key={config.key}>
 						<Card
 							style={{
-								borderRadius: 12,
+								borderRadius: 8,
 								border: `1px solid ${token.colorBorder}`,
 								boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 							}}
@@ -126,7 +126,7 @@ const OverviewCard: React.FC<{ data: OverviewData; loading: boolean }> = ({
 											style={{
 												width: 48,
 												height: 48,
-												borderRadius: 12,
+												borderRadius: 8,
 												background: config.bgColor,
 												display: "flex",
 												alignItems: "center",

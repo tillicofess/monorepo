@@ -256,8 +256,7 @@ const ChartCard = (props: { data: ChartData; loading: boolean }) => {
 				</Title>
 			}
 			style={{
-				borderRadius: 12,
-				marginBlock: 16,
+				borderRadius: 8,
 				border: `1px solid ${token.colorBorder}`,
 				boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 			}}

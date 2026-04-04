@@ -27,7 +27,7 @@ export default function Home() {
 	};
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+		<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 			<Row gutter={[16, 16]} align="middle" justify="space-between" wrap>
 				<Col xs={24} sm={12} md={8}>
 					<Title

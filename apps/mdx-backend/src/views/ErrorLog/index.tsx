@@ -90,7 +90,7 @@ const ErrorLog: React.FC = () => {
 					flex: 1,
 					display: "flex",
 					flexDirection: "column",
-					borderRadius: 12,
+					borderRadius: 8,
 					border: `1px solid ${token.colorBorder}`,
 					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 				}}

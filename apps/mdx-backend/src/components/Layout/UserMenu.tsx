@@ -4,10 +4,11 @@ import { FormattedMessage } from "react-intl";
 
 interface UserMenuProps {
 	userName?: string;
+	collapsed?: boolean;
 	onLogout: () => void;
 }
 
-export function UserMenu({ userName, onLogout }: UserMenuProps) {
+export function UserMenu({ userName, collapsed, onLogout }: UserMenuProps) {
 	const { token } = theme.useToken();
 
 	// 对应图2的多个菜单选项
@@ -29,7 +30,7 @@ export function UserMenu({ userName, onLogout }: UserMenuProps) {
 				root: {
 					border: `1px solid ${token.colorBorderSecondary}`,
 					borderColor: `${token.colorBorderSecondary}`,
-					borderRadius: 6,
+					borderRadius: 8,
 				},
 			}}
 			trigger={["click"]}
@@ -39,7 +40,7 @@ export function UserMenu({ userName, onLogout }: UserMenuProps) {
 				style={{
 					cursor: "pointer",
 					padding: "8px 12px",
-					borderRadius: 6, // 图2圆角较小
+					borderRadius: 8, // 图2圆角较小
 					border: `1px solid ${token.colorBorderSecondary}`,
 					display: "flex",
 					alignItems: "center",
@@ -64,6 +65,7 @@ export function UserMenu({ userName, onLogout }: UserMenuProps) {
 							overflow: "hidden",
 							textOverflow: "ellipsis",
 							whiteSpace: "nowrap",
+							display: collapsed ? "none" : "block", // 折叠时隐藏用户名
 						}}
 					>
 						{userName || "User"}

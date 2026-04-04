@@ -133,7 +133,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 						border: dragging
 							? `2px dashed ${token.colorPrimary}`
 							: `1px dashed ${token.colorBorder}`,
-						borderRadius: 12,
+						borderRadius: 8,
 						background: dragging
 							? `${token.colorPrimaryBg}`
 							: token.colorFillQuaternary,
@@ -149,7 +149,7 @@ export const UploadModal = ({ parentId, onSuccess }: UploadModalProps) => {
 						style={{
 							width: 64,
 							height: 64,
-							borderRadius: 16,
+							borderRadius: 8,
 							background: dragging
 								? token.colorPrimary
 								: `${token.colorPrimaryBg}`,

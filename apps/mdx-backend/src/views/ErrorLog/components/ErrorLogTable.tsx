@@ -142,7 +142,7 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({
 			columns={columns}
 			dataSource={data}
 			loading={loading}
-			style={{ borderRadius: "12px", overflow: "hidden" }}
+			style={{ borderRadius: "8px", overflow: "hidden" }}
 			pagination={{
 				showSizeChanger: true,
 				showQuickJumper: true,

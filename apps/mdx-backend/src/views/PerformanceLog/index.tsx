@@ -82,7 +82,7 @@ const PerformanceLog: React.FC = () => {
 			{/* 项目和路由选择 */}
 			<Card
 				style={{
-					borderRadius: 12,
+					borderRadius: 8,
 					border: `1px solid ${token.colorBorder}`,
 					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 				}}
@@ -150,7 +150,7 @@ const PerformanceLog: React.FC = () => {
 							</Space>
 						}
 						style={{
-							borderRadius: 12,
+							borderRadius: 8,
 							border: `1px solid ${token.colorBorder}`,
 							boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 						}}
@@ -189,7 +189,7 @@ const PerformanceLog: React.FC = () => {
 												</Space>
 											}
 											style={{
-												borderRadius: 12,
+												borderRadius: 8,
 												border: `1px solid ${token.colorBorder}`,
 												boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 											}}
@@ -229,7 +229,7 @@ const PerformanceLog: React.FC = () => {
 													</Space>
 												}
 												style={{
-													borderRadius: 12,
+													borderRadius: 8,
 													border: `1px solid ${token.colorBorder}`,
 													boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 												}}

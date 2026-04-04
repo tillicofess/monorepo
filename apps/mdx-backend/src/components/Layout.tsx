@@ -14,7 +14,7 @@ const AppLayout = () => {
 	const { token } = theme.useToken();
 	const [selectedKey, setSelectedKey] = useState<string[]>([]);
 	const [openKeys, setOpenKeys] = useState<string[]>(["sub2"]);
-	const [collapsed] = useState(false);
+	const [collapsed, setCollapsed] = useState(false);
 	const [isSmallScreen, setIsSmallScreen] = useState(false);
 	const { lang, themeMode, changeLang, changeThemeMode } = useLocale();
 
@@ -71,12 +71,20 @@ const AppLayout = () => {
 				>
 					{/* 1. 顶部 Logo 区域 */}
 					<div style={{ padding: "20px 10px 20px 10px" }}>
-						<Logo collapsed={collapsed} themeMode={themeMode} />
+						<Logo
+							collapsed={collapsed}
+							setCollapsed={setCollapsed}
+							themeMode={themeMode}
+						/>
 					</div>
 
 					{/* 2. 用户选择器 */}
 					<div style={{ padding: "0 16px 16px 16px" }}>
-						<UserMenu userName={user?.name ?? "admin"} onLogout={logout} />
+						<UserMenu
+							collapsed={collapsed}
+							userName={user?.name ?? "admin"}
+							onLogout={logout}
+						/>
 					</div>
 
 					{/* 3. 导航菜单区域 */}
@@ -96,6 +104,8 @@ const AppLayout = () => {
 						style={{
 							padding: "16px",
 							display: "flex",
+							flexDirection: collapsed ? "column" : "row",
+							justifyContent: collapsed ? "center" : "flex-start",
 							alignItems: "center",
 							gap: "16px",
 						}}
@@ -130,7 +140,7 @@ const AppLayout = () => {
 					background: token.colorBgLayout,
 				}}
 			>
-				<Content>
+				<Content style={{ margin: "32px 24px 0" }}>
 					<Outlet />
 				</Content>
 			</AntLayout>

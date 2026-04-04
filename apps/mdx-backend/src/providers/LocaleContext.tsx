@@ -43,10 +43,10 @@ const getThemeConfig = (mode: "light" | "dark"): ThemeConfig => {
 		algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
 		token: {
 			colorPrimary: isDark ? "#177ddc" : "#1890ff",
-			borderRadius: isDark ? 4 : 6,
+			borderRadius: 8,
 			colorBgContainer: isDark ? "#1f1f1f" : "#ffffff",
 			colorBgElevated: isDark ? "#262626" : "#ffffff",
-			colorBgLayout: isDark ? "#141414" : "#f5f5f5",
+			colorBgLayout: isDark ? "#0F0F0F" : "#f5f5f5",
 			colorText: isDark ? "#ffffff" : "rgba(0, 0, 0, 0.88)",
 			colorTextSecondary: isDark
 				? "rgba(255, 255, 255, 0.65)"
