@@ -10,8 +10,6 @@ interface UserMenuProps {
 
 export function UserMenu({ userName, collapsed, onLogout }: UserMenuProps) {
 	const { token } = theme.useToken();
-
-	// 对应图2的多个菜单选项
 	const userMenuItems: MenuProps["items"] = [
 		{
 			key: "logout",
@@ -40,14 +38,13 @@ export function UserMenu({ userName, collapsed, onLogout }: UserMenuProps) {
 				style={{
 					cursor: "pointer",
 					padding: "8px 12px",
-					borderRadius: 8, // 图2圆角较小
+					borderRadius: 8,
 					border: `1px solid ${token.colorBorderSecondary}`,
 					display: "flex",
 					alignItems: "center",
 					justifyContent: "space-between",
 					background: token.colorBgContainer,
 					transition: "all 0.2s ease",
-					width: "100%", // 占据侧边栏宽度
 				}}
 			>
 				<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -58,14 +55,14 @@ export function UserMenu({ userName, collapsed, onLogout }: UserMenuProps) {
 					/>
 					<span
 						style={{
-							fontWeight: 400, // 图2字体较细
+							fontWeight: 400,
 							fontSize: 14,
 							color: token.colorText,
 							maxWidth: 120,
 							overflow: "hidden",
 							textOverflow: "ellipsis",
 							whiteSpace: "nowrap",
-							display: collapsed ? "none" : "block", // 折叠时隐藏用户名
+							display: collapsed ? "none" : "block",
 						}}
 					>
 						{userName || "User"}

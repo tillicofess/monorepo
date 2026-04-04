@@ -29,7 +29,7 @@ export default function Home() {
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 			<Row gutter={[16, 16]} align="middle" justify="space-between" wrap>
-				<Col xs={24} sm={12} md={8}>
+				<Col sm={12} md={8}>
 					<Title
 						level={4}
 						style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}
@@ -41,7 +41,7 @@ export default function Home() {
 						/>
 					</Title>
 				</Col>
-				<Col xs={24} sm={12} md={8} style={{ textAlign: "right" }}>
+				<Col sm={12} md={8} style={{ textAlign: "right" }}>
 					<Space wrap>
 						<Text type="secondary">
 							<FormattedMessage

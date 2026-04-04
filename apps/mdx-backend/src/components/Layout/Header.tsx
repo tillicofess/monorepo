@@ -1,101 +1,86 @@
-import { Button, Tooltip } from "antd";
-import { Globe, Menu, Moon, Sun } from "lucide-react";
-import { useAuth } from "@/providers/auth/auth";
-import { useLocale } from "@/providers/LocaleContext";
-import { Logo } from "./Logo";
-import { UserMenu } from "./UserMenu";
+import { Button, Drawer, theme } from "antd";
+import { Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
+import { MobileSiderContent } from "./index";
 
-interface HeaderProps {
-	isMobile: boolean;
-	onToggleMenu: () => void;
-}
+export function Header() {
+	const { token } = theme.useToken();
+	const [drawerOpen, setDrawerOpen] = useState(false);
+	const location = useLocation();
 
-const themeLabels = {
-	"en-US": { light: "Switch to dark mode", dark: "Switch to light mode" },
-	"zh-CN": { light: "切换到深色模式", dark: "切换到浅色模式" },
-};
+	useEffect(() => {
+		// Close drawer on route change
+		setDrawerOpen(false);
+	}, [location]);
 
-export function Header({ isMobile, onToggleMenu }: HeaderProps) {
-	const { lang, themeMode, changeLang, changeThemeMode } = useLocale();
-	const { user, logout } = useAuth();
 	return (
-		<div
-			style={{
-				display: "flex",
-				justifyContent: "space-between",
-				marginInline: isMobile ? 12 : 20,
-				alignItems: "center",
-				height: "100%",
-			}}
-		>
+		<>
 			<div
 				style={{
 					display: "flex",
 					alignItems: "center",
-					gap: isMobile ? 8 : 16,
+					height: 42,
+					padding: "0 16px",
+					background: token.colorBgContainer,
+					border: `1px solid ${token.colorBorderSecondary}`,
+					gap: 12,
+					borderRadius: 8,
 				}}
 			>
-				{isMobile && (
-					<Tooltip title="展开菜单">
-						<Button
-							type="text"
-							icon={<Menu size={20} />}
-							onClick={onToggleMenu}
-							style={{
-								width: 40,
-								height: 40,
-								borderRadius: 8,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-							}}
-						/>
-					</Tooltip>
-				)}
-				{!isMobile && <Logo collapsed={false} themeMode={themeMode} />}
+				<Button
+					type="text"
+					icon={<Menu size={20} style={{ color: token.colorTextTertiary }} />}
+					onClick={() => setDrawerOpen(true)}
+					style={{
+						width: 40,
+						height: 40,
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+					}}
+				/>
+
+				<div
+					style={{
+						flex: 1,
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						gap: 8,
+					}}
+				>
+					<img
+						src="/logo.svg"
+						alt="Vista"
+						style={{ width: 24, height: 24, flexShrink: 0 }}
+					/>
+					<span
+						style={{
+							fontWeight: 700,
+							fontSize: 16,
+							color: token.colorText,
+						}}
+					>
+						Vista
+					</span>
+				</div>
+
+				<div style={{ width: 40 }} />
 			</div>
 
-			<div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-				<Tooltip title={lang === "en-US" ? "切换到中文" : "Switch to English"}>
-					<Button
-						type="text"
-						size="middle"
-						icon={<Globe size={18} />}
-						onClick={() => changeLang(lang === "en-US" ? "zh-CN" : "en-US")}
-						style={{
-							height: 40,
-							width: 40,
-							borderRadius: 8,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					/>
-				</Tooltip>
-
-				<Tooltip title={themeLabels[lang][themeMode]}>
-					<Button
-						type="text"
-						size="middle"
-						icon={
-							themeMode === "light" ? <Moon size={18} /> : <Sun size={18} />
-						}
-						onClick={() =>
-							changeThemeMode(themeMode === "light" ? "dark" : "light")
-						}
-						style={{
-							height: 40,
-							width: 40,
-							borderRadius: 8,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
-					/>
-				</Tooltip>
-
-				<UserMenu userName={user?.name ?? ""} onLogout={logout} />
-			</div>
-		</div>
+			<Drawer
+				placement="left"
+				open={drawerOpen}
+				onClose={() => setDrawerOpen(false)}
+				size={280}
+				styles={{
+					body: { padding: 12, background: token.colorBgContainer },
+					header: { display: "none" },
+				}}
+			>
+				<MobileSiderContent />
+			</Drawer>
+		</>
 	);
 }

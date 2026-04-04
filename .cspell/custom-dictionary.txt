@@ -17,6 +17,7 @@ getmap
 gsap
 hokkaiink
 inited
+isshow
 lintstagedrc
 mdxbackend
 mdxeditor
